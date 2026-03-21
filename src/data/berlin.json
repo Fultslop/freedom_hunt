@@ -1,0 +1,14 @@
+{
+  "city": {
+    "id": "berlin",
+    "name": "Berlin",
+    "country": "Germany",
+    "flag": "🇩🇪",
+    "description": "The Berlin Freedom Hunt will trace the city's extraordinary journey from the capital of the Third Reich to the beating heart of modern German democracy. From the Brandenburg Gate to the Memorial to the Murdered Jews of Europe, from Checkpoint Charlie to the Reichstag — each stop connects the horrors of 20th century fascism to the ongoing fight for American democracy today.",
+    "totalLocations": 0,
+    "totalPoints": 0,
+    "walkTime": "TBD",
+    "suggestedRoute": "Coming soon"
+  },
+  "locations": []
+}

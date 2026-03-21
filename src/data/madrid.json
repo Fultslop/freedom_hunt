@@ -1,0 +1,14 @@
+{
+  "city": {
+    "id": "madrid",
+    "name": "Madrid",
+    "country": "Spain",
+    "flag": "🇪🇸",
+    "description": "The Madrid Freedom Hunt will trace Spain's extraordinary and painful path from Francisco Franco's dictatorship to one of Europe's most vibrant democracies. From the Valley of the Fallen to the Prado's Guernica, from Retiro Park's monuments of resistance to the Plaza Mayor's complex history — each stop connects Spain's democratic struggle to the ongoing fight for American democratic values abroad.",
+    "totalLocations": 0,
+    "totalPoints": 0,
+    "walkTime": "TBD",
+    "suggestedRoute": "Coming soon"
+  },
+  "locations": []
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "amsterdam",
+    "name": "Amsterdam",
+    "country": "Netherlands",
+    "flag": "🇳🇱",
+    "tagline": "Where resistance became history",
+    "description": "15 stops through Amsterdam's WWII resistance sites, connecting the fight against fascism to your power to vote from abroad.",
+    "status": "active",
+    "locationCount": 15
+  },
+  {
+    "id": "berlin",
+    "name": "Berlin",
+    "country": "Germany",
+    "flag": "🇩🇪",
+    "tagline": "Where the wall fell and democracy rose",
+    "description": "From the Brandenburg Gate to the Memorial to the Murdered Jews of Europe — a hunt through the capital of modern German democracy.",
+    "status": "coming-soon",
+    "locationCount": 0
+  },
+  {
+    "id": "madrid",
+    "name": "Madrid",
+    "country": "Spain",
+    "flag": "🇪🇸",
+    "tagline": "Where Franco's shadow meets a new democracy",
+    "description": "Tracing Spain's path from dictatorship to democracy across the streets of Madrid, connecting expat votes to civil rights history.",
+    "status": "coming-soon",
+    "locationCount": 0
+  }
+]
