@@ -30,4 +30,4 @@ See `doc/architecture.md` for full project context.
 
 Before starting work, read:
 1. `doc/architecture.md` — understand the project structure
-2. Last 3 entries in `doc/devlog/devlog.md` — know what's changed recently
+2. Last 3 entries in `doc/devlog/devlog.md` — entries are delimited by `**DD/MM/YYYY, Author**:` lines, newest first
