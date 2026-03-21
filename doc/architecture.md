@@ -39,9 +39,12 @@ doc/
   architecture.md     — This file
   devlog/
     devlog.md         — Session-by-session development log
+  plans/              — Human-authored implementation plans
+  prompts/
+    prompts.md        — Reusable prompts and AI context snippets
   superpowers/
     specs/            — Brainstorming design specs
-    plans/            — Implementation plans
+    plans/            — Superpowers-generated implementation plans
 ```
 
 ## Routing
@@ -51,7 +54,10 @@ doc/
 | `/` | `LandingPage` | Static spec/overview page |
 | `/:city` | `CityPage` | Dynamic — loads `src/data/<cityId>.json` via `import()` |
 
-CityPage handles three states: loading, not-found (no matching JSON), and data-loaded. Coming-soon cities have a JSON stub with an empty `locations` array — CityPage renders a "Hunt Under Construction" state for these.
+CityPage handles three distinct states:
+- **Loading** — JSON import in progress
+- **Not found** — no JSON file exists for the city ID (e.g., `/paris`) → renders "City not found"
+- **Data loaded** — JSON found; if `locations` array is empty (coming-soon stub) → renders "Hunt Under Construction"; if populated → renders the full location list
 
 ## Data Model
 
