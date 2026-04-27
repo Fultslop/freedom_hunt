@@ -140,7 +140,7 @@ export default function LandingPage() {
         {activeTab === "overview" && (
           <div>
             <Section title="What Is This?">
-              <p>The Freedom Hunt is a gamified, digitally-run scavenger hunt across European cities for American expats. Run by Democrats Abroad chapters, it is designed to drive voter registration while building community, political consciousness, and genuine fun.</p>
+              <p>The Freedom Hunt is a digitally-run scavenger hunt across several European cities, promoting US Voter Registration. Run by Democrats Abroad chapters, it is designed to drive voter registration while building community, political consciousness, and genuine fun.</p>
               <p>Inspired by <strong style={{ color: "#c4952a" }}>Zohran Mamdani's August 2025 NYC scavenger hunt</strong> — which drew thousands overnight from a single social post, got 2 million views, and was credited as part of his path to winning the NYC mayoral race — this version is built for the expat context: longer lead time, digital tools, and a deeper historical curriculum.</p>
             </Section>
 
