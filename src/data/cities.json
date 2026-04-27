@@ -10,6 +10,16 @@
     "locationCount": 15
   },
   {
+    "id": "den_haag",
+    "name": "Den Haag",
+    "country": "Netherlands",
+    "flag": "🇳🇱",
+    "tagline": "to do",
+    "description": "to do.",
+    "status": "active",
+    "locationCount": 1
+  },
+  {
     "id": "berlin",
     "name": "Berlin",
     "country": "Germany",
