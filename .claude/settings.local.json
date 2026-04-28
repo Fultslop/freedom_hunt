@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(echo \"EXIT_CODE:$?\")",
+      "Bash(node -e \"const pkg = require\\('./node_modules/vitest/package.json'\\); console.log\\('vitest:', pkg.version\\)\")",
+      "Bash(node -e \"const pkg = require\\('./node_modules/@testing-library/react/package.json'\\); console.log\\('@testing-library/react:', pkg.version\\); const peer = pkg.peerDependencies; console.log\\('peerDependencies:', JSON.stringify\\(peer\\)\\)\")",
+      "Bash(node -e \"const pkg = require\\('./node_modules/@testing-library/jest-dom/package.json'\\); console.log\\('@testing-library/jest-dom:', pkg.version\\)\")",
+      "Bash(node -e \"const pkg = require\\('./node_modules/jsdom/package.json'\\); console.log\\('jsdom:', pkg.version\\)\")",
+      "Bash(node -e \"const data = require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const pkg = JSON.parse\\(data\\); console.log\\('vitest peerDeps:', JSON.stringify\\(pkg.peerDependencies || {}, null, 2\\)\\)\")",
+      "Bash(node -e \"const pkg = require\\('C:/Users/lassc/Code/js/freedom_hunt/node_modules/vitest/package.json'\\); console.log\\(JSON.stringify\\(pkg.peerDependencies || {}\\)\\)\")",
+      "Bash(node -e \"const pkg = require\\('C:/Users/lassc/Code/js/freedom_hunt/node_modules/@testing-library/jest-dom/package.json'\\); console.log\\('exports:', JSON.stringify\\(pkg.exports || {}, null, 2\\)\\); console.log\\('main:', pkg.main\\)\")",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "short_walk": {
+    "description": "A 90-minute introduction. 3 stops.",
+    "locations": [
+      "001_loc_binnenhof",
+      "002_loc_vredespaleis",
+      "003_loc_plein"
+    ]
+  }
+}
