@@ -1,0 +1,7 @@
+{
+  "title": "Test Title",
+  "description": "Test description.",
+  "location": { "lat": 52.0877, "long": 4.2951 },
+  "clue": "Test clue",
+  "challenge": "Test challenge."
+}
