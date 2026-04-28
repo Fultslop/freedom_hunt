@@ -1,4 +1,6 @@
-# The Freedom Hunt — Architecture
+# The Freedom Hunt — Architecture v1.0
+
+Note: this applies to v1.0 and doesn't apply to v2.0
 
 ## What Is This Project
 
