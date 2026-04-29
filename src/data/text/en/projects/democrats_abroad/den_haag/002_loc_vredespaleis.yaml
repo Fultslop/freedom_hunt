@@ -1,12 +1,13 @@
 locationId: 2
 title: "Peace Palace"
+image: rafael-ishkhanyan-den-haag-peace-palace-unsplash.jpg
 name:
   label: "location details"
   value: ""
 address: ""
 coordinates:
   longitude: 4.2951
-  lattitude: 52.0877
+  latitude: 52.0877
 storyline: |
   Built in 1913 to house the Permanent Court of Arbitration, the Peace Palace is now home to the International Court of Justice — the principal judicial organ of the United Nations. It stands on the premise that disputes between nations can be settled by law, not war.
 challenge:

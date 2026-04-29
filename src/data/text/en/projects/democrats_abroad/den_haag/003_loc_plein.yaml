@@ -1,12 +1,13 @@
 locationId: 3
 title: "Plein 1813"
+image: den-haag-het-plein.jpg
 name:
   label: "location details"
   value: ""
 address: ""
 coordinates:
   longitude: 4.3115
-  lattitude: 52.0793
+  latitude: 52.0793
 storyline: |
   The Plein square in central Den Haag is named for the date in 1813 when the Netherlands regained its independence after French occupation. It later became a gathering point for resistance networks during the Nazi occupation of 1940–1945.
 challenge:
