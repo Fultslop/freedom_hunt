@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { cloudflare } from "@cloudflare/vite-plugin";
+import yaml from '@modyfi/vite-plugin-yaml'
 
 export default defineConfig({
-  plugins: [react(), cloudflare()],
+  plugins: [react(), cloudflare(), yaml()],
   server: {
     historyApiFallback: true,
   },

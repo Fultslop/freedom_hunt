@@ -1,0 +1,18 @@
+locationId: 2
+title: "Peace Palace"
+name:
+  label: "location details"
+  value: ""
+address: ""
+coordinates:
+  longitude: 4.2951
+  lattitude: 52.0877
+storyline: |
+  Built in 1913 to house the Permanent Court of Arbitration, the Peace Palace is now home to the International Court of Justice — the principal judicial organ of the United Nations. It stands on the premise that disputes between nations can be settled by law, not war.
+challenge:
+  name: ""
+  description: |
+    The US donated this gift when it still believed in international institutions. Write or voice-memo one sentence: what does American leadership in international law mean to you today? Share it with one person in your group.
+  notes: ""
+breadcrumb: |
+  At the main gate, find the mosaic donated by the United States in 1913. What image does it depict, and which state commissioned it?
