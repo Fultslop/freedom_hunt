@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ThemeProvider } from '../theme/ThemeContext'
 import ChallengeCard from '../components/ChallengeCard'
 
@@ -77,6 +77,45 @@ test('renders challenge description', () => {
 test('renders breadcrumb', () => {
   render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
   expect(screen.getByText('Find the inner courtyard.')).toBeInTheDocument()
+})
+
+describe('photo upload', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  test('renders camera button in idle state', () => {
+    render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
+    expect(screen.getByText('📷 Submit photo proof')).toBeInTheDocument()
+  })
+
+  test('shows uploading state while fetch is pending', async () => {
+    global.fetch = vi.fn(() => new Promise(() => {}))
+    render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
+    const input = document.querySelector('input[type="file"]')
+    fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
+    await waitFor(() => expect(screen.getByText('Uploading…')).toBeInTheDocument())
+  })
+
+  test('shows success confirmation after upload', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({
+      json: () => Promise.resolve({ ok: true, key: '001_123.jpg' }),
+    }))
+    render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
+    const input = document.querySelector('input[type="file"]')
+    fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
+    await waitFor(() => expect(screen.getByText('✓ Photo submitted')).toBeInTheDocument())
+  })
+
+  test('shows retry button on failed upload', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({
+      json: () => Promise.resolve({ ok: false, error: 'Upload failed' }),
+    }))
+    render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
+    const input = document.querySelector('input[type="file"]')
+    fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
+    await waitFor(() => expect(screen.getByText('📷 Try again')).toBeInTheDocument())
+  })
 })
 
 test('does not render hero image when image field absent', () => {
