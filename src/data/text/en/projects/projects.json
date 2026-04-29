@@ -1,11 +1,11 @@
 {
   "page.title": "Choose a project",
-  "page.subtitle": "Select an organisation to hunt with",
+  "page.subtitle": "Select an event",
   "items": [
     {
       "id": "democrats_abroad",
-      "name": "GWC - scavenger hunt",
-      "description": "American expats standing up for democracy, one city at a time."
+      "name": "Dems Abroad Global Women's Caucus - scavenger hunt NL",
+      "description": "The city transforms into a living civic map. Participants move through modern and historic sitess while completing guided tasks to connect The Hague’s history to the defense of democratic norms in the United States today."
     }
   ]
 }
