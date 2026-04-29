@@ -1,12 +1,13 @@
 locationId: 1
-title: "Binnenhof"
+title: "The Final Civic Act"
+image: alireza-parpaei-den-haag-binnenhof-unsplash.jpg
 name:
-  label: "location details"
-  value: ""
-address: ""
+  label: ""
+  value: "Binnenhof / Het Plein"
+address: "Binnenhof 1"
 coordinates:
   longitude: 4.3133
-  lattitude: 52.0799
+  latitude: 52.0799
 storyline: |
   The Binnenhof is the oldest seat of parliament in the world still in use. Its 13th-century towers have witnessed wars, occupations, liberation, and democratic renewal.
 challenge:
