@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react'
 import { LanguageContext } from '../i18n/LanguageContext'
 
-const modules = import.meta.glob('../data/text/**/*.json')
+const modules = import.meta.glob('../data/text/**/*.yaml')
 
 export function useLocations(paths) {
   const { currentLang } = useContext(LanguageContext)
@@ -17,7 +17,7 @@ export function useLocations(paths) {
     setLoading(true)
     Promise.all(
       paths.map(path => {
-        const key = `../data/text/${currentLang}/${path}.json`
+        const key = `../data/text/${currentLang}/${path}.yaml`
         const loader = modules[key]
         return loader ? loader().then(m => m.default) : Promise.resolve(null)
       })

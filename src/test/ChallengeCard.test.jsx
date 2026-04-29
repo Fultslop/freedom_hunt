@@ -4,9 +4,9 @@ import ChallengeCard from '../components/ChallengeCard'
 
 const location = {
   title: 'Test Location',
-  description: 'A historic place.',
-  clue: 'Find the plaque.',
-  challenge: 'Register to vote.',
+  storyline: 'A historic place.',
+  breadcrumb: 'Find the plaque.',
+  challenge: { description: 'Register to vote.' },
 }
 
 function Wrapper({ children }) {

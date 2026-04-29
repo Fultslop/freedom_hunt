@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react'
 import { LanguageContext } from '../i18n/LanguageContext'
 
-const modules = import.meta.glob('../data/text/**/*.json')
+const modules = import.meta.glob('../data/text/**/*.yaml')
 
 export function useText(path) {
   const { currentLang } = useContext(LanguageContext)
@@ -9,7 +9,7 @@ export function useText(path) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const key = `../data/text/${currentLang}/${path}.json`
+    const key = `../data/text/${currentLang}/${path}.yaml`
     const loader = modules[key]
     if (!loader) {
       setText(null)
