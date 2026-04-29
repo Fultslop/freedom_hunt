@@ -3,8 +3,13 @@ import react from '@vitejs/plugin-react'
 import { cloudflare } from "@cloudflare/vite-plugin";
 import yaml from '@modyfi/vite-plugin-yaml'
 
+const plugins = [react(), yaml()]
+if (!process.env.VITEST) {
+  plugins.push(cloudflare())
+}
+
 export default defineConfig({
-  plugins: [react(), cloudflare(), yaml()],
+  plugins,
   server: {
     historyApiFallback: true,
   },

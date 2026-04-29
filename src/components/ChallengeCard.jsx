@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { useTheme } from '../theme/ThemeContext'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
@@ -24,9 +25,27 @@ function getImageUrl(imageName) {
 
 export default function ChallengeCard({ location }) {
   const { theme } = useTheme()
+  const [uploadState, setUploadState] = useState('idle')
+  const fileInputRef = useRef(null)
   const heroSrc = location.image ? getImageUrl(location.image) : null
   const hasHero = !!heroSrc
   const pos = [location.coordinates.latitude, location.coordinates.longitude]
+
+  async function handleFileChange(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploadState('uploading')
+    const body = new FormData()
+    body.append('photo', file)
+    body.append('locationId', String(location.locationId))
+    try {
+      const res = await fetch('/upload', { method: 'POST', body })
+      const data = await res.json()
+      setUploadState(data.ok ? 'success' : 'error')
+    } catch {
+      setUploadState('error')
+    }
+  }
 
   const titleCard = (
     <div style={{
@@ -129,6 +148,43 @@ export default function ChallengeCard({ location }) {
           <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: theme.text }}>
             {location.challenge.description}
           </p>
+        </div>
+
+        <div style={{ marginTop: 12 }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
+          {uploadState === 'success' ? (
+            <div style={{ fontSize: 13, color: '#2d7a2d', fontWeight: 600 }}>✓ Photo submitted</div>
+          ) : (
+            <>
+              <button
+                onClick={() => fileInputRef.current.click()}
+                disabled={uploadState === 'uploading'}
+                style={{
+                  width: '100%',
+                  padding: '10px 0',
+                  background: uploadState === 'uploading' ? theme.surface : '#002868',
+                  color: uploadState === 'uploading' ? theme.textMuted : '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: uploadState === 'uploading' ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {uploadState === 'uploading' ? 'Uploading…' : uploadState === 'error' ? '📷 Try again' : '📷 Submit photo proof'}
+              </button>
+              {uploadState === 'error' && (
+                <div style={{ fontSize: 11, color: '#BF0A30', marginTop: 4 }}>Upload failed. Please try again.</div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
