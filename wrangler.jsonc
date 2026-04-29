@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "gwc-2026",
+  "name": "da-abroad-freedom-hunt",
   "main": "src/worker.js",
   "compatibility_date": "2025-09-27",
   "observability": {
