@@ -16,7 +16,7 @@ See `doc/architecture.md` for full project context.
 ## Key Docs
 
 - **Architecture:** `doc/architecture.md` — project intent, stack, routing, data model
-- **Devlog:** `doc/devlog/devlog.md` — dated log of decisions and changes
+- **Devlog:** `doc/devlog/_devlog.md` — dated log of decisions and changes
 
 ## Coding Conventions
 
@@ -35,3 +35,7 @@ Before starting work, read:
 ## Session End
 
 **Always update the devlog as the last step of every session.** Add an entry at the top of `doc/devlog/devlog.md` following the format: `**DD/MM/YYYY, Claude**: [TYPE] One-line summary. Up to 5 bullet points.`
+
+## Limitations
+
+* The user will control Git, do not invoke git commands

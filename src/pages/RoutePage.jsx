@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useText } from '../hooks/useText'
 import { useLocations } from '../hooks/useLocations'
+import { useTheme } from '../theme/ThemeContext'
+import { useTitleBar } from '../theme/TitleBarContext'
 import ChallengeCard from '../components/ChallengeCard'
 
 export function clampedNext(current, total) {
@@ -17,6 +19,7 @@ export default function RoutePage() {
   const { project, city, route } = useParams()
   const navigate = useNavigate()
   const storageKey = `${project}/${city}/${route}`
+  const { theme } = useTheme()
 
   const { text: routesText, loading: routesLoading } = useText(
     `projects/${project}/${city}/routes`
@@ -41,6 +44,12 @@ export default function RoutePage() {
     localStorage.setItem(storageKey, currentIndex)
   }, [storageKey, currentIndex])
 
+  useTitleBar({
+    title: route.replace(/_/g, ' '),
+    progress: locations.length > 0 ? { current: currentIndex + 1, total: locations.length } : null,
+    backPath: `/${project}/${city}`,
+  })
+
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX
   }
@@ -54,55 +63,52 @@ export default function RoutePage() {
   }
 
   if (routesLoading || locationsLoading) {
-    return <div style={{ padding: 24 }}>Loading…</div>
+    return <div style={{ padding: 24, background: theme.background, color: theme.text }}>Loading…</div>
   }
 
   if (!routeData) {
-    return <div style={{ padding: 24 }}>Route not found.</div>
+    return <div style={{ padding: 24, background: theme.background, color: theme.text }}>Route not found.</div>
   }
 
   const location = locations[currentIndex]
   if (!location) {
-    return <div style={{ padding: 24 }}>No locations found for this route.</div>
+    return <div style={{ padding: 24, background: theme.background, color: theme.text }}>No locations found for this route.</div>
   }
 
   return (
     <div
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      style={{ userSelect: 'none' }}
+      style={{ userSelect: 'none', background: theme.background, minHeight: '100vh' }}
     >
       <style>{`html, body, #root { margin: 0; padding: 0; height: 100%; }`}</style>
 
-      <ChallengeCard
-        location={location}
-        index={currentIndex}
-        total={locations.length}
-      />
+      <ChallengeCard location={location} />
 
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         padding: '12px 24px',
-        borderTop: '1px solid #eee',
+        borderTop: `1px solid ${theme.border}`,
+        background: theme.surface,
       }}>
         <button
           onClick={() => setCurrentIndex(i => clampedPrev(i))}
           disabled={currentIndex === 0}
-          style={{ padding: '8px 16px', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', cursor: 'pointer', background: theme.surface, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 4 }}
         >
           ← Prev
         </button>
         <button
           onClick={() => navigate(`/${project}/${city}`)}
-          style={{ padding: '8px 16px', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', cursor: 'pointer', background: theme.surface, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 4 }}
         >
           Exit
         </button>
         <button
           onClick={() => setCurrentIndex(i => clampedNext(i, locations.length))}
           disabled={currentIndex === locations.length - 1}
-          style={{ padding: '8px 16px', cursor: 'pointer' }}
+          style={{ padding: '8px 16px', cursor: 'pointer', background: theme.surface, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 4 }}
         >
           Next →
         </button>
