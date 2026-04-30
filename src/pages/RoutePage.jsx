@@ -83,9 +83,15 @@ export default function RoutePage() {
     >
       <style>{`html, body, #root { margin: 0; padding: 0; height: 100%; }`}</style>
 
-      <ChallengeCard location={location} />
+      <div style={{ paddingBottom: 60 }}>
+        <ChallengeCard location={location} />
+      </div>
 
       <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
