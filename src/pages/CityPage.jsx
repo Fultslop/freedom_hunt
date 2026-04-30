@@ -3,6 +3,7 @@ import { useText } from '../hooks/useText'
 import { useTheme } from '../theme/ThemeContext'
 import { useTitleBar } from '../theme/TitleBarContext'
 import RouteSelector from '../components/RouteSelector'
+import MarkdownText from '../components/MarkdownText'
 
 const STYLE_RESET = `html, body, #root { margin: 0; padding: 0; }`
 
@@ -35,7 +36,10 @@ export default function CityPage() {
       {cityText && (
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: theme.text }}>{cityText['city.title']}</h1>
-          <p style={{ fontSize: 14, color: theme.textSecondary, marginTop: 8 }}>{cityText['city.description']}</p>
+          <MarkdownText
+            text={cityText['city.description']}
+            style={{ fontSize: 14, color: theme.textSecondary, marginTop: 8, lineHeight: 1.6 }}
+          />
         </div>
       )}
       <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, color: theme.text }}>Choose a route</h2>

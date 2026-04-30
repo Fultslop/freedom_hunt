@@ -3,6 +3,7 @@ import 'leaflet/dist/leaflet.css'
 import { useTheme } from '../theme/ThemeContext'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
 import L from 'leaflet'
+import MarkdownText from './MarkdownText'
 
 const pin = L.divIcon({
   className: '',
@@ -14,10 +15,12 @@ function getImageUrl(imageName) {
   switch (imageName) {
     case 'alireza-parpaei-den-haag-binnenhof-unsplash.jpg':
       return new URL('../data/img/alireza-parpaei-den-haag-binnenhof-unsplash.jpg', import.meta.url).href
-    case 'rafael-ishkhanyan-den-haag-peace-palace-unsplash.jpg':
-      return new URL('../data/img/rafael-ishkhanyan-den-haag-peace-palace-unsplash.jpg', import.meta.url).href
     case 'den-haag-het-plein.jpg':
       return new URL('../data/img/den-haag-het-plein.jpg', import.meta.url).href
+    case 'den-haag-lange-poten.jpg':
+      return new URL('../data/img/den-haag-lange-poten.jpg', import.meta.url).href
+    case 'rafael-ishkhanyan-den-haag-peace-palace-unsplash.jpg':
+      return new URL('../data/img/rafael-ishkhanyan-den-haag-peace-palace-unsplash.jpg', import.meta.url).href
     default:
       return null
   }
@@ -114,9 +117,10 @@ export default function ChallengeCard({ location }) {
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8 }}>
           Storyline
         </div>
-        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: theme.text }}>
-          {location.storyline}
-        </p>
+        <MarkdownText
+          text={location.storyline}
+          style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: theme.text }}
+        />
       </div>
 
       <div style={{ padding: 16, borderBottom: `1px solid ${theme.border}` }}>
@@ -145,9 +149,10 @@ export default function ChallengeCard({ location }) {
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 6 }}>
             Challenge
           </div>
-          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: theme.text }}>
-            {location.challenge.description}
-          </p>
+          <MarkdownText
+            text={location.challenge.description}
+            style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: theme.text }}
+          />
         </div>
 
         <div style={{ marginTop: 12 }}>

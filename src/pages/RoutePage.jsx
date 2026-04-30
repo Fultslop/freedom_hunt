@@ -88,30 +88,37 @@ export default function RoutePage() {
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
+        alignItems: 'center',
         padding: '12px 24px',
         borderTop: `1px solid ${theme.border}`,
         background: theme.surface,
       }}>
-        <button
-          onClick={() => setCurrentIndex(i => clampedPrev(i))}
-          disabled={currentIndex === 0}
-          style={{ padding: '8px 16px', cursor: 'pointer', background: theme.surface, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 4 }}
-        >
-          ← Prev
-        </button>
+        <div style={{ width: 80 }}>
+          {currentIndex > 0 && (
+            <button
+              onClick={() => setCurrentIndex(i => clampedPrev(i))}
+              style={{ padding: '8px 16px', cursor: 'pointer', background: theme.surface, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 4 }}
+            >
+              ← Prev
+            </button>
+          )}
+        </div>
         <button
           onClick={() => navigate(`/${project}/${city}`)}
           style={{ padding: '8px 16px', cursor: 'pointer', background: theme.surface, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 4 }}
         >
           Exit
         </button>
-        <button
-          onClick={() => setCurrentIndex(i => clampedNext(i, locations.length))}
-          disabled={currentIndex === locations.length - 1}
-          style={{ padding: '8px 16px', cursor: 'pointer', background: theme.surface, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 4 }}
-        >
-          Next →
-        </button>
+        <div style={{ width: 80, display: 'flex', justifyContent: 'flex-end' }}>
+          {currentIndex < locations.length - 1 && (
+            <button
+              onClick={() => setCurrentIndex(i => clampedNext(i, locations.length))}
+              style={{ padding: '8px 16px', cursor: 'pointer', background: theme.surface, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 4 }}
+            >
+              Next →
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

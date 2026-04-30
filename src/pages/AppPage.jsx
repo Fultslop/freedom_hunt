@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useText } from '../hooks/useText'
 import { useTheme } from '../theme/ThemeContext'
 import { useTitleBar } from '../theme/TitleBarContext'
+import MarkdownText from '../components/MarkdownText'
 
 const STYLE_RESET = `html, body, #root { margin: 0; padding: 0; }`
 
@@ -60,7 +61,10 @@ export default function AppPage() {
           }}
         >
           <div style={{ fontWeight: 600, fontSize: 17, color: theme.text }}>{project.name}</div>
-          <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>{project.description}</div>
+          <MarkdownText
+            text={project.description}
+            style={{ fontSize: 13, color: theme.textMuted, marginTop: 4, lineHeight: 1.5 }}
+          />
         </div>
       ))}
     </div>

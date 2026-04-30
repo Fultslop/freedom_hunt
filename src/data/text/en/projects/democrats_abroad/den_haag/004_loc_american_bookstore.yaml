@@ -1,0 +1,44 @@
+locationId: 1
+title: ABC American Book Center
+
+image: den-haag-lange-poten.jpg
+
+name:
+  label: ""
+  value: The Right to Read
+
+address: Lange Poten 23
+
+coordinates:
+  latitude: 52.07881
+  longitude: 4.31491
+
+storyline: |
+  Book bans are not just about books. They are about who gets to be seen, whose stories are considered dangerous, and what ideas
+  young people are allowed to encounter.
+
+  In the United States, attempts to ban, challenge, restrict, or remove books from schools and libraries have increased sharply in
+  recent years. PEN America recorded 6,870 instances of school book bans during the 2024 to 2025 school year, across 23 states and
+  87 public school districts. The American Library Association also tracks censorship attempts in libraries and schools and reported
+  that thousands of unique titles have been targeted, with many challenges focusing on books involving LGBTQ+ people, people of
+  color, sexuality, racism, gender, violence, or honest accounts of history.
+
+  That pattern is the point of this stop. A book does not have to be illegal everywhere to be part of a censorship campaign. It may
+  have been removed from a school library, restricted to certain students, challenged by a parent group, pulled during review, or
+  banned under a state or district policy.
+
+  **Your job is to find one of those books in the wild: not in a banned-book display, not in a government hearing, but sitting
+  openly on a shelf in The Hague. What someone tried to remove from public life is still here.**
+
+challenge:
+  name: ""
+  description: |
+    Find one book in The ABC or Paagman that has been banned, challenged, restricted, or removed somewhere in the United States.
+    Use Google to verify the case. Submit the title, author, where/who challenged or removed it, and what idea someone was afraid of.
+    Upload a photo of the book in the shop .
+
+  notes: ""
+
+breadcrumb: |
+  You have found one idea someone tried to remove from public life. Now walk toward the Spui and the Nieuwe Kerk: the
+  churchyard where The Hague keeps one of its arguments about truth, exile, and belonging.

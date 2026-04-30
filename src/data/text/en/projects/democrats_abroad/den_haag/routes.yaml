@@ -1,6 +1,18 @@
-short_walk:
-  description: "A 90-minute introduction. 3 stops."
+short_loop:
+  description: "Short Loop is a 2.5 to 3-hour route. It turns back through the city's public life, cafés, streets, and coalition-building spaces before returning to the finish at the Binnenhof / Het Plein."
   locations:
+    - 001_loc_binnenhof
+    - 002_loc_vredespaleis
+
+extended_route:
+  description: |
+    Extended Route is a 3.5 to 4.5 hour extended route toward Scheveningen, with tram or bike return to the shared
+    finish. It continues through the Peace Palace, Kleykamp, the Oranjehotel, and Scheveningen Beach before
+    returning to the Binnenhof / Het Plein. This longer, extended route requires either bike or tram access by the
+    participant. 
+
+  locations:
+    - 004_loc_american_bookstore
     - 001_loc_binnenhof
     - 002_loc_vredespaleis
     - 003_loc_plein
