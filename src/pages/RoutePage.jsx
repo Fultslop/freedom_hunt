@@ -5,6 +5,7 @@ import { useLocations } from '../hooks/useLocations'
 import { useTheme } from '../theme/ThemeContext'
 import { useTitleBar } from '../theme/TitleBarContext'
 import ChallengeCard from '../components/ChallengeCard'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export function clampedNext(current, total) {
   if (total <= 0) return 0
@@ -37,6 +38,7 @@ export default function RoutePage() {
     const parsed = saved ? parseInt(saved, 10) : 0
     return isNaN(parsed) ? 0 : parsed
   })
+  const [direction, setDirection] = useState('next')
 
   const touchStartX = useRef(null)
 
@@ -58,8 +60,13 @@ export default function RoutePage() {
     if (touchStartX.current === null) return
     const delta = e.changedTouches[0].clientX - touchStartX.current
     touchStartX.current = null
-    if (delta < -60) setCurrentIndex(i => clampedNext(i, locations.length))
-    else if (delta > 60) setCurrentIndex(i => clampedPrev(i))
+    if (delta < -60) {
+      setDirection('next')
+      setCurrentIndex(i => clampedNext(i, locations.length))
+    } else if (delta > 60) {
+      setDirection('prev')
+      setCurrentIndex(i => clampedPrev(i))
+    }
   }
 
   if (routesLoading || locationsLoading) {
@@ -81,11 +88,26 @@ export default function RoutePage() {
       onTouchEnd={handleTouchEnd}
       style={{ userSelect: 'none', background: theme.background, minHeight: '100vh' }}
     >
-      <style>{`html, body, #root { margin: 0; padding: 0; height: 100%; }`}</style>
+      <style>{`
+        html, body, #root { margin: 0; padding: 0; height: 100%; }
+        @keyframes slideInFromRight {
+          from { transform: translateX(40px); opacity: 0; }
+          to   { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideInFromLeft {
+          from { transform: translateX(-40px); opacity: 0; }
+          to   { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
 
       <div style={{ paddingBottom: 60 }}>
-        {/* isLast: hides the breadcrumb clue on the final stop */}
-        <ChallengeCard location={location} isLast={currentIndex === locations.length - 1} index={currentIndex + 1} />
+        <div
+          key={currentIndex}
+          style={{ animation: `${direction === 'next' ? 'slideInFromRight' : 'slideInFromLeft'} 250ms ease-out` }}
+        >
+          {/* isLast: hides the breadcrumb clue on the final stop */}
+          <ChallengeCard location={location} isLast={currentIndex === locations.length - 1} index={currentIndex + 1} />
+        </div>
       </div>
 
       <div style={{
@@ -103,26 +125,56 @@ export default function RoutePage() {
         <div style={{ width: 80 }}>
           {currentIndex > 0 && (
             <button
-              onClick={() => setCurrentIndex(i => clampedPrev(i))}
-              style={{ padding: '8px 16px', cursor: 'pointer', background: theme.surface, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 4 }}
+              aria-label="Previous stop"
+              onClick={() => { setDirection('prev'); setCurrentIndex(i => clampedPrev(i)) }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                padding: '8px 14px',
+                cursor: 'pointer',
+                background: 'transparent',
+                color: theme.textSecondary,
+                border: `1px solid ${theme.border}`,
+                borderRadius: 8,
+                fontSize: 13,
+              }}
             >
-              ← Prev
+              <ChevronLeft size={16} aria-hidden /> Prev
             </button>
           )}
         </div>
+
         <button
           onClick={() => navigate(`/${project}/${city}`)}
-          style={{ padding: '8px 16px', cursor: 'pointer', background: theme.surface, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 4 }}
+          style={{
+            padding: '8px 14px',
+            cursor: 'pointer',
+            background: 'transparent',
+            color: theme.textMuted,
+            border: 'none',
+            fontSize: 12,
+          }}
         >
           Exit
         </button>
+
         <div style={{ width: 80, display: 'flex', justifyContent: 'flex-end' }}>
           {currentIndex < locations.length - 1 && (
             <button
-              onClick={() => setCurrentIndex(i => clampedNext(i, locations.length))}
-              style={{ padding: '8px 16px', cursor: 'pointer', background: theme.surface, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 4 }}
+              aria-label="Next stop"
+              onClick={() => { setDirection('next'); setCurrentIndex(i => clampedNext(i, locations.length)) }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                padding: '8px 14px',
+                cursor: 'pointer',
+                background: theme.accent,
+                color: '#000',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 700,
+              }}
             >
-              Next →
+              Next <ChevronRight size={16} aria-hidden />
             </button>
           )}
         </div>

@@ -4,6 +4,7 @@ import { useTheme } from '../theme/ThemeContext'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
 import L from 'leaflet'
 import MarkdownText from './MarkdownText'
+import { BookOpen, MapPin, Crosshair, Compass, Camera } from 'lucide-react'
 
 const pin = L.divIcon({
   className: '',
@@ -65,7 +66,7 @@ export default function ChallengeCard({ location, isLast, index }) {
       <div style={{
         minWidth: 44,
         height: 44,
-        background: '#002868',
+        background: location.themeColor ?? '#002868',
         color: '#fff',
         borderRadius: 6,
         display: 'flex',
@@ -74,7 +75,9 @@ export default function ChallengeCard({ location, isLast, index }) {
         fontSize: 20,
         fontWeight: 800,
         flexShrink: 0,
-      }}>
+      }}
+        data-testid="location-badge"
+      >
         {index}
       </div>
       <div>
@@ -97,6 +100,12 @@ export default function ChallengeCard({ location, isLast, index }) {
 
   return (
     <div style={{ background: theme.background }}>
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
 
       {hasHero ? (
         <div style={{ position: 'relative', marginBottom: 48 }}>
@@ -116,7 +125,8 @@ export default function ChallengeCard({ location, isLast, index }) {
       )}
 
       <div style={{ padding: 16, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <BookOpen size={12} aria-hidden />
           Storyline
         </div>
         <MarkdownText
@@ -126,7 +136,8 @@ export default function ChallengeCard({ location, isLast, index }) {
       </div>
 
       <div style={{ padding: 16, borderBottom: `1px solid ${theme.border}` }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <MapPin size={12} aria-hidden />
           Location
         </div>
         <MapContainer
@@ -148,7 +159,8 @@ export default function ChallengeCard({ location, isLast, index }) {
         </div>
 
         <div style={{ marginTop: 14, background: theme.surface, borderRadius: 6, padding: '12px 14px' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 6 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <Crosshair size={12} aria-hidden />
             Challenge
           </div>
           <MarkdownText
@@ -171,13 +183,14 @@ export default function ChallengeCard({ location, isLast, index }) {
           ) : (
             <>
               <button
+                data-testid="submit-btn"
                 onClick={() => fileInputRef.current.click()}
                 disabled={uploadState === 'uploading'}
                 style={{
                   width: '100%',
                   padding: '10px 0',
-                  background: uploadState === 'uploading' ? theme.surface : '#002868',
-                  color: uploadState === 'uploading' ? theme.textMuted : '#fff',
+                  background: uploadState === 'uploading' ? theme.surface : theme.accent,
+                  color: uploadState === 'uploading' ? theme.textMuted : '#000',
                   border: 'none',
                   borderRadius: 6,
                   fontSize: 13,
@@ -185,7 +198,12 @@ export default function ChallengeCard({ location, isLast, index }) {
                   cursor: uploadState === 'uploading' ? 'not-allowed' : 'pointer',
                 }}
               >
-                {uploadState === 'uploading' ? 'Uploading…' : uploadState === 'error' ? '📷 Try again' : '📷 Submit photo proof'}
+                {uploadState === 'uploading'
+                  ? 'Uploading…'
+                  : uploadState === 'error'
+                    ? <><Camera size={14} aria-hidden style={{ verticalAlign: 'middle', marginRight: 4 }} /> Try again</>
+                    : <><Camera size={14} aria-hidden style={{ verticalAlign: 'middle', marginRight: 4 }} /> Submit photo proof</>
+                }
               </button>
               {uploadState === 'error' && (
                 <div style={{ fontSize: 11, color: '#BF0A30', marginTop: 4 }}>Upload failed. Please try again.</div>
@@ -198,7 +216,8 @@ export default function ChallengeCard({ location, isLast, index }) {
       
       {!isLast && (
         <div style={{ padding: 16 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <Compass size={12} aria-hidden />
             Your clue to your next destination
           </div>
           <p style={{
@@ -209,6 +228,7 @@ export default function ChallengeCard({ location, isLast, index }) {
             fontStyle: 'italic',
             borderLeft: '3px solid #BF0A30',
             paddingLeft: 12,
+            animation: 'fadeInUp 400ms ease-out',
           }}>
             {location.breadcrumb}
           </p>

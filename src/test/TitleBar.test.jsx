@@ -58,3 +58,9 @@ test('selecting a theme closes the style menu', () => {
   fireEvent.click(screen.getByText('wireframe'))
   expect(screen.queryByText('GWC')).not.toBeInTheDocument()
 })
+
+test('progress fill is 6px tall', () => {
+  render(<Wrapper><Setup config={{ title: 'Test', progress: { current: 2, total: 5 }, backPath: null }} /></Wrapper>)
+  const fill = screen.getByTestId('progress-bar')
+  expect(fill).toHaveStyle({ height: '6px' })
+})
