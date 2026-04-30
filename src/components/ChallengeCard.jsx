@@ -3,6 +3,7 @@ import 'leaflet/dist/leaflet.css'
 import { useTheme } from '../theme/ThemeContext'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
 import L from 'leaflet'
+import MarkdownText from './MarkdownText'
 
 const pin = L.divIcon({
   className: '',
@@ -14,16 +15,20 @@ function getImageUrl(imageName) {
   switch (imageName) {
     case 'alireza-parpaei-den-haag-binnenhof-unsplash.jpg':
       return new URL('../data/img/alireza-parpaei-den-haag-binnenhof-unsplash.jpg', import.meta.url).href
-    case 'rafael-ishkhanyan-den-haag-peace-palace-unsplash.jpg':
-      return new URL('../data/img/rafael-ishkhanyan-den-haag-peace-palace-unsplash.jpg', import.meta.url).href
     case 'den-haag-het-plein.jpg':
       return new URL('../data/img/den-haag-het-plein.jpg', import.meta.url).href
+    case 'den-haag-lange-poten.jpg':
+      return new URL('../data/img/den-haag-lange-poten.jpg', import.meta.url).href
+    case 'rafael-ishkhanyan-den-haag-peace-palace-unsplash.jpg':
+      return new URL('../data/img/rafael-ishkhanyan-den-haag-peace-palace-unsplash.jpg', import.meta.url).href
     default:
       return null
   }
 }
 
-export default function ChallengeCard({ location }) {
+// isLast: when true, hides the "clue to next destination" section since there's no next stop
+// index: 1-based position in the route, used for display instead of locationId from data
+export default function ChallengeCard({ location, isLast, index }) {
   const { theme } = useTheme()
   const [uploadState, setUploadState] = useState('idle')
   const fileInputRef = useRef(null)
@@ -70,7 +75,7 @@ export default function ChallengeCard({ location }) {
         fontWeight: 800,
         flexShrink: 0,
       }}>
-        {location.locationId}
+        {index}
       </div>
       <div>
         <div style={{ fontSize: 16, fontWeight: 700, color: theme.text, lineHeight: 1.25 }}>
@@ -114,9 +119,10 @@ export default function ChallengeCard({ location }) {
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8 }}>
           Storyline
         </div>
-        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: theme.text }}>
-          {location.storyline}
-        </p>
+        <MarkdownText
+          text={location.storyline}
+          style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: theme.text }}
+        />
       </div>
 
       <div style={{ padding: 16, borderBottom: `1px solid ${theme.border}` }}>
@@ -145,9 +151,10 @@ export default function ChallengeCard({ location }) {
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 6 }}>
             Challenge
           </div>
-          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: theme.text }}>
-            {location.challenge.description}
-          </p>
+          <MarkdownText
+            text={location.challenge.description}
+            style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: theme.text }}
+          />
         </div>
 
         <div style={{ marginTop: 12 }}>
@@ -188,22 +195,25 @@ export default function ChallengeCard({ location }) {
         </div>
       </div>
 
-      <div style={{ padding: 16 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8 }}>
-          Your clue to your next destination
+      
+      {!isLast && (
+        <div style={{ padding: 16 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8 }}>
+            Your clue to your next destination
+          </div>
+          <p style={{
+            margin: 0,
+            fontSize: 14,
+            lineHeight: 1.65,
+            color: theme.text,
+            fontStyle: 'italic',
+            borderLeft: '3px solid #BF0A30',
+            paddingLeft: 12,
+          }}>
+            {location.breadcrumb}
+          </p>
         </div>
-        <p style={{
-          margin: 0,
-          fontSize: 14,
-          lineHeight: 1.65,
-          color: theme.text,
-          fontStyle: 'italic',
-          borderLeft: '3px solid #BF0A30',
-          paddingLeft: 12,
-        }}>
-          {location.breadcrumb}
-        </p>
-      </div>
+      )}
 
     </div>
   )
