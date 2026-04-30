@@ -26,7 +26,8 @@ function getImageUrl(imageName) {
   }
 }
 
-export default function ChallengeCard({ location }) {
+// isLast: when true, hides the "clue to next destination" section since there's no next stop
+export default function ChallengeCard({ location, isLast }) {
   const { theme } = useTheme()
   const [uploadState, setUploadState] = useState('idle')
   const fileInputRef = useRef(null)
@@ -193,22 +194,25 @@ export default function ChallengeCard({ location }) {
         </div>
       </div>
 
-      <div style={{ padding: 16 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8 }}>
-          Your clue to your next destination
+      
+      {!isLast && (
+        <div style={{ padding: 16 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: theme.textMuted, marginBottom: 8 }}>
+            Your clue to your next destination
+          </div>
+          <p style={{
+            margin: 0,
+            fontSize: 14,
+            lineHeight: 1.65,
+            color: theme.text,
+            fontStyle: 'italic',
+            borderLeft: '3px solid #BF0A30',
+            paddingLeft: 12,
+          }}>
+            {location.breadcrumb}
+          </p>
         </div>
-        <p style={{
-          margin: 0,
-          fontSize: 14,
-          lineHeight: 1.65,
-          color: theme.text,
-          fontStyle: 'italic',
-          borderLeft: '3px solid #BF0A30',
-          paddingLeft: 12,
-        }}>
-          {location.breadcrumb}
-        </p>
-      </div>
+      )}
 
     </div>
   )
