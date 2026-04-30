@@ -21,6 +21,7 @@ const location = {
   coordinates: { latitude: 52.0799, longitude: 4.3133 },
   challenge: { description: 'Register to vote.' },
   breadcrumb: 'Find the inner courtyard.',
+  themeColor: '#8B1A1A',
 }
 
 function Wrapper({ children }) {
@@ -79,6 +80,22 @@ test('renders breadcrumb', () => {
   expect(screen.getByText('Find the inner courtyard.')).toBeInTheDocument()
 })
 
+test('badge background uses location themeColor', () => {
+  render(<Wrapper><ChallengeCard location={location} index={1} /></Wrapper>)
+  expect(screen.getByTestId('location-badge')).toHaveStyle({ background: '#8B1A1A' })
+})
+
+test('badge falls back to navy when themeColor absent', () => {
+  const loc = { ...location, themeColor: undefined }
+  render(<Wrapper><ChallengeCard location={loc} index={1} /></Wrapper>)
+  expect(screen.getByTestId('location-badge')).toHaveStyle({ background: '#002868' })
+})
+
+test('submit button uses amber accent color', () => {
+  render(<Wrapper><ChallengeCard location={location} index={1} /></Wrapper>)
+  expect(screen.getByTestId('submit-btn')).toHaveStyle({ background: '#f59e0b' })
+})
+
 describe('photo upload', () => {
   afterEach(() => {
     vi.restoreAllMocks()
@@ -86,7 +103,7 @@ describe('photo upload', () => {
 
   test('renders camera button in idle state', () => {
     render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
-    expect(screen.getByText('📷 Submit photo proof')).toBeInTheDocument()
+    expect(screen.getByText('Submit photo proof')).toBeInTheDocument()
   })
 
   test('shows uploading state while fetch is pending', async () => {
@@ -114,7 +131,7 @@ describe('photo upload', () => {
     render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
     const input = document.querySelector('input[type="file"]')
     fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
-    await waitFor(() => expect(screen.getByText('📷 Try again')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Try again')).toBeInTheDocument())
   })
 })
 

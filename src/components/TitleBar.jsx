@@ -61,10 +61,18 @@ export default function TitleBar() {
         </div>
       </div>
       {progress && (
-        <div style={{ background: theme.progressTrack, height: 3 }}>
+        <div
+          data-testid="progress-bar"
+          style={{ background: theme.progressTrack, height: 6 }}
+        >
           <div
-            data-testid="progress-bar"
-            style={{ background: theme.progressFill, width: `${(progress.current / progress.total) * 100}%`, height: '100%', transition: 'width 0.2s ease' }}
+            style={{
+              background: 'linear-gradient(90deg, #f59e0b, #fbbf24)',
+              width: `${(progress.current / progress.total) * 100}%`,
+              height: '100%',
+              transition: 'width 0.2s ease',
+              boxShadow: '0 0 8px rgba(245,158,11,0.5)',
+            }}
           />
         </div>
       )}
