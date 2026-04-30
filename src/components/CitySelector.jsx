@@ -1,18 +1,21 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-function getImageUrl(imageName) {
-  switch (imageName) {
-    case 'den-haag-logo.jpg':
-      return new URL('../data/img/den-haag-logo.jpg', import.meta.url).href
-    default:
-      return null
-  }
-}
+import { fetchImage } from '../assets/AssetManager'
 
 export default function CitySelector({ project, city }) {
   const navigate = useNavigate()
+  const [imageSrc, setImageSrc] = useState(null)
+
+  useEffect(() => {
+    if (!city.image) { setImageSrc(null); return }
+    let cancelled = false
+    fetchImage(city.image).then(url => {
+      if (!cancelled) setImageSrc(url)
+    })
+    return () => { cancelled = true }
+  }, [city.image])
+
   const handleNav = () => navigate(`/${project}/${city.id}`)
-  const imageSrc = city.image ? getImageUrl(city.image) : null
   return (
     <div
       role="button"

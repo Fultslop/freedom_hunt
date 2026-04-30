@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { useTheme } from '../theme/ThemeContext'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
 import L from 'leaflet'
 import MarkdownText from './MarkdownText'
 import { BookOpen, MapPin, Crosshair, Compass, Camera } from 'lucide-react'
+import { fetchImage } from '../assets/AssetManager'
 
 const pin = L.divIcon({
   className: '',
@@ -12,28 +13,23 @@ const pin = L.divIcon({
   iconAnchor: [7, 7],
 })
 
-function getImageUrl(imageName) {
-  switch (imageName) {
-    case 'alireza-parpaei-den-haag-binnenhof-unsplash.jpg':
-      return new URL('../data/img/alireza-parpaei-den-haag-binnenhof-unsplash.jpg', import.meta.url).href
-    case 'den-haag-het-plein.jpg':
-      return new URL('../data/img/den-haag-het-plein.jpg', import.meta.url).href
-    case 'den-haag-lange-poten.jpg':
-      return new URL('../data/img/den-haag-lange-poten.jpg', import.meta.url).href
-    case 'rafael-ishkhanyan-den-haag-peace-palace-unsplash.jpg':
-      return new URL('../data/img/rafael-ishkhanyan-den-haag-peace-palace-unsplash.jpg', import.meta.url).href
-    default:
-      return null
-  }
-}
-
 // isLast: when true, hides the "clue to next destination" section since there's no next stop
 // index: 1-based position in the route, used for display instead of locationId from data
 export default function ChallengeCard({ location, isLast, index }) {
   const { theme } = useTheme()
   const [uploadState, setUploadState] = useState('idle')
   const fileInputRef = useRef(null)
-  const heroSrc = location.image ? getImageUrl(location.image) : null
+  const [heroSrc, setHeroSrc] = useState(null)
+
+  useEffect(() => {
+    if (!location.image) { setHeroSrc(null); return }
+    let cancelled = false
+    fetchImage(location.image).then(url => {
+      if (!cancelled) setHeroSrc(url)
+    })
+    return () => { cancelled = true }
+  }, [location.image])
+
   const hasHero = !!heroSrc
   const pos = [location.coordinates.latitude, location.coordinates.longitude]
 
