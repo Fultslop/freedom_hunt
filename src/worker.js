@@ -27,6 +27,26 @@ export default {
       }
     }
 
+    if (request.method === 'POST' && url.pathname === '/form-submit') {
+      try {
+        const body = await request.text()
+        const scriptRes = await fetch(env.FORM_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+        })
+        const scriptData = await scriptRes.json()
+        return new Response(JSON.stringify({ ok: scriptData.ok ?? true }), {
+          headers: { 'Content-Type': 'application/json' },
+        })
+      } catch {
+        return new Response(JSON.stringify({ ok: false, error: 'Submission failed' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+    }
+
     if (!env.ASSETS) {
       return new Response('Not found', { status: 404 })
     }

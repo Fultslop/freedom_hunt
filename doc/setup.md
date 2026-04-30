@@ -19,9 +19,26 @@ This document covers the one-time manual setup required to make form submissions
 
 ### Step 2: Open the Apps Script editor
 
+> **Troubleshooting:** If the menu fails with "Kan het bestand momenteel niet openen", use the direct method below instead.
+
+**Option A — From the Sheet menu:**
 1. In your new Sheet, click the menu: **Extensions → Apps Script**
-2. A new browser tab opens with the Apps Script editor
-3. You'll see a default function `myFunction() {}` — delete it entirely
+2. If it fails, close the Sheet tab and try again, or use Option B
+
+**Option B — Direct (recommended if Option A fails):**
+1. Go to **[script.google.com](https://script.google.com)** and sign in
+2. Click **+ New Project**
+3. Name it **Freedom Hunt Forms** and delete the default `myFunction`
+4. Paste the script from Step 3
+5. Click **Save** (Ctrl+S)
+6. To link this script to your Sheet: in the Sheet, go to **Extensions → Apps Script** — your saved project should now appear in the dropdown. If not, refresh the Sheet page.
+7. If the script can't find the Sheet (shows "No active spreadsheet"), add your Sheet ID directly. Open your Google Sheet, copy the ID from the URL (the long string between `/spreadsheets/d/` and `/edit`), and update the script:
+   ```javascript
+   var spreadsheetId = 'YOUR_SHEET_ID_HERE'
+   var sheet = SpreadsheetApp.openById(spreadsheetId).getActiveSheet()
+   ```
+8. A new browser tab opens with the Apps Script editor
+9. You'll see a default function `myFunction() {}` — delete it entirely
 
 ### Step 3: Paste the script
 

@@ -4,6 +4,7 @@ import { useTheme } from '../theme/ThemeContext'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
 import L from 'leaflet'
 import MarkdownText from './MarkdownText'
+import ChallengeForm from './ChallengeForm'
 import { BookOpen, MapPin, Crosshair, Compass, Camera } from 'lucide-react'
 import { fetchImage } from '../assets/AssetManager'
 
@@ -164,6 +165,10 @@ export default function ChallengeCard({ location, isLast, index }) {
             style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: theme.text }}
           />
         </div>
+
+        {location.challenge.form && location.challenge.form.length > 0 && (
+          <ChallengeForm form={location.challenge.form} locationId={location.locationId} />
+        )}
 
         <div style={{ marginTop: 12 }}>
           <input

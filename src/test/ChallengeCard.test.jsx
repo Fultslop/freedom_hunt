@@ -139,3 +139,32 @@ test('does not render hero image when image field absent', () => {
   render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
   expect(screen.queryByRole('img')).not.toBeInTheDocument()
 })
+
+describe('ChallengeForm integration', () => {
+  test('renders ChallengeForm when challenge.form is present', () => {
+    const loc = {
+      ...location,
+      challenge: {
+        ...location.challenge,
+        form: [{ id: 'q1', type: 'string', label: 'What do you see?' }],
+      },
+    }
+    render(<Wrapper><ChallengeCard location={loc} /></Wrapper>)
+    expect(screen.getByLabelText('Your name or team')).toBeInTheDocument()
+    expect(screen.getByLabelText('What do you see?')).toBeInTheDocument()
+  })
+
+  test('does not render ChallengeForm when challenge.form is absent', () => {
+    render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
+    expect(screen.queryByLabelText('Your name or team')).not.toBeInTheDocument()
+  })
+
+  test('does not render ChallengeForm when challenge.form is empty array', () => {
+    const loc = {
+      ...location,
+      challenge: { ...location.challenge, form: [] },
+    }
+    render(<Wrapper><ChallengeCard location={loc} /></Wrapper>)
+    expect(screen.queryByLabelText('Your name or team')).not.toBeInTheDocument()
+  })
+})
