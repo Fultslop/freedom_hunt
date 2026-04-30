@@ -28,7 +28,7 @@ function Wrapper({ children }) {
 }
 
 test('renders locationId badge', () => {
-  render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
+  render(<Wrapper><ChallengeCard location={location} index={1} /></Wrapper>)
   expect(screen.getByText('1')).toBeInTheDocument()
 })
 

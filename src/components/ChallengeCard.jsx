@@ -27,7 +27,8 @@ function getImageUrl(imageName) {
 }
 
 // isLast: when true, hides the "clue to next destination" section since there's no next stop
-export default function ChallengeCard({ location, isLast }) {
+// index: 1-based position in the route, used for display instead of locationId from data
+export default function ChallengeCard({ location, isLast, index }) {
   const { theme } = useTheme()
   const [uploadState, setUploadState] = useState('idle')
   const fileInputRef = useRef(null)
@@ -74,7 +75,7 @@ export default function ChallengeCard({ location, isLast }) {
         fontWeight: 800,
         flexShrink: 0,
       }}>
-        {location.locationId}
+        {index}
       </div>
       <div>
         <div style={{ fontSize: 16, fontWeight: 700, color: theme.text, lineHeight: 1.25 }}>

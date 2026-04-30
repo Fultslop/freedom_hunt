@@ -85,7 +85,7 @@ export default function RoutePage() {
 
       <div style={{ paddingBottom: 60 }}>
         {/* isLast: hides the breadcrumb clue on the final stop */}
-        <ChallengeCard location={location} isLast={currentIndex === locations.length - 1} />
+        <ChallengeCard location={location} isLast={currentIndex === locations.length - 1} index={currentIndex + 1} />
       </div>
 
       <div style={{
