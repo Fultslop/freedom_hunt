@@ -134,6 +134,78 @@ Submit a test form in the live app. Check your Google Sheet — a new row should
 
 ---
 
+---
+
+## Part 3: Login & Authentication
+
+This section explains how the participant login system works and how to manage it. No coding is required for day-to-day operation.
+
+### How it works
+
+When participants open the app and tap your project — or follow any direct link into it (a city page, a route page, anything under your project URL) — they see a full-screen login form with three fields:
+
+- **Team name** — how the team identifies themselves during the hunt
+- **Contact email** — optional, for follow-up
+- **Password** — the project password you distribute to all participants before the event
+
+Once they enter the correct password, they're logged in on that device for **30 days** and can access all cities and routes within your project. They won't be asked again unless they sign out or the session expires.
+
+> **One password, whole project.** A single password covers the entire project — all cities and routes beneath it. You don't set separate passwords per city.
+
+> **Both entry points are protected.** Whether a participant arrives through the home screen or via a direct deep link (e.g. a city or route URL you shared), they'll always hit the login form first if they haven't already authenticated.
+
+### Setting a password for your project
+
+Passwords are stored in Cloudflare's KV store — a secure key-value database you manage through the Cloudflare dashboard. No code changes or redeployment needed.
+
+1. Log in to the [Cloudflare dashboard](https://dash.cloudflare.com)
+2. Go to **Workers & Pages → KV**
+3. Open the **AUTH_STORE** namespace
+4. Click **Add entry**
+5. Set the **Key** to `auth:your_project_id` (e.g. `auth:democrats_abroad`)
+6. Set the **Value** to your chosen password
+7. Click **Save**
+
+That's it. The change takes effect immediately.
+
+### Rotating the password
+
+To change the password, find the entry for your project in the **AUTH_STORE** KV namespace and update the value. No redeployment needed.
+
+**Important:** Participants who already logged in with the old password will remain logged in for up to 30 days. Their session was issued when they authenticated and isn't tied to the current password — so changing the password doesn't immediately lock them out.
+
+This is generally fine for events. If you ever need to immediately invalidate all active sessions (across all projects), contact the developer — they can rotate the `AUTH_SECRET` signing key, which expires every session at once.
+
+### Changing the session duration
+
+The default is **30 days**. Changing it (e.g. to 90 days) requires a one-line code change and redeployment. Contact the developer.
+
+### What participants see
+
+**Login form** — Full-screen, themed to match your project. Appears automatically when they first access any page under your project URL.
+
+**Profile** — After logging in, participants can tap ☰ (top-right menu) → **Profile** to see their team name, contact email, and a **Sign out** button.
+
+**Themes** — The same ☰ menu has a **Themes** tab with the visual style switcher (unchanged from before).
+
+### Sign out
+
+Participants can sign out via ☰ → **Profile** → **Sign out**. This clears their session from the device. They'll need to re-enter the password to get back in.
+
+> **Note:** Signing out and back in with the same password is always possible — sign-out just clears the local session, it doesn't lock the account.
+
+### One-time developer setup
+
+Before this feature works, a developer needs to do the following once:
+
+1. Create the **AUTH_STORE** KV namespace in Cloudflare and bind it in `wrangler.toml`
+2. Set the signing secret: `wrangler secret put AUTH_SECRET` (a random string — keep it safe)
+3. Deploy the updated Worker: `npm run deploy`
+
+After that, organizers manage passwords entirely through the Cloudflare dashboard.
+
+---
+
 ## Troubleshooting
 
 **No row appears in the Sheet after submitting:**

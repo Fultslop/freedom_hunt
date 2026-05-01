@@ -13,6 +13,7 @@ export default function AppPage() {
   const { text: projectsText, loading: projectsLoading } = useText('projects/projects')
   const { theme, setThemeName } = useTheme()
 
+  // xxx todo move to data
   useTitleBar({ title: 'Freedom Hunt', progress: null, backPath: null })
 
   useEffect(() => { setThemeName('app') }, [setThemeName])
