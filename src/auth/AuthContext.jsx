@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 const AuthContext = createContext(null)
 
@@ -8,6 +8,14 @@ export function AuthProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Reset the logout flag once navigation has committed (location changed).
+  // We can't reset it inside logout() because React 18 batches it with
+  // setActiveAuth(null), which defeats the ProtectedRoute guard.
+  useEffect(() => {
+    setIsLoggingOut(false)
+  }, [location.pathname])
 
   useEffect(() => {
     fetch('/auth/me')
@@ -34,7 +42,8 @@ export function AuthProvider({ children }) {
     // Navigate after so the / route is already active when the page renders.
     setActiveAuth(null)
     navigate('/', { replace: true })
-    setIsLoggingOut(false)
+    // isLoggingOut stays true here; the location-change effect above resets it
+    // once navigation commits so ProtectedRoute never sees null+false together.
   }
 
   return (
