@@ -78,7 +78,7 @@ export default function TitleBar() {
                       <div style={{ fontSize: 13, color: theme.text }}>{activeAuth?.contact || '—'}</div>
                     </div>
                     <button
-                      onClick={() => { logout(); closeMenu() }}
+                      onClick={async () => { await logout(); closeMenu(); navigate('/') }}
                       style={{ width: '100%', padding: 9, background: 'transparent', color: theme.accent, border: `1.5px solid ${theme.accent}`, borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
                     >Sign out</button>
                   </div>

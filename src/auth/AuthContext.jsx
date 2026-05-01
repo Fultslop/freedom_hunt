@@ -4,6 +4,7 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [activeAuth, setActiveAuth] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
 
   useEffect(() => {
     fetch('/auth/me')
@@ -14,6 +15,7 @@ export function AuthProvider({ children }) {
         }
       })
       .catch(() => {})
+      .finally(() => setAuthLoading(false))
   }, [])
 
   function login(projectId, teamName, contact) {
@@ -28,7 +30,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ activeAuth, login, logout }}>
+    <AuthContext.Provider value={{ activeAuth, authLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   )
