@@ -1,0 +1,79 @@
+# Task 1: Theme preset objects
+
+State: Completed
+
+**Part of:** [Theming & Title Bar](2026-04-29-theming-titlebar.md)  
+**Depends on:** nothing  
+**Next:** [Task 2 — ThemeContext](2026-04-29-theming-02-theme-context.md)
+
+**Files:**
+- Create: `src/theme/themes.js`
+
+---
+
+- [ ] **Step 1: Create `src/theme/themes.js`**
+
+```js
+export const DEFAULT_THEME = 'app'
+
+export const themes = {
+  wireframe: {
+    background: '#ffffff',
+    surface: '#f9f9f9',
+    border: '#dddddd',
+    text: '#111111',
+    textSecondary: '#666666',
+    textMuted: '#aaaaaa',
+    accent: '#555555',
+    barBackground: '#ffffff',
+    barBorder: '#dddddd',
+    barText: '#333333',
+    barTextSecondary: '#888888',
+    progressTrack: '#eeeeee',
+    progressFill: '#555555',
+    clueBackground: 'transparent',
+    clueBorderColor: 'transparent',
+  },
+  app: {
+    background: '#0f172a',
+    surface: '#1e293b',
+    border: '#334155',
+    text: '#f8fafc',
+    textSecondary: '#94a3b8',
+    textMuted: '#64748b',
+    accent: '#f59e0b',
+    barBackground: '#1e293b',
+    barBorder: '#334155',
+    barText: '#f8fafc',
+    barTextSecondary: '#94a3b8',
+    progressTrack: '#0f172a',
+    progressFill: '#f59e0b',
+    clueBackground: '#1a2744',
+    clueBorderColor: 'transparent',
+  },
+  GWC: {
+    background: '#ffffff',
+    surface: '#f0f4ff',
+    border: '#e5e7eb',
+    text: '#002868',
+    textSecondary: '#374151',
+    textMuted: '#6b7280',
+    accent: '#BF0A30',
+    barBackground: '#002868',
+    barBorder: '#002868',
+    barText: '#ffffff',
+    barTextSecondary: '#93c5fd',
+    progressTrack: '#001a4d',
+    progressFill: '#BF0A30',
+    clueBackground: '#f0f4ff',
+    clueBorderColor: '#002868',
+  },
+}
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add src/theme/themes.js
+git commit -m "feat: add wireframe/app/GWC theme preset objects"
+```
