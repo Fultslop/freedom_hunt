@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAuth } from '../auth/AuthContext'
 import './ChallengeForm.css'
 
 const VALID_TYPES = ['string', 'number', 'boolean', 'radio']
@@ -9,8 +10,8 @@ function checkDefinition(field) {
   return null
 }
 
-export default function ChallengeForm({ form, locationId }) {
-  const [submitterId, setSubmitterId] = useState('')
+export default function ChallengeForm({ form, locationId, routeId }) {
+  const { activeAuth } = useAuth()
   const [values, setValues] = useState({})
   const [errors, setErrors] = useState({})
   const [submitState, setSubmitState] = useState('idle')
@@ -22,7 +23,6 @@ export default function ChallengeForm({ form, locationId }) {
 
   function validate() {
     const newErrors = {}
-    if (!submitterId.trim()) newErrors.__submitterId = 'Please enter your name or team'
     for (const field of form) {
       if (checkDefinition(field)) continue
       if (field.type === 'boolean') continue
@@ -47,11 +47,10 @@ export default function ChallengeForm({ form, locationId }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           timestamp: new Date().toISOString(),
-          // TODO needs to have route id
+          routeId: String(routeId),
           locationId: String(locationId),
-          // TODO needs to have team name
-          // TODO needs to have email if defined
-          submitterId: submitterId.trim(),
+          teamName: activeAuth?.teamName ?? '',
+          email: activeAuth?.contact ?? '',
           fields: values,
         }),
       })
@@ -140,25 +139,6 @@ export default function ChallengeForm({ form, locationId }) {
 
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: 14 }}>
-      <div className="cf-field">
-        <label htmlFor="submitter-id" className="cf-label">
-          Your name or team
-        </label>
-        <input
-          id="submitter-id"
-          type="text"
-          value={submitterId}
-          onChange={e => {
-            setSubmitterId(e.target.value)
-            setErrors(prev => { const next = { ...prev }; delete next.__submitterId; return next })
-          }}
-          className={`cf-input${errors.__submitterId ? ' cf-input--error' : ''}`}
-        />
-        {errors.__submitterId && (
-          <div className="cf-error-msg">{errors.__submitterId}</div>
-        )}
-      </div>
-
       {form.map(renderField)}
 
       <button

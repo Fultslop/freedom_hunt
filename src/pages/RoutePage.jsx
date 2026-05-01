@@ -94,7 +94,7 @@ export default function RoutePage() {
           key={currentIndex}
           style={{ animation: `${direction === 'next' ? 'slideInFromRight' : 'slideInFromLeft'} 250ms ease-out` }}
         >
-          <ChallengeCard location={location} isLast={currentIndex === locations.length - 1} index={currentIndex + 1} />
+          <ChallengeCard location={location} isLast={currentIndex === locations.length - 1} index={currentIndex + 1} routeId={route} />
         </div>
       </div>
 
