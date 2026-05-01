@@ -46,8 +46,11 @@ export default function ChallengeForm({ form, locationId }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          locationId: String(locationId),
           timestamp: new Date().toISOString(),
+          // TODO needs to have route id
+          locationId: String(locationId),
+          // TODO needs to have team name
+          // TODO needs to have email if defined
           submitterId: submitterId.trim(),
           fields: values,
         }),

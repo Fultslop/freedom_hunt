@@ -10,18 +10,18 @@
 
 .route-card__name {
   font-weight: 600;
-  font-size: 17px;
+  font-size: var(--font-size-lg);
   text-transform: capitalize;
 }
 
 .route-card__description {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   margin-top: 4px;
 }
 
 .route-card__stops {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   margin-top: 4px;
 }

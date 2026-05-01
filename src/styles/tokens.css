@@ -20,6 +20,34 @@
   /* Static utility colours — not in themes.js, not overridden per-theme */
   --color-error: #BF0A30;
   --color-success: #2d7a2d;
+  /* Font size tokens — small (default) */
+  --font-size-xs: 10px;
+  --font-size-sm: 11px;
+  --font-size-base: 13px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 28px;
+}
+
+:root[data-fontsize="medium"] {
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-lg: 19px;
+  --font-size-xl: 23px;
+  --font-size-2xl: 28px;
+  --font-size-3xl: 33px;
+}
+
+:root[data-fontsize="large"] {
+  --font-size-xs: 14px;
+  --font-size-sm: 15px;
+  --font-size-base: 17px;
+  --font-size-lg: 22px;
+  --font-size-xl: 26px;
+  --font-size-2xl: 32px;
+  --font-size-3xl: 38px;
 }
 
 :root[data-theme="app"] {

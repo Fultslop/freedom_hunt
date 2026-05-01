@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { LanguageProvider } from './i18n/LanguageContext'
 import { ThemeProvider, useTheme } from './theme/ThemeContext'
 import { TitleBarProvider } from './theme/TitleBarContext'
+import { FontSizeProvider } from './theme/FontSizeContext'
 import { AuthProvider } from './auth/AuthContext'
 import ProtectedRoute from './auth/ProtectedRoute'
 import TitleBar from './components/TitleBar'
@@ -26,6 +27,7 @@ function ThemeBodySync() {
 export default function App() {
   return (
     <LanguageProvider>
+      <FontSizeProvider>
       <ThemeProvider>
         <TitleBarProvider>
           <BrowserRouter>
@@ -43,6 +45,7 @@ export default function App() {
           </BrowserRouter>
         </TitleBarProvider>
       </ThemeProvider>
+      </FontSizeProvider>
     </LanguageProvider>
   )
 }

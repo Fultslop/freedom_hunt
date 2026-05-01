@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../theme/ThemeContext'
 import { TitleBarContext } from '../theme/TitleBarContext'
 import { themes } from '../theme/themes'
+import { useFontSize } from '../theme/FontSizeContext'
 import { useAuth } from '../auth/AuthContext'
 import './TitleBar.css'
 
 export default function TitleBar() {
   const { theme, themeName, setThemeName } = useTheme()
+  const { fontSize, setFontSize, SIZES } = useFontSize()
   const { titleBar } = useContext(TitleBarContext)
   const { title, progress, backPath } = titleBar
   const { activeAuth, logout } = useAuth()
@@ -54,6 +56,13 @@ export default function TitleBar() {
                     className="titlebar__menu-item"
                   >
                     <span className="titlebar__menu-item-label">Themes</span>
+                    <span className="titlebar__menu-item-arrow">›</span>
+                  </button>
+                  <button
+                    onClick={() => setMenuView('fontsize')}
+                    className="titlebar__menu-item"
+                  >
+                    <span className="titlebar__menu-item-label">Text Size</span>
                     <span className="titlebar__menu-item-arrow">›</span>
                   </button>
                 </>
@@ -109,6 +118,33 @@ export default function TitleBar() {
                     >
                       <span>{name}</span>
                       {name === themeName && <span className="titlebar__theme-check">✓</span>}
+                    </button>
+                  ))}
+                </>
+              )}
+              {menuView === 'fontsize' && (
+                <>
+                  <button
+                    onClick={() => setMenuView('root')}
+                    aria-label="Back to menu"
+                    className="titlebar__submenu-header"
+                  >
+                    <span className="titlebar__submenu-back">‹</span>
+                    <span className="titlebar__submenu-title">Text Size</span>
+                  </button>
+                  {SIZES.map(size => (
+                    <button
+                      key={size}
+                      onClick={() => { setFontSize(size); closeMenu() }}
+                      className="titlebar__theme-btn"
+                      style={{
+                        background: size === fontSize ? theme.accent : 'transparent',
+                        color: size === fontSize ? theme.barText : theme.text,
+                        fontWeight: size === fontSize ? 700 : 400,
+                      }}
+                    >
+                      <span style={{ textTransform: 'capitalize' }}>{size}</span>
+                      {size === fontSize && <span className="titlebar__theme-check">✓</span>}
                     </button>
                   ))}
                 </>

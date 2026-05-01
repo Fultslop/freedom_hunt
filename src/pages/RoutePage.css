@@ -43,7 +43,7 @@
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-base);
 }
 
 .route-page__exit-btn {
@@ -52,7 +52,7 @@
   background: transparent;
   color: var(--color-text-muted);
   border: none;
-  font-size: 12px;
+  font-size: var(--font-size-sm);
 }
 
 .route-page__next-btn {
@@ -65,6 +65,6 @@
   color: #000;
   border: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--font-size-base);
   font-weight: 700;
 }
