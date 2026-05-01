@@ -79,7 +79,7 @@ export default function TitleBar() {
                       <div className="titlebar__profile-value--contact">{activeAuth?.contact || '—'}</div>
                     </div>
                     <button
-                      onClick={async () => { await logout(); closeMenu(); navigate('/') }}
+                      onClick={async () => { await logout(); closeMenu() }}
                       className="titlebar__signout-btn"
                     >Sign out</button>
                   </div>
