@@ -1,14 +1,23 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { vi } from 'vitest'
 import { ThemeProvider } from '../theme/ThemeContext'
 import { TitleBarProvider, useTitleBar } from '../theme/TitleBarContext'
 import TitleBar from '../components/TitleBar'
+
+vi.mock('../auth/AuthContext', () => ({
+  useAuth: vi.fn(),
+}))
+
+import { useAuth } from '../auth/AuthContext'
 
 function Wrapper({ children }) {
   return (
     <MemoryRouter>
       <ThemeProvider>
-        <TitleBarProvider>{children}</TitleBarProvider>
+        <TitleBarProvider>
+          {children}
+        </TitleBarProvider>
       </ThemeProvider>
     </MemoryRouter>
   )
@@ -19,48 +28,101 @@ function Setup({ config }) {
   return <TitleBar />
 }
 
+const base = { title: 'Test', progress: null, backPath: null }
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  useAuth.mockReturnValue({ activeAuth: null, logout: vi.fn() })
+})
+
 test('renders title', () => {
   render(<Wrapper><Setup config={{ title: 'Peace Palace', progress: null, backPath: null }} /></Wrapper>)
   expect(screen.getByText('Peace Palace')).toBeInTheDocument()
 })
 
 test('renders back button when backPath is set', () => {
-  render(<Wrapper><Setup config={{ title: 'Test', progress: null, backPath: '/foo' }} /></Wrapper>)
+  render(<Wrapper><Setup config={{ ...base, backPath: '/foo' }} /></Wrapper>)
   expect(screen.getByLabelText('Back')).toBeInTheDocument()
 })
 
 test('hides back button when backPath is null', () => {
-  render(<Wrapper><Setup config={{ title: 'Test', progress: null, backPath: null }} /></Wrapper>)
+  render(<Wrapper><Setup config={base} /></Wrapper>)
   expect(screen.queryByLabelText('Back')).not.toBeInTheDocument()
 })
 
 test('renders progress bar when progress is set', () => {
-  render(<Wrapper><Setup config={{ title: 'Test', progress: { current: 2, total: 3 }, backPath: null }} /></Wrapper>)
+  render(<Wrapper><Setup config={{ ...base, progress: { current: 2, total: 3 } }} /></Wrapper>)
   expect(screen.getByTestId('progress-bar')).toBeInTheDocument()
 })
 
 test('hides progress bar when progress is null', () => {
-  render(<Wrapper><Setup config={{ title: 'Test', progress: null, backPath: null }} /></Wrapper>)
+  render(<Wrapper><Setup config={base} /></Wrapper>)
   expect(screen.queryByTestId('progress-bar')).not.toBeInTheDocument()
 })
 
-test('opens style menu on ☰ click and lists all themes', () => {
-  render(<Wrapper><Setup config={{ title: 'Test', progress: null, backPath: null }} /></Wrapper>)
-  fireEvent.click(screen.getByLabelText('Style menu'))
+test('opens menu showing Profile and Themes items', () => {
+  render(<Wrapper><Setup config={base} /></Wrapper>)
+  fireEvent.click(screen.getByLabelText('Menu'))
+  expect(screen.getByText('Profile')).toBeInTheDocument()
+  expect(screen.getByText('Themes')).toBeInTheDocument()
+})
+
+test('clicking Themes drills into theme list', () => {
+  render(<Wrapper><Setup config={base} /></Wrapper>)
+  fireEvent.click(screen.getByLabelText('Menu'))
+  fireEvent.click(screen.getByText('Themes'))
   expect(screen.getByText('wireframe')).toBeInTheDocument()
   expect(screen.getByText('app')).toBeInTheDocument()
   expect(screen.getByText('GWC')).toBeInTheDocument()
 })
 
-test('selecting a theme closes the style menu', () => {
-  render(<Wrapper><Setup config={{ title: 'Test', progress: null, backPath: null }} /></Wrapper>)
-  fireEvent.click(screen.getByLabelText('Style menu'))
+test('clicking back in Themes returns to root menu', () => {
+  render(<Wrapper><Setup config={base} /></Wrapper>)
+  fireEvent.click(screen.getByLabelText('Menu'))
+  fireEvent.click(screen.getByText('Themes'))
+  fireEvent.click(screen.getByLabelText('Back to menu'))
+  expect(screen.getByText('Profile')).toBeInTheDocument()
+  expect(screen.queryByText('wireframe')).not.toBeInTheDocument()
+})
+
+test('selecting a theme closes the menu', () => {
+  render(<Wrapper><Setup config={base} /></Wrapper>)
+  fireEvent.click(screen.getByLabelText('Menu'))
+  fireEvent.click(screen.getByText('Themes'))
   fireEvent.click(screen.getByText('wireframe'))
-  expect(screen.queryByText('GWC')).not.toBeInTheDocument()
+  expect(screen.queryByText('Profile')).not.toBeInTheDocument()
+})
+
+test('clicking Profile drills into profile view', () => {
+  useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Team A', contact: 'a@b.com' }, logout: vi.fn() })
+  render(<Wrapper><Setup config={base} /></Wrapper>)
+  fireEvent.click(screen.getByLabelText('Menu'))
+  fireEvent.click(screen.getByText('Profile'))
+  expect(screen.getByText('Team A')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /sign out/i })).toBeInTheDocument()
+})
+
+test('clicking back in Profile returns to root menu', () => {
+  render(<Wrapper><Setup config={base} /></Wrapper>)
+  fireEvent.click(screen.getByLabelText('Menu'))
+  fireEvent.click(screen.getByText('Profile'))
+  fireEvent.click(screen.getByLabelText('Back to menu'))
+  expect(screen.getByText('Themes')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /sign out/i })).not.toBeInTheDocument()
+})
+
+test('sign out calls logout and closes menu', () => {
+  const logoutMock = vi.fn()
+  useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Team A', contact: '' }, logout: logoutMock })
+  render(<Wrapper><Setup config={base} /></Wrapper>)
+  fireEvent.click(screen.getByLabelText('Menu'))
+  fireEvent.click(screen.getByText('Profile'))
+  fireEvent.click(screen.getByRole('button', { name: /sign out/i }))
+  expect(logoutMock).toHaveBeenCalled()
+  expect(screen.queryByText('Profile')).not.toBeInTheDocument()
 })
 
 test('progress fill is 6px tall', () => {
-  render(<Wrapper><Setup config={{ title: 'Test', progress: { current: 2, total: 5 }, backPath: null }} /></Wrapper>)
-  const fill = screen.getByTestId('progress-bar')
-  expect(fill).toHaveStyle({ height: '6px' })
+  render(<Wrapper><Setup config={{ ...base, progress: { current: 2, total: 5 } }} /></Wrapper>)
+  expect(screen.getByTestId('progress-bar')).toHaveStyle({ height: '6px' })
 })

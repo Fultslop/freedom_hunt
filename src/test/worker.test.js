@@ -1,5 +1,13 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
-import worker, { buildR2Key } from '../worker.js'
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
+import worker, { buildR2Key, createToken } from '../worker.js'
+
+const TEST_SECRET = 'test-secret'
+const TEST_PAYLOAD = { project: 'test_project', teamName: 'Team A', contact: 'a@b.com', exp: Math.floor(Date.now() / 1000) + 3600 }
+
+let authToken
+beforeEach(async () => {
+  authToken = await createToken(TEST_PAYLOAD, TEST_SECRET)
+})
 
 describe('buildR2Key', () => {
   it('uses jpg extension for jpeg mime type', () => {
@@ -22,12 +30,16 @@ describe('/form-submit', () => {
     global.fetch = vi.fn(() => Promise.resolve(new Response(JSON.stringify({ ok: true }), {
       headers: { 'Content-Type': 'application/json' },
     })))
-    const env = { FORM_SCRIPT_URL: 'https://script.google.com/fake' }
+    const env = {
+      FORM_SCRIPT_URL: 'https://script.google.com/fake',
+      AUTH_STORE: { get: async () => null },
+      AUTH_SECRET: TEST_SECRET,
+    }
     const body = JSON.stringify({ locationId: '001', timestamp: '2026-01-01T00:00:00Z', submitterId: 'Alice', fields: {} })
     const request = new Request('https://example.com/form-submit', {
       method: 'POST',
       body,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Cookie: `freedom_hunt_auth=${authToken}` },
     })
 
     const response = await worker.fetch(request, env)
@@ -45,10 +57,15 @@ describe('/form-submit', () => {
     global.fetch = vi.fn(() => Promise.resolve(new Response(JSON.stringify({ ok: false, error: 'Sheet error' }), {
       headers: { 'Content-Type': 'application/json' },
     })))
-    const env = { FORM_SCRIPT_URL: 'https://script.google.com/fake' }
+    const env = {
+      FORM_SCRIPT_URL: 'https://script.google.com/fake',
+      AUTH_STORE: { get: async () => null },
+      AUTH_SECRET: TEST_SECRET,
+    }
     const request = new Request('https://example.com/form-submit', {
       method: 'POST',
       body: JSON.stringify({}),
+      headers: { Cookie: `freedom_hunt_auth=${authToken}` },
     })
 
     const response = await worker.fetch(request, env)
@@ -60,10 +77,15 @@ describe('/form-submit', () => {
 
   it('returns 500 when fetch throws', async () => {
     global.fetch = vi.fn(() => Promise.reject(new Error('Network error')))
-    const env = { FORM_SCRIPT_URL: 'https://script.google.com/fake' }
+    const env = {
+      FORM_SCRIPT_URL: 'https://script.google.com/fake',
+      AUTH_STORE: { get: async () => null },
+      AUTH_SECRET: TEST_SECRET,
+    }
     const request = new Request('https://example.com/form-submit', {
       method: 'POST',
       body: JSON.stringify({}),
+      headers: { Cookie: `freedom_hunt_auth=${authToken}` },
     })
 
     const response = await worker.fetch(request, env)
