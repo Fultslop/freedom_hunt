@@ -25,10 +25,8 @@ dist-ssr
 
 # Superpowers brainstorm sessions
 .superpowers/
-doc/superpowers
 doc/prompts
 doc/devlog
-doc/plans
 
 # wrangler files
 .wrangler
