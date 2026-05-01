@@ -1,0 +1,186 @@
+/* src/components/TitleBar.css */
+
+.titlebar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-bar-background);
+  border-bottom: 1px solid var(--color-bar-border);
+}
+
+.titlebar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+}
+
+.titlebar__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.titlebar__back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-bar-text-secondary);
+  font-size: 18px;
+  padding: 0;
+  line-height: 1;
+}
+
+.titlebar__title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--color-bar-text);
+}
+
+.titlebar__menu-wrap {
+  position: relative;
+}
+
+.titlebar__menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-bar-text-secondary);
+  font-size: 18px;
+  padding: 4px;
+  line-height: 1;
+}
+
+.titlebar__dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  min-width: 180px;
+  z-index: 200;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.titlebar__menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  text-align: left;
+}
+
+.titlebar__menu-item:last-child {
+  border-bottom: none;
+}
+
+.titlebar__menu-item-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.titlebar__menu-item-arrow {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.titlebar__submenu-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--color-bar-background);
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  text-align: left;
+}
+
+.titlebar__submenu-back {
+  font-size: 14px;
+  color: var(--color-bar-text);
+}
+
+.titlebar__submenu-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-bar-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.titlebar__profile-body {
+  padding: 16px;
+}
+
+.titlebar__profile-field {
+  margin-bottom: 12px;
+}
+
+.titlebar__profile-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.titlebar__profile-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.titlebar__profile-value--contact {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.titlebar__signout-btn {
+  width: 100%;
+  padding: 9px;
+  background: transparent;
+  color: var(--color-accent);
+  border: 1.5px solid var(--color-accent);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.titlebar__theme-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.titlebar__theme-check {
+  font-size: 11px;
+}
+
+.titlebar__progress-track {
+  background: var(--color-progress-track);
+  height: 6px;
+}
+
+.titlebar__progress-fill {
+  height: 100%;
+  transition: width 0.2s ease;
+  background: var(--color-progress-fill);
+}

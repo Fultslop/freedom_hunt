@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import './RouteSelector.css'
 
 export default function RouteSelector({ project, city, routeId, route }) {
   const navigate = useNavigate()
@@ -9,19 +10,13 @@ export default function RouteSelector({ project, city, routeId, route }) {
       tabIndex={0}
       onClick={handleNav}
       onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && handleNav()}
-      style={{
-        padding: '16px 20px',
-        border: '1px solid #ddd',
-        borderRadius: 8,
-        cursor: 'pointer',
-        marginBottom: 12,
-      }}
+      className="route-card"
     >
-      <div style={{ fontWeight: 600, fontSize: 17, textTransform: 'capitalize' }}>
+      <div className="route-card__name">
         {routeId.replace(/_/g, ' ')}
       </div>
-      <div style={{ fontSize: 13, color: '#666', marginTop: 4 }}>{route.description}</div>
-      <div style={{ fontSize: 12, color: '#aaa', marginTop: 4 }}>
+      <div className="route-card__description">{route.description}</div>
+      <div className="route-card__stops">
         {route.locations.length} stop{route.locations.length !== 1 ? 's' : ''}
       </div>
     </div>

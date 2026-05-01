@@ -21,8 +21,11 @@ See `doc/architecture.md` for full project context.
 ## Coding Conventions
 
 - **JSX only** — no TypeScript, no `.tsx` files
-- **Inline styles** — all styling via JS style objects on elements. No CSS modules, no Tailwind, no external stylesheets
-- **Global resets** — each page component injects a `<style>` tag for `html, body, #root` resets at the top of its return. Follow this pattern for new pages
+- **CSS custom properties** — all styling via co-located `.css` files imported into each component/page. Use CSS `var(--color-*)` tokens for all colours. No CSS modules, no Tailwind.
+- **Global resets and keyframes** — live in `src/styles/global.css`, imported once in `App.jsx`. Do not inject `<style>` reset tags in page components.
+- **Inline styles** — permitted only for truly dynamic values that cannot be expressed as a static CSS rule (e.g. computed pixel offsets, `width` percentage driven by runtime state, per-record colour values from data). Theme colours are not dynamic — always use CSS custom properties.
+- **Token sync** — `src/hooks/useCssVars.js` syncs the JS theme object to `--color-*` CSS custom properties on `<html>` on every theme change. Called once inside `ThemeBodySync` in `App.jsx`.
+- **New components** — create a co-located `ComponentName.css` file. Use BEM-like class names (`component-name__element--modifier`). Import the CSS file at the top of the JSX file.
 - **Content data** — lives in `src/data/text/en/` as YAML. New cities = new directory + YAML files under `projects/<projectId>/<cityId>/`. See `src/data/text/en/projects/democrats_abroad/den_haag/` for the full shape
 - **No abstractions for one-off things** — keep it simple, follow existing patterns
 

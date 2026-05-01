@@ -1,3 +1,137 @@
+# Task 05 — ChallengeForm: inline styles → className + fix hardcoded colours
+
+**Depends on:** [Task 02 — App wiring](2026-05-01-styling-refactor-02-app-wiring.md)
+**Next:** [Task 06 — TitleBar](2026-05-01-styling-refactor-06-titlebar.md)
+
+**Files:**
+- Create: `src/components/ChallengeForm.css`
+- Modify: `src/components/ChallengeForm.jsx`
+
+ChallengeForm currently has no `useTheme()` call and uses only hardcoded colours. After this task it still needs no `useTheme()` — CSS custom properties handle everything.
+
+---
+
+- [ ] **Step 1: Create `src/components/ChallengeForm.css`**
+
+Hardcoded colours fixed:
+- `#BF0A30` → `var(--color-error)`
+- `#2d7a2d` → `var(--color-success)`
+- `#002868` → `var(--color-accent)`
+- `#333` → `var(--color-text)`
+- `#ccc` → `var(--color-border)`
+- `#6b7280` → `var(--color-text-muted)`
+- `#e5e7eb` → `var(--color-surface)`
+- `#fff0f0` → kept as-is (a lightened error tint not in the token set; acceptable fixed value)
+
+```css
+/* src/components/ChallengeForm.css */
+
+.cf-field {
+  margin-bottom: 12px;
+}
+
+.cf-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  display: block;
+}
+
+.cf-label--checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.cf-label--radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.cf-checkbox {
+  width: 16px;
+  height: 16px;
+}
+
+.cf-radio-group {
+  margin-top: 6px;
+}
+
+.cf-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.cf-input--error {
+  border-color: var(--color-error);
+}
+
+.cf-error-msg {
+  font-size: 11px;
+  color: var(--color-error);
+  margin-top: 2px;
+}
+
+.cf-invalid-field {
+  background: #fff0f0;
+  border: 1px solid var(--color-error);
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--color-error);
+  margin-bottom: 10px;
+}
+
+.cf-submit-btn {
+  width: 100%;
+  padding: 10px 0;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.cf-submit-btn--submitting {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.cf-submit-error {
+  font-size: 11px;
+  color: var(--color-error);
+  margin-top: 4px;
+}
+
+.cf-success {
+  font-size: 13px;
+  color: var(--color-success);
+  font-weight: 600;
+  margin-top: 12px;
+}
+```
+
+- [ ] **Step 2: Rewrite `src/components/ChallengeForm.jsx`**
+
+```jsx
 import { useState } from 'react'
 import './ChallengeForm.css'
 
@@ -171,3 +305,27 @@ export default function ChallengeForm({ form, locationId }) {
     </form>
   )
 }
+```
+
+- [ ] **Step 3: Run the test suite**
+
+```
+npm test
+```
+
+Expected: all tests pass. ChallengeForm tests check behaviour (field rendering, validation, submission) via `data-testid` and DOM queries — none assert on computed style, so no test changes needed.
+
+- [ ] **Step 4: Visual smoke test**
+
+Open a challenge card with a form. Verify:
+- Labels are readable in all three themes
+- Input borders turn red on validation error (uses `--color-error`)
+- Submit button uses accent colour and turns muted when submitting
+- Success/error messages appear in correct colours
+
+- [ ] **Step 5: Commit**
+
+```
+git add src/components/ChallengeForm.css src/components/ChallengeForm.jsx
+git commit -m "refactor: migrate ChallengeForm to className + fix hardcoded colours"
+```

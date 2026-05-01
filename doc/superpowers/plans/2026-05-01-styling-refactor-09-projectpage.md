@@ -1,3 +1,44 @@
+# Task 09 — ProjectPage: remove `<style>` tag, inline styles → className
+
+**Depends on:** [Task 02 — App wiring](2026-05-01-styling-refactor-02-app-wiring.md)
+**Next:** [Task 10 — CityPage](2026-05-01-styling-refactor-10-citypage.md)
+
+**Files:**
+- Create: `src/pages/ProjectPage.css`
+- Modify: `src/pages/ProjectPage.jsx`
+
+---
+
+- [ ] **Step 1: Create `src/pages/ProjectPage.css`**
+
+```css
+/* src/pages/ProjectPage.css */
+
+.project-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px;
+  background: var(--color-background);
+  min-height: 100vh;
+}
+
+.project-page__title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--color-text);
+}
+
+.project-page__city-list {
+  margin-top: 24px;
+}
+```
+
+- [ ] **Step 2: Rewrite `src/pages/ProjectPage.jsx`**
+
+Remove the inline `<style>` tag and all `style` props that reference theme tokens.
+
+```jsx
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useText } from '../hooks/useText'
@@ -40,3 +81,25 @@ export default function ProjectPage() {
     </div>
   )
 }
+```
+
+Note: loading/error states keep inline styles (transient, outside the normal layout tree).
+
+- [ ] **Step 3: Run the test suite**
+
+```
+npm test
+```
+
+Expected: all tests pass.
+
+- [ ] **Step 4: Visual smoke test**
+
+Navigate to a project. City list renders correctly with CitySelector cards.
+
+- [ ] **Step 5: Commit**
+
+```
+git add src/pages/ProjectPage.css src/pages/ProjectPage.jsx
+git commit -m "refactor: migrate ProjectPage to className + remove style reset tag"
+```

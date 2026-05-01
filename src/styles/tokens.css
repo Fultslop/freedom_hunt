@@ -1,0 +1,61 @@
+/* src/styles/tokens.css */
+
+:root {
+  --font-family: Arial, sans-serif;
+  --color-background: #ffffff;
+  --color-surface: #f9f9f9;
+  --color-border: #dddddd;
+  --color-text: #111111;
+  --color-text-secondary: #666666;
+  --color-text-muted: #aaaaaa;
+  --color-accent: #555555;
+  --color-bar-background: #ffffff;
+  --color-bar-border: #dddddd;
+  --color-bar-text: #333333;
+  --color-bar-text-secondary: #888888;
+  --color-progress-track: #eeeeee;
+  --color-progress-fill: #555555;
+  --color-clue-background: transparent;
+  --color-clue-border-color: transparent;
+  /* Static utility colours — not in themes.js, not overridden per-theme */
+  --color-error: #BF0A30;
+  --color-success: #2d7a2d;
+}
+
+:root[data-theme="app"] {
+  --font-family: 'Comfortaa', sans-serif;
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-border: #334155;
+  --color-text: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-accent: #f59e0b;
+  --color-bar-background: #1e293b;
+  --color-bar-border: #334155;
+  --color-bar-text: #f8fafc;
+  --color-bar-text-secondary: #94a3b8;
+  --color-progress-track: #0f172a;
+  --color-progress-fill: #f59e0b;
+  --color-clue-background: #1a2744;
+  --color-clue-border-color: transparent;
+}
+
+:root[data-theme="GWC"] {
+  --font-family: 'Quicksand', sans-serif;
+  --color-background: #ffffff;
+  --color-surface: #f0f4ff;
+  --color-border: #e5e7eb;
+  --color-text: #002868;
+  --color-text-secondary: #374151;
+  --color-text-muted: #6b7280;
+  --color-accent: #BF0A30;
+  --color-bar-background: #002868;
+  --color-bar-border: #002868;
+  --color-bar-text: #ffffff;
+  --color-bar-text-secondary: #93c5fd;
+  --color-progress-track: #001a4d;
+  --color-progress-fill: #BF0A30;
+  --color-clue-background: #f0f4ff;
+  --color-clue-border-color: #002868;
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchImage } from '../assets/AssetManager'
+import './CitySelector.css'
 
 export default function CitySelector({ project, city }) {
   const navigate = useNavigate()
@@ -22,35 +23,20 @@ export default function CitySelector({ project, city }) {
       tabIndex={0}
       onClick={handleNav}
       onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && handleNav()}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '12px 16px',
-        border: '1px solid #ddd',
-        borderRadius: 8,
-        cursor: 'pointer',
-        marginBottom: 12,
-      }}
+      className="city-card"
     >
       {imageSrc && (
         <img
           src={imageSrc}
           alt={city.name}
-          style={{
-            width: 60,
-            height: 60,
-            objectFit: 'cover',
-            borderRadius: 8,
-            marginRight: 16,
-            flexShrink: 0,
-          }}
+          className="city-card__image"
         />
       )}
       <div>
-        <div style={{ fontWeight: 600, fontSize: 17 }}>{city.name}</div>
-        <div style={{ fontSize: 13, color: '#666', marginTop: 4 }}>{city.country}</div>
+        <div className="city-card__name">{city.name}</div>
+        <div className="city-card__country">{city.country}</div>
         {city.description && (
-          <div style={{ fontSize: 13, color: '#888', marginTop: 6 }}>{city.description}</div>
+          <div className="city-card__description">{city.description}</div>
         )}
       </div>
     </div>

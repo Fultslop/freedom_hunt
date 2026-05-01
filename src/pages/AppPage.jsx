@@ -5,8 +5,7 @@ import { useTheme } from '../theme/ThemeContext'
 import { useTitleBar } from '../theme/TitleBarContext'
 import MarkdownText from '../components/MarkdownText'
 import { fetchImage } from '../assets/AssetManager'
-
-const STYLE_RESET = `html, body, #root { margin: 0; padding: 0; }`
+import './AppPage.css'
 
 export default function AppPage() {
   const navigate = useNavigate()
@@ -23,16 +22,10 @@ export default function AppPage() {
   useEffect(() => { fetchImage('landing-page.jpg').then(setLandingImageUrl) }, [])
 
   if (appLoading || projectsLoading) return (
-    <>
-      <style>{STYLE_RESET}</style>
-      <div style={{ padding: 24, background: theme.background, color: theme.text }}>Loading…</div>
-    </>
+    <div style={{ padding: 24, background: theme.background, color: theme.text }}>Loading…</div>
   )
   if (!projectsText) return (
-    <>
-      <style>{STYLE_RESET}</style>
-      <div style={{ padding: 24, background: theme.background, color: theme.text }}>Content unavailable.</div>
-    </>
+    <div style={{ padding: 24, background: theme.background, color: theme.text }}>Content unavailable.</div>
   )
 
   // Pull content up so its top sits at 20% of viewport height from the top
@@ -41,45 +34,33 @@ export default function AppPage() {
     : (landingImageUrl ? -80 : 0)
 
   return (
-    <div style={{ background: theme.background, minHeight: '100vh' }}>
-      <style>{STYLE_RESET}</style>
-
+    <div className="app-page">
       {landingImageUrl && (
-        <div style={{
-          background: '#ffffff',
-          overflow: 'hidden',
-          position: 'relative',
-          height: imgHeight ? imgHeight / 2 : 'auto',
-        }}>
+        <div
+          className="app-page__hero-wrap"
+          style={{ height: imgHeight ? imgHeight / 2 : 'auto' }}
+        >
           <img
             src={landingImageUrl}
             alt=""
             onLoad={e => setImgHeight(e.target.offsetHeight)}
-            style={{ display: 'block', width: '100%', transform: 'translateY(-50%)' }}
+            className="app-page__hero-img"
           />
-          <div style={{
-            position: 'absolute',
-            bottom: 0, left: 0, right: 0,
-            height: '50%',
-            background: `linear-gradient(to bottom, rgba(255,255,255,0), ${theme.background})`,
-          }} />
+          <div className="app-page__hero-gradient" />
         </div>
       )}
 
-      <div style={{
-        maxWidth: 480, margin: '0 auto', padding: '24px',
-        marginTop: contentMarginTop,
-        background: theme.background,
-        borderRadius: 8,
-        position: 'relative',
-      }}>
+      <div
+        className="app-page__content"
+        style={{ marginTop: contentMarginTop }}
+      >
         {appText && (
-          <div style={{ marginBottom: 32 }}>
-            <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, color: theme.text }}>{appText['app.title']}</h1>
-            <p style={{ fontSize: 15, color: theme.textSecondary, marginTop: 8 }}>{appText['app.tagline']}</p>
+          <div className="app-page__heading">
+            <h1 className="app-page__title">{appText['app.title']}</h1>
+            <p className="app-page__tagline">{appText['app.tagline']}</p>
           </div>
         )}
-        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, color: theme.text }}>
+        <h2 className="app-page__subtitle">
           {projectsText['page.subtitle']}
         </h2>
         {projectsText.items.map(project => (
@@ -89,16 +70,9 @@ export default function AppPage() {
             tabIndex={0}
             onClick={() => navigate(`/${project.id}`)}
             onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && navigate(`/${project.id}`)}
-            style={{
-              padding: '16px 20px',
-              border: `1px solid ${theme.border}`,
-              borderRadius: 8,
-              cursor: 'pointer',
-              marginBottom: 12,
-              background: theme.surface,
-            }}
+            className="app-page__project-card"
           >
-            <div style={{ fontWeight: 600, fontSize: 17, color: theme.text }}>{project.name}</div>
+            <div className="app-page__project-name">{project.name}</div>
             <MarkdownText
               text={project.description}
               style={{ fontSize: 13, color: theme.textMuted, marginTop: 4, lineHeight: 1.5 }}

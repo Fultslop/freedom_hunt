@@ -1,14 +1,11 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useTheme } from '../theme/ThemeContext'
 import { useAuth } from '../auth/AuthContext'
-
-const STYLE_RESET = `html, body, #root { margin: 0; padding: 0; }`
+import './LoginPage.css'
 
 export default function LoginPage() {
   const { project } = useParams()
   const navigate = useNavigate()
-  const { theme } = useTheme()
   const { login } = useAuth()
   const [teamName, setTeamName] = useState('')
   const [contact, setContact] = useState('')
@@ -41,22 +38,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', minHeight: '100vh', background: theme.background, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', boxSizing: 'border-box' }}>
-      <style>{STYLE_RESET}</style>
-
-      <div style={{ textAlign: 'center', marginBottom: 28 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: theme.accent, marginBottom: 6 }}>
+    <div className="login-page">
+      <div className="login-page__header">
+        <div className="login-page__project">
           {project.replace(/_/g, ' ')}
         </div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: theme.text, marginBottom: 6 }}>Join the Hunt</div>
-        <div style={{ fontSize: 12, color: theme.textMuted, lineHeight: 1.5 }}>
+        <div className="login-page__headline">Join the Hunt</div>
+        <div className="login-page__subtext">
           Enter your team details and the password<br />shared by your event organizer.
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 300 }}>
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: theme.text, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <form onSubmit={handleSubmit} className="login-page__form">
+        <div className="login-page__field">
+          <label className="login-page__label">
             Team name
           </label>
           <input
@@ -64,25 +59,25 @@ export default function LoginPage() {
             onChange={e => setTeamName(e.target.value)}
             required
             placeholder="Your team name"
-            style={{ display: 'block', width: '100%', padding: '10px 12px', border: `1.5px solid ${theme.border}`, borderRadius: 6, background: theme.surface, fontSize: 13, color: theme.text, boxSizing: 'border-box' }}
+            className="login-page__input"
           />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: theme.text, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Contact email <span style={{ fontWeight: 400, color: theme.textMuted }}>(optional)</span>
+        <div className="login-page__field">
+          <label className="login-page__label">
+            Contact email <span className="login-page__label-note">(optional)</span>
           </label>
           <input
             type="email"
             value={contact}
             onChange={e => setContact(e.target.value)}
             placeholder="you@example.com"
-            style={{ display: 'block', width: '100%', padding: '10px 12px', border: `1.5px solid ${theme.border}`, borderRadius: 6, background: theme.surface, fontSize: 13, color: theme.text, boxSizing: 'border-box' }}
+            className="login-page__input"
           />
         </div>
 
-        <div style={{ marginBottom: error ? 8 : 20 }}>
-          <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: theme.text, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div className={error ? 'login-page__field--last-error' : 'login-page__field--last'}>
+          <label className="login-page__label">
             Password
           </label>
           <input
@@ -91,20 +86,18 @@ export default function LoginPage() {
             onChange={e => setPassword(e.target.value)}
             required
             placeholder="Event password"
-            style={{ display: 'block', width: '100%', padding: '10px 12px', border: `1.5px solid ${error ? theme.accent : theme.border}`, borderRadius: 6, background: theme.surface, fontSize: 13, color: theme.text, boxSizing: 'border-box' }}
+            className={`login-page__input${error ? ' login-page__input--error' : ''}`}
           />
         </div>
 
         {error && (
-          <div style={{ fontSize: 12, color: theme.accent, fontWeight: 600, marginBottom: 16 }}>
-            ✕ {error}
-          </div>
+          <div className="login-page__error">✕ {error}</div>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          style={{ width: '100%', padding: 12, background: theme.accent, color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 700, cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.7 : 1 }}
+          className={`login-page__submit${loading ? ' login-page__submit--loading' : ''}`}
         >
           {loading ? 'Joining…' : 'Join the Hunt'}
         </button>

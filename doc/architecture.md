@@ -16,7 +16,7 @@ Participants visit historically significant sites, complete challenges at each l
 | Build tool | Vite 8 |
 | Routing | React Router v7 |
 | Language | JSX (no TypeScript) |
-| Styling | Inline styles throughout (no CSS modules, no Tailwind) |
+| Styling | Co-located `.css` files + CSS custom properties (no CSS modules, no Tailwind) |
 | Data | Static YAML files in `src/data/text/` |
 | YAML loading | `@modyfi/vite-plugin-yaml` (bundled at build time) |
 | Maps | Leaflet + react-leaflet |
@@ -201,7 +201,7 @@ Images are not bundled — they are served as static files at `/assets/img/<file
 
 **Multi-project, multi-city, multi-route.** The URL structure (`/:project/:city/:route`) and data hierarchy support running the same app for multiple organisations, cities, and named routes simultaneously.
 
-**Inline styles throughout.** No CSS modules, no Tailwind. Styles are co-located as JS objects. Each page component injects a `<style>` tag for `html, body, #root` resets — follow this pattern for new pages.
+**CSS custom properties for theming.** No CSS modules, no Tailwind. Each component and page has a co-located `.css` file. Colours are expressed as `var(--color-*)` CSS custom properties. The token set is defined in `src/styles/tokens.css` and synced at runtime by `src/hooks/useCssVars.js`, which writes the active JS theme object onto `<html>` as CSS custom properties on every theme change. Global resets and `@keyframes` live in `src/styles/global.css`. Inline styles are reserved for values that are unavoidably dynamic (computed pixel offsets, runtime-state-driven widths, per-record colour values from data).
 
 **Cloudflare Workers deployment.** The app runs as a Cloudflare Worker serving static assets. `npm run preview` builds and runs locally via `wrangler dev`. `npm run deploy` pushes to Cloudflare.
 

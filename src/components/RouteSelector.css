@@ -1,0 +1,27 @@
+/* src/components/RouteSelector.css */
+
+.route-card {
+  padding: 16px 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.route-card__name {
+  font-weight: 600;
+  font-size: 17px;
+  text-transform: capitalize;
+}
+
+.route-card__description {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+.route-card__stops {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}

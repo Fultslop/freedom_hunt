@@ -1,3 +1,205 @@
+# Task 07 — ChallengeCard: inline styles → className + fix hardcoded colours
+
+**Depends on:** [Task 01 — CSS infrastructure](2026-05-01-styling-refactor-01-css-infrastructure.md) (keyframes already in global.css)
+**Next:** [Task 08 — AppPage](2026-05-01-styling-refactor-08-apppage.md)
+
+**Files:**
+- Create: `src/components/ChallengeCard.css`
+- Modify: `src/components/ChallengeCard.jsx`
+
+Hardcoded colours fixed:
+- `#2d7a2d` (photo success) → `var(--color-success)`
+- `#BF0A30` (upload error, breadcrumb border) → `var(--color-error)` / `var(--color-accent)`
+- `#002868` (location badge fallback) → `var(--color-accent)` (see note in Step 2)
+
+The `@keyframes fadeInUp` already moved to `global.css` in Task 01, so the `<style>` tag in the component is removed here.
+
+The MapContainer must keep an inline `style` for `height` (react-leaflet requires it to render). Its `border` can use the CSS variable directly in the inline style string since CSS vars work there.
+
+---
+
+- [ ] **Step 1: Create `src/components/ChallengeCard.css`**
+
+```css
+/* src/components/ChallengeCard.css */
+
+.cc-root {
+  background: var(--color-background);
+}
+
+/* Hero image layout */
+.cc-hero-wrap {
+  position: relative;
+  margin-bottom: 48px;
+}
+
+.cc-hero-img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.cc-hero-title-wrap {
+  position: absolute;
+  bottom: -48px;
+  left: 16px;
+  right: 16px;
+}
+
+.cc-no-hero-wrap {
+  margin: 16px;
+}
+
+/* Title card */
+.cc-title-card {
+  background: var(--color-surface);
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.cc-title-card--shadow {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+
+.cc-badge {
+  min-width: 44px;
+  height: 44px;
+  color: #fff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.cc-location-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.cc-location-name {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 3px;
+}
+
+.cc-location-address {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+/* Section headers (Storyline / Location / Your clue) */
+.cc-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cc-section--no-border {
+  padding: 16px;
+}
+
+.cc-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Map */
+.cc-map-coords {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 6px;
+  font-family: monospace;
+}
+
+/* Challenge inset */
+.cc-challenge-box {
+  margin-top: 14px;
+  background: var(--color-surface);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+/* Photo upload */
+.cc-photo-wrap {
+  margin-top: 12px;
+}
+
+.cc-photo-success {
+  font-size: 13px;
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.cc-photo-error {
+  font-size: 11px;
+  color: var(--color-error);
+  margin-top: 4px;
+}
+
+.cc-photo-btn {
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cc-photo-btn--idle {
+  background: var(--color-accent);
+  color: #000;
+}
+
+.cc-photo-btn--uploading {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.cc-photo-btn--error {
+  background: var(--color-accent);
+  color: #000;
+}
+
+/* Breadcrumb clue */
+.cc-breadcrumb {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-text);
+  font-style: italic;
+  border-left: 3px solid var(--color-error);
+  padding-left: 12px;
+  animation: fadeInUp 400ms ease-out;
+}
+```
+
+- [ ] **Step 2: Rewrite `src/components/ChallengeCard.jsx`**
+
+Remaining inline styles:
+- `cc-badge` background: `location.themeColor ?? theme.accent` — per-location data value, must stay inline
+- MapContainer `style`: height (required by react-leaflet) + border uses `var(--color-border)` inline
+- Photo button: upload state logic (idle/uploading/error) handled by modifier classes
+- `cc-title-card` shadow: conditional on `hasHero` — handled by modifier class
+
+```jsx
 import { useState, useRef, useEffect } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { useTheme } from '../theme/ThemeContext'
@@ -186,3 +388,28 @@ export default function ChallengeCard({ location, isLast, index }) {
     </div>
   )
 }
+```
+
+- [ ] **Step 3: Run the test suite**
+
+```
+npm test
+```
+
+Expected: all tests pass. ChallengeCard tests use `data-testid="location-badge"` and `data-testid="submit-btn"` which are preserved.
+
+- [ ] **Step 4: Visual smoke test**
+
+Open a route page and step through challenge cards. Verify:
+- Hero image layout correct (title card overlaps bottom of image)
+- Location badge uses per-location colour if set, otherwise theme accent
+- Map renders with correct border colour
+- Breadcrumb clue animates in with `fadeInUp` (from global.css)
+- Photo upload button and success/error states render correctly in all themes
+
+- [ ] **Step 5: Commit**
+
+```
+git add src/components/ChallengeCard.css src/components/ChallengeCard.jsx
+git commit -m "refactor: migrate ChallengeCard to className + fix hardcoded colours"
+```

@@ -85,15 +85,15 @@ test('badge background uses location themeColor', () => {
   expect(screen.getByTestId('location-badge')).toHaveStyle({ background: '#8B1A1A' })
 })
 
-test('badge falls back to navy when themeColor absent', () => {
+test('badge falls back to theme accent when themeColor absent', () => {
   const loc = { ...location, themeColor: undefined }
   render(<Wrapper><ChallengeCard location={loc} index={1} /></Wrapper>)
-  expect(screen.getByTestId('location-badge')).toHaveStyle({ background: '#002868' })
+  expect(screen.getByTestId('location-badge')).toHaveStyle({ background: '#f59e0b' })
 })
 
-test('submit button uses amber accent color', () => {
+test('submit button has idle class in default state', () => {
   render(<Wrapper><ChallengeCard location={location} index={1} /></Wrapper>)
-  expect(screen.getByTestId('submit-btn')).toHaveStyle({ background: '#f59e0b' })
+  expect(screen.getByTestId('submit-btn')).toHaveClass('cc-photo-btn--idle')
 })
 
 describe('photo upload', () => {

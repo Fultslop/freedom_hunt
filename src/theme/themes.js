@@ -2,6 +2,7 @@ export const DEFAULT_THEME = 'app'
 
 export const themes = {
   wireframe: {
+    fontFamily: 'Arial, sans-serif',
     background: '#ffffff',
     surface: '#f9f9f9',
     border: '#dddddd',
@@ -19,6 +20,7 @@ export const themes = {
     clueBorderColor: 'transparent',
   },
   app: {
+    fontFamily: "'Comfortaa', sans-serif",
     background: '#0f172a',
     surface: '#1e293b',
     border: '#334155',
@@ -36,6 +38,7 @@ export const themes = {
     clueBorderColor: 'transparent',
   },
   GWC: {
+    fontFamily: "'Quicksand', sans-serif",
     background: '#ffffff',
     surface: '#f0f4ff',
     border: '#e5e7eb',

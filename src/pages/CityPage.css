@@ -1,0 +1,27 @@
+/* src/pages/CityPage.css */
+
+.city-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px;
+  background: var(--color-background);
+  min-height: 100vh;
+}
+
+.city-page__intro {
+  margin-bottom: 24px;
+}
+
+.city-page__title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.city-page__subtitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--color-text);
+}

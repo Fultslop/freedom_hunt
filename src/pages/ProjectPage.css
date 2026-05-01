@@ -1,0 +1,20 @@
+/* src/pages/ProjectPage.css */
+
+.project-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px;
+  background: var(--color-background);
+  min-height: 100vh;
+}
+
+.project-page__title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--color-text);
+}
+
+.project-page__city-list {
+  margin-top: 24px;
+}
