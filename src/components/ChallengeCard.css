@@ -54,26 +54,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: var(--font-size-xl);
   font-weight: 800;
   flex-shrink: 0;
 }
 
 .cc-location-title {
-  font-size: 16px;
+  font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--color-text);
   line-height: 1.25;
 }
 
 .cc-location-name {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   margin-top: 3px;
 }
 
 .cc-location-address {
-  font-size: 11px;
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   margin-top: 1px;
 }
@@ -88,7 +88,7 @@
 }
 
 .cc-section-label {
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -100,7 +100,7 @@
 }
 
 .cc-map-coords {
-  font-size: 11px;
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   margin-top: 6px;
   font-family: monospace;
@@ -118,13 +118,13 @@
 }
 
 .cc-photo-success {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-success);
   font-weight: 600;
 }
 
 .cc-photo-error {
-  font-size: 11px;
+  font-size: var(--font-size-sm);
   color: var(--color-error);
   margin-top: 4px;
 }
@@ -134,7 +134,7 @@
   padding: 10px 0;
   border: none;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: var(--font-size-base);
   font-weight: 600;
   cursor: pointer;
 }
@@ -157,7 +157,7 @@
 
 .cc-breadcrumb {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   line-height: 1.65;
   color: var(--color-text);
   font-style: italic;

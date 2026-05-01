@@ -15,7 +15,7 @@ const pin = L.divIcon({
   iconAnchor: [7, 7],
 })
 
-export default function ChallengeCard({ location, isLast, index }) {
+export default function ChallengeCard({ location, isLast, index, routeId }) {
   const { theme } = useTheme()
   const [uploadState, setUploadState] = useState('idle')
   const fileInputRef = useRef(null)
@@ -94,10 +94,7 @@ export default function ChallengeCard({ location, isLast, index }) {
           <BookOpen size={12} aria-hidden />
           Storyline
         </div>
-        <MarkdownText
-          text={location.storyline}
-          style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: theme.text }}
-        />
+        <MarkdownText text={location.storyline} />
       </div>
 
       <div className="cc-section">
@@ -128,14 +125,11 @@ export default function ChallengeCard({ location, isLast, index }) {
             <Crosshair size={12} aria-hidden />
             Challenge
           </div>
-          <MarkdownText
-            text={location.challenge.description}
-            style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: theme.text }}
-          />
+          <MarkdownText text={location.challenge.description} />
         </div>
 
         {location.challenge.form && location.challenge.form.length > 0 && (
-          <ChallengeForm form={location.challenge.form} locationId={location.locationId} />
+          <ChallengeForm form={location.challenge.form} locationId={location.locationId} routeId={routeId} />
         )}
 
         <div className="cc-photo-wrap">

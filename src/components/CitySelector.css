@@ -21,17 +21,17 @@
 
 .city-card__name {
   font-weight: 600;
-  font-size: 17px;
+  font-size: var(--font-size-lg);
 }
 
 .city-card__country {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   margin-top: 4px;
 }
 
 .city-card__description {
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-text-muted);
   margin-top: 6px;
 }
