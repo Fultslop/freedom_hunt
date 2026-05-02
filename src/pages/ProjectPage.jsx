@@ -3,7 +3,10 @@ import { useParams } from 'react-router-dom'
 import { useText } from '../hooks/useText'
 import { useTheme } from '../theme/ThemeContext'
 import { useTitleBar } from '../theme/TitleBarContext'
+
 import CitySelector from '../components/CitySelector'
+import MarkdownText from '../components/MarkdownText'
+
 import './ProjectPage.css'
 
 export default function ProjectPage() {
@@ -32,6 +35,8 @@ export default function ProjectPage() {
   return (
     <div className="project-page">
       <h1 className="project-page__title">{citiesText['page.title']}</h1>
+      <MarkdownText text={citiesText['page.text']} />
+      <h2 className="project-page__select-city">{citiesText['page.selectCity']}</h2>
       <div className="project-page__city-list">
         {citiesText.items.map(city => (
           <CitySelector key={city.id} project={project} city={city} />

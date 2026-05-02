@@ -15,8 +15,7 @@ export default function AppPage() {
   const [landingImageUrl, setLandingImageUrl] = useState(null)
   const [imgHeight, setImgHeight] = useState(0)
 
-  // xxx todo move to data
-  useTitleBar({ title: 'Way-ward', progress: null, backPath: null })
+  useTitleBar({ title: appText?.['app.title'], progress: null, backPath: null })
 
   useEffect(() => { setThemeName('app') }, [setThemeName])
   useEffect(() => { fetchImage('landing-page.jpg').then(setLandingImageUrl) }, [])
