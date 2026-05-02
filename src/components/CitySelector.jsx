@@ -5,7 +5,7 @@ import './CitySelector.css'
 
 export default function CitySelector({ project, city }) {
   const navigate = useNavigate()
-  const [imageSrc, setImageSrc] = useState(null)
+  const [imageSrc, setImageSrc] = useState(() => city.image ? null : null)
 
   useEffect(() => {
     if (!city.image) { setImageSrc(null); return }

@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
+import { Camera } from 'lucide-react'
 import './ChallengeForm.css'
 
-const VALID_TYPES = ['string', 'number', 'boolean', 'radio', 'multiple']
+const VALID_TYPES = ['string', 'number', 'boolean', 'radio', 'multiple', 'photo']
 
 function checkDefinition(field) {
   if (!VALID_TYPES.includes(field.type)) return `unknown type "${field.type}"`
@@ -20,6 +21,26 @@ export default function ChallengeForm({ form, locationId, routeId }) {
   const [submitState, setSubmitState] = useState('idle')
   const [maxWarning, setMaxWarning] = useState(null)
   const maxWarningTimer = useRef(null)
+  const [uploadState, setUploadState] = useState('idle')
+  const fileInputRef = useRef(null)
+
+  const hasPhotoField = form.some(f => f.type === 'photo')
+
+  async function handleFileChange(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploadState('uploading')
+    const body = new FormData()
+    body.append('photo', file)
+    body.append('locationId', String(locationId))
+    try {
+      const res = await fetch('/upload', { method: 'POST', body })
+      const data = await res.json()
+      setUploadState(data.ok ? 'success' : 'error')
+    } catch {
+      setUploadState('error')
+    }
+  }
 
   function setValue(id, value) {
     setValues(prev => ({ ...prev, [id]: value }))
@@ -95,6 +116,8 @@ export default function ChallengeForm({ form, locationId, routeId }) {
         </div>
       )
     }
+
+    if (field.type === 'photo') return null
 
     return (
       <div key={field.id} className="cf-field">
@@ -187,6 +210,42 @@ export default function ChallengeForm({ form, locationId, routeId }) {
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: 14 }}>
       {form.map(renderField)}
+
+      {hasPhotoField && (
+        <div className="cf-photo-wrap">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
+          {uploadState === 'success' ? (
+            <div className="cf-photo-success">✓ Photo submitted</div>
+          ) : (
+            <>
+              <button
+                data-testid="submit-btn"
+                type="button"
+                onClick={() => fileInputRef.current.click()}
+                disabled={uploadState === 'uploading'}
+                className={`cf-photo-btn cf-photo-btn--${uploadState}`}
+              >
+                {uploadState === 'uploading'
+                  ? 'Uploading…'
+                  : uploadState === 'error'
+                    ? <><Camera size={14} aria-hidden style={{ verticalAlign: 'middle', marginRight: 4 }} /> Try again</>
+                    : <><Camera size={14} aria-hidden style={{ verticalAlign: 'middle', marginRight: 4 }} /> {form.find(f => f.type === 'photo')?.label ?? 'Submit photo proof'}</>
+                }
+              </button>
+              {uploadState === 'error' && (
+                <div className="cf-photo-error">Upload failed. Please try again.</div>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       <button
         type="submit"

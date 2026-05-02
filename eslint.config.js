@@ -39,6 +39,7 @@ export default defineConfig([
         beforeAll: 'readonly',
         afterAll: 'readonly',
         vi: 'readonly',
+        global: 'readonly',
       }
     }
   },

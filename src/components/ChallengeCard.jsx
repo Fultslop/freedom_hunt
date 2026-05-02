@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { useTheme } from '../theme/ThemeContext'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
 import L from 'leaflet'
 import MarkdownText from './MarkdownText'
 import ChallengeForm from './ChallengeForm'
-import { BookOpen, MapPin, Crosshair, Compass, Camera } from 'lucide-react'
+import { BookOpen, MapPin, Crosshair, Compass } from 'lucide-react'
 import { fetchImage } from '../assets/AssetManager'
 import './ChallengeCard.css'
 
@@ -17,12 +17,13 @@ const pin = L.divIcon({
 
 export default function ChallengeCard({ location, isLast, index, routeId }) {
   const { theme } = useTheme()
-  const [uploadState, setUploadState] = useState('idle')
-  const fileInputRef = useRef(null)
-  const [heroSrc, setHeroSrc] = useState(null)
+  const [heroSrc, setHeroSrc] = useState(() => location.image ? null : null)
 
   useEffect(() => {
-    if (!location.image) { setHeroSrc(null); return }
+    if (!location.image) {
+      setHeroSrc(null) /* eslint-disable-line react-hooks/set-state-in-effect */
+      return
+    }
     let cancelled = false
     fetchImage(location.image).then(url => {
       if (!cancelled) setHeroSrc(url)
@@ -32,22 +33,6 @@ export default function ChallengeCard({ location, isLast, index, routeId }) {
 
   const hasHero = !!heroSrc
   const pos = [location.coordinates.latitude, location.coordinates.longitude]
-
-  async function handleFileChange(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    setUploadState('uploading')
-    const body = new FormData()
-    body.append('photo', file)
-    body.append('locationId', String(location.locationId))
-    try {
-      const res = await fetch('/upload', { method: 'POST', body })
-      const data = await res.json()
-      setUploadState(data.ok ? 'success' : 'error')
-    } catch {
-      setUploadState('error')
-    }
-  }
 
   const titleCard = (
     <div className={`cc-title-card${hasHero ? ' cc-title-card--shadow' : ''}`}>
@@ -131,39 +116,6 @@ export default function ChallengeCard({ location, isLast, index, routeId }) {
         {location.challenge.form && location.challenge.form.length > 0 && (
           <ChallengeForm form={location.challenge.form} locationId={location.locationId} routeId={routeId} />
         )}
-
-        <div className="cc-photo-wrap">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleFileChange}
-            style={{ display: 'none' }}
-          />
-          {uploadState === 'success' ? (
-            <div className="cc-photo-success">✓ Photo submitted</div>
-          ) : (
-            <>
-              <button
-                data-testid="submit-btn"
-                onClick={() => fileInputRef.current.click()}
-                disabled={uploadState === 'uploading'}
-                className={`cc-photo-btn cc-photo-btn--${uploadState}`}
-              >
-                {uploadState === 'uploading'
-                  ? 'Uploading…'
-                  : uploadState === 'error'
-                    ? <><Camera size={14} aria-hidden style={{ verticalAlign: 'middle', marginRight: 4 }} /> Try again</>
-                    : <><Camera size={14} aria-hidden style={{ verticalAlign: 'middle', marginRight: 4 }} /> Submit photo proof</>
-                }
-              </button>
-              {uploadState === 'error' && (
-                <div className="cc-photo-error">Upload failed. Please try again.</div>
-              )}
-            </>
-          )}
-        </div>
       </div>
 
       {!isLast && (
