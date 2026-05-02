@@ -24,5 +24,8 @@
 			"binding": "AUTH_STORE",
 			"id": "1ec42eaee97c489b83b1fdcef324a01e"
 		}
-	]
+	],
+	"vars": {
+		"GITHUB_REPO": "fultslop/freedom_hunt"
+	}
 }

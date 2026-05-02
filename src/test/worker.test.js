@@ -95,3 +95,190 @@ describe('/form-submit', () => {
     expect(data.ok).toBe(false)
   })
 })
+
+// ── helpers ──────────────────────────────────────────────────────────────
+const makeAdminEnv = () => ({
+  AUTH_SECRET: TEST_SECRET,
+  AUTH_STORE: { get: async () => null },
+  GITHUB_PAT: 'fake-pat',
+  GITHUB_REPO: 'owner/repo',
+})
+
+const makeAdminToken = () =>
+  createToken({ ...TEST_PAYLOAD, isAdmin: true }, TEST_SECRET)
+
+// ── GET /editor/locations ─────────────────────────────────────────────────
+describe('GET /editor/locations', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('returns 401 for unauthenticated request', async () => {
+    const request = new Request('https://example.com/editor/locations?project=p&city=c')
+    const response = await worker.fetch(request, makeAdminEnv())
+    expect(response.status).toBe(401)
+  })
+
+  it('returns parsed locations from GitHub', async () => {
+    const adminToken = await makeAdminToken()
+    const sampleYaml = 'locationId: 1\ntitle: Test Location\naddress: ""\n'
+    const encoded = btoa(sampleYaml)
+
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify([
+        { name: '001_loc_test.yaml', path: 'src/data/text/en/projects/p/c/001_loc_test.yaml', type: 'file' },
+        { name: 'cities.yaml', path: 'src/data/text/en/projects/p/cities.yaml', type: 'file' },
+      ]), { headers: { 'Content-Type': 'application/json' } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ content: encoded + '\n', sha: 'abc123' }), {
+        headers: { 'Content-Type': 'application/json' },
+      }))
+
+    const request = new Request('https://example.com/editor/locations?project=p&city=c', {
+      headers: { Cookie: `freedom_hunt_auth=${adminToken}` },
+    })
+    const response = await worker.fetch(request, makeAdminEnv())
+    expect(response.status).toBe(200)
+    const data = await response.json()
+    expect(data.ok).toBe(true)
+    expect(data.locations).toHaveLength(1)
+    expect(data.locations[0].filename).toBe('001_loc_test.yaml')
+    expect(data.locations[0].location.title).toBe('Test Location')
+    expect(data.locations[0].sha).toBe('abc123')
+  })
+})
+
+// ── GET /editor/location ──────────────────────────────────────────────────
+describe('GET /editor/location', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('returns single parsed location', async () => {
+    const adminToken = await makeAdminToken()
+    const sampleYaml = 'locationId: 2\ntitle: Peace Palace\naddress: ""\n'
+    const encoded = btoa(sampleYaml)
+
+    global.fetch = vi.fn().mockResolvedValueOnce(
+      new Response(JSON.stringify({ content: encoded + '\n', sha: 'def456' }), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    )
+
+    const request = new Request(
+      'https://example.com/editor/location?project=p&city=c&file=002_loc_peace.yaml',
+      { headers: { Cookie: `freedom_hunt_auth=${adminToken}` } }
+    )
+    const response = await worker.fetch(request, makeAdminEnv())
+    expect(response.status).toBe(200)
+    const data = await response.json()
+    expect(data.ok).toBe(true)
+    expect(data.location.title).toBe('Peace Palace')
+    expect(data.sha).toBe('def456')
+  })
+})
+
+// ── POST /editor/location ─────────────────────────────────────────────────
+describe('POST /editor/location', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('creates branch, commits file, opens PR and returns prUrl', async () => {
+    const adminToken = await makeAdminToken()
+
+    global.fetch = vi.fn()
+      // 1. get HEAD SHA
+      .mockResolvedValueOnce(new Response(JSON.stringify({ object: { sha: 'head-sha' } }), {
+        headers: { 'Content-Type': 'application/json' },
+      }))
+      // 2. create branch
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ref: 'refs/heads/editor/001-123' }), {
+        headers: { 'Content-Type': 'application/json' },
+      }))
+      // 3. get existing file SHA (404 = new file)
+      .mockResolvedValueOnce(new Response('Not Found', { status: 404 }))
+      // 4. PUT file
+      .mockResolvedValueOnce(new Response(JSON.stringify({ content: { sha: 'new-sha' } }), {
+        headers: { 'Content-Type': 'application/json' },
+      }))
+      // 5. create PR
+      .mockResolvedValueOnce(new Response(JSON.stringify({ html_url: 'https://github.com/owner/repo/pull/1', number: 1 }), {
+        headers: { 'Content-Type': 'application/json' },
+      }))
+
+    const body = JSON.stringify({
+      project: 'p',
+      city: 'c',
+      filename: '001_loc_test.yaml',
+      existingSha: null,
+      location: { locationId: 1, title: 'New Location', address: '' },
+    })
+    const request = new Request('https://example.com/editor/location', {
+      method: 'POST',
+      body,
+      headers: { 'Content-Type': 'application/json', Cookie: `freedom_hunt_auth=${adminToken}` },
+    })
+    const response = await worker.fetch(request, makeAdminEnv())
+    expect(response.status).toBe(200)
+    const data = await response.json()
+    expect(data.ok).toBe(true)
+    expect(data.prUrl).toBe('https://github.com/owner/repo/pull/1')
+  })
+})
+
+describe('/auth/login — admin tier', () => {
+  const makeAuthEnv = () => ({
+    AUTH_STORE: {
+      get: async (key) => {
+        if (key === 'admin:test_project') return 'adminpass'
+        if (key === 'auth:test_project') return 'userpass'
+        if (key.startsWith('rl:')) return null
+        return null
+      },
+      put: async () => {},
+    },
+    AUTH_SECRET: TEST_SECRET,
+  })
+
+  it('sets isAdmin true when admin password used', async () => {
+    const request = new Request('https://example.com/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ project: 'test_project', teamName: 'Org', contact: '', password: 'adminpass' }),
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.4' },
+    })
+    const response = await worker.fetch(request, makeAuthEnv())
+    const data = await response.json()
+    expect(data.ok).toBe(true)
+    expect(data.isAdmin).toBe(true)
+  })
+
+  it('sets isAdmin false for participant password', async () => {
+    const request = new Request('https://example.com/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ project: 'test_project', teamName: 'Team A', contact: '', password: 'userpass' }),
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.5' },
+    })
+    const response = await worker.fetch(request, makeAuthEnv())
+    const data = await response.json()
+    expect(data.ok).toBe(true)
+    expect(data.isAdmin).toBe(false)
+  })
+
+  it('returns 401 for wrong password', async () => {
+    const request = new Request('https://example.com/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ project: 'test_project', teamName: '', contact: '', password: 'wrong' }),
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '1.2.3.6' },
+    })
+    const response = await worker.fetch(request, makeAuthEnv())
+    expect(response.status).toBe(401)
+  })
+})
+
+describe('/auth/me — isAdmin', () => {
+  it('includes isAdmin in response', async () => {
+    const adminToken = await createToken({ ...TEST_PAYLOAD, isAdmin: true }, TEST_SECRET)
+    const env = { AUTH_SECRET: TEST_SECRET, AUTH_STORE: { get: async () => null } }
+    const request = new Request('https://example.com/auth/me', {
+      headers: { Cookie: `freedom_hunt_auth=${adminToken}` },
+    })
+    const response = await worker.fetch(request, env)
+    const data = await response.json()
+    expect(data.ok).toBe(true)
+    expect(data.isAdmin).toBe(true)
+  })
+})
