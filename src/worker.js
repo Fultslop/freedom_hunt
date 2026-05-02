@@ -289,6 +289,27 @@ export default {
       }
     }
 
+    // GET /editor/pr-status?numbers=1,2,3
+    // Returns { ok: true, statuses: { "27": "open", "28": "closed" } }
+    // Used by the location list to auto-clear pending badges for PRs that are
+    // no longer open. GitHub uses state "closed" for both merged and rejected PRs.
+    if (request.method === 'GET' && url.pathname === '/editor/pr-status') {
+      const authPayload = await requireAuth(request, env)
+      if (!authPayload?.isAdmin) return json({ ok: false, error: 'Forbidden' }, authPayload ? 403 : 401)
+      const numbers = (url.searchParams.get('numbers') ?? '').split(',').filter(Boolean)
+      if (!numbers.length) return json({ ok: true, statuses: {} })
+      try {
+        const statuses = {}
+        await Promise.all(numbers.map(async n => {
+          const pr = await githubRequest(`/pulls/${n}`, {}, env)
+          statuses[n] = pr.state
+        }))
+        return json({ ok: true, statuses })
+      } catch (err) {
+        return json({ ok: false, error: err.message }, 502)
+      }
+    }
+
     if (request.method === 'POST' && url.pathname === '/editor/location') {
       const authPayload = await requireAuth(request, env)
       if (!authPayload?.isAdmin) return json({ ok: false, error: 'Forbidden' }, authPayload ? 403 : 401)
