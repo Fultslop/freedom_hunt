@@ -1,0 +1,17 @@
+locationId: 6
+title: Test title
+image: ''
+name:
+  label: Name Label
+  value: Name Value
+address: Street 500
+coordinates:
+  latitude: 100
+  longitude: 200
+storyline: Storyline goes here
+challenge:
+  name: challenge name
+  description: Challenge description
+  notes: 'Notes '
+  form: []
+breadcrumb: 'Clue to the next '
