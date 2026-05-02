@@ -29,8 +29,8 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (data.ok) {
-        login(project, data.teamName, data.contact)
-        navigate(`/${project}`)
+        login(project, data.teamName, data.contact, data.isAdmin ?? false)
+        navigate(data.isAdmin ? '/editor' : `/${project}`)
       } else {
         setError(data.error || 'Incorrect password. Please try again.')
       }

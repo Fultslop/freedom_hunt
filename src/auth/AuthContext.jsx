@@ -22,15 +22,15 @@ export function AuthProvider({ children }) {
       .then(r => r.json())
       .then(data => {
         if (data.ok) {
-          setActiveAuth({ projectId: data.project, teamName: data.teamName, contact: data.contact })
+          setActiveAuth({ projectId: data.project, teamName: data.teamName, contact: data.contact, isAdmin: data.isAdmin ?? false })
         }
       })
       .catch(() => {})
       .finally(() => setAuthLoading(false))
   }, [])
 
-  function login(projectId, teamName, contact) {
-    setActiveAuth({ projectId, teamName, contact })
+  function login(projectId, teamName, contact, isAdmin = false) {
+    setActiveAuth({ projectId, teamName, contact, isAdmin })
   }
 
   async function logout() {

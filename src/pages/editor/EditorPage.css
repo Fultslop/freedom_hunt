@@ -1,0 +1,74 @@
+/* src/pages/editor/EditorPage.css */
+
+.editor-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px;
+  background: var(--color-background);
+  min-height: 100vh;
+}
+
+.editor-page__title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.editor-page__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: 32px;
+}
+
+.editor-page__tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editor-page__tile {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.editor-page__tile:hover:not(.editor-page__tile--disabled) {
+  border-color: var(--color-accent);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.editor-page__tile--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.editor-page__tile-name {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.editor-page__tile-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+.editor-page__tile-tag {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: var(--color-border);
+  padding: 2px 8px;
+  border-radius: 4px;
+}

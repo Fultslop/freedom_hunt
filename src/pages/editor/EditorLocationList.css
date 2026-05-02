@@ -1,0 +1,122 @@
+/* src/pages/editor/EditorLocationList.css */
+
+.loc-list {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px;
+  background: var(--color-background);
+  min-height: 100vh;
+}
+
+.loc-list__toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.loc-list__add-btn,
+.loc-list__refresh-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.loc-list__add-btn {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.loc-list__refresh-btn {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.loc-list__item {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: var(--color-surface);
+}
+
+.loc-list__item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.loc-list__item-title {
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.loc-list__item-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.loc-list__item-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.loc-list__btn {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.loc-list__btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.loc-list__btn--danger:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.loc-list__pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #e67e22;
+  background: #fef3e2;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.loc-list__pending:hover {
+  text-decoration: underline;
+}
+
+.loc-list__error {
+  padding: 16px;
+  color: var(--color-accent);
+  font-size: var(--font-size-sm);
+}
+
+.loc-list__loading {
+  padding: 16px;
+  color: var(--color-text-secondary);
+}

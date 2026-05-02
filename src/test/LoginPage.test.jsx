@@ -72,7 +72,7 @@ test('calls login() with projectId, teamName, and contact on success', async () 
   fireEvent.change(screen.getByPlaceholderText('you@example.com'), { target: { value: 'a@b.com' } })
   fireEvent.change(screen.getByPlaceholderText('Event password'), { target: { value: 'secret' } })
   fireEvent.click(screen.getByRole('button', { name: /join the hunt/i }))
-  await waitFor(() => expect(loginMock).toHaveBeenCalledWith('test_project', 'Team A', 'a@b.com'))
+  await waitFor(() => expect(loginMock).toHaveBeenCalledWith('test_project', 'Team A', 'a@b.com', false))
 })
 
 test('shows connection error when fetch throws', async () => {
