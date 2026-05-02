@@ -289,6 +289,10 @@ export default {
       }
     }
 
+    // GET /editor/pr-status?numbers=1,2,3
+    // Returns { ok: true, statuses: { "27": "open", "28": "closed" } }
+    // Used by the location list to auto-clear pending badges for PRs that are
+    // no longer open. GitHub uses state "closed" for both merged and rejected PRs.
     if (request.method === 'GET' && url.pathname === '/editor/pr-status') {
       const authPayload = await requireAuth(request, env)
       if (!authPayload?.isAdmin) return json({ ok: false, error: 'Forbidden' }, authPayload ? 403 : 401)
