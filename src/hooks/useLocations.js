@@ -5,8 +5,8 @@ const modules = import.meta.glob('../data/text/**/*.yaml')
 
 export function useLocations(paths) {
   const { currentLang } = useContext(LanguageContext)
-  const [locations, setLocations] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [locations, setLocations] = useState(() => (!paths || paths.length === 0) ? [] : [])
+  const [loading, setLoading] = useState(() => (!paths || paths.length === 0) ? false : true)
 
   useEffect(() => {
     if (!paths || paths.length === 0) {

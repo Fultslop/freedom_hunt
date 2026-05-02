@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import './ChallengeForm.css'
 
-const VALID_TYPES = ['string', 'number', 'boolean', 'radio', 'multiple']
+const VALID_TYPES = ['string', 'number', 'boolean', 'radio', 'multiple', 'photo']
 
 function checkDefinition(field) {
   if (!VALID_TYPES.includes(field.type)) return `unknown type "${field.type}"`
@@ -95,6 +95,8 @@ export default function ChallengeForm({ form, locationId, routeId }) {
         </div>
       )
     }
+
+    if (field.type === 'photo') return null
 
     return (
       <div key={field.id} className="cf-field">

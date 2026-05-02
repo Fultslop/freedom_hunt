@@ -2,14 +2,24 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import ChallengeForm from '../components/ChallengeForm'
 
+vi.mock('../auth/AuthContext', () => ({
+  useAuth: vi.fn(() => ({ activeAuth: null })),
+}))
+
+import { useAuth } from '../auth/AuthContext'
+
+function Wrapper({ children }) {
+  return children
+}
+
 const stringField = { id: 'motto', type: 'string', label: 'What is the motto?' }
 const numberField = { id: 'trees', type: 'number', label: 'How many trees?' }
 const booleanField = { id: 'found', type: 'boolean', label: 'Did you find it?' }
 const radioField = { id: 'time', type: 'radio', label: 'Time of day?', options: ['Morning', 'Afternoon', 'Evening'] }
 
-test('always renders submitter ID input', () => {
+test('always renders submit button', () => {
   render(<ChallengeForm form={[stringField]} locationId="001" />)
-  expect(screen.getByLabelText('Your name or team')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Submit answers' })).toBeInTheDocument()
 })
 
 test('renders string field as text input', () => {
@@ -59,37 +69,31 @@ test('renders submit button', () => {
 })
 
 describe('submission validation', () => {
-  test('shows error when submitter ID is empty on submit', () => {
-    render(<ChallengeForm form={[booleanField]} locationId="001" />)
-    fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
-    expect(screen.getByText('Please enter your name or team')).toBeInTheDocument()
-  })
-
   test('shows error when string field is empty on submit', () => {
+    useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Alice', contact: 'a@b.com' } })
     render(<ChallengeForm form={[stringField]} locationId="001" />)
-    fireEvent.change(screen.getByLabelText('Your name or team'), { target: { value: 'Alice' } })
     fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
     expect(screen.getByText('This field is required')).toBeInTheDocument()
   })
 
   test('shows error when number field is empty on submit', () => {
+    useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Alice', contact: 'a@b.com' } })
     render(<ChallengeForm form={[numberField]} locationId="001" />)
-    fireEvent.change(screen.getByLabelText('Your name or team'), { target: { value: 'Alice' } })
     fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
     expect(screen.getByText('This field is required')).toBeInTheDocument()
   })
 
   test('shows error when radio field is unselected on submit', () => {
+    useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Alice', contact: 'a@b.com' } })
     render(<ChallengeForm form={[radioField]} locationId="001" />)
-    fireEvent.change(screen.getByLabelText('Your name or team'), { target: { value: 'Alice' } })
     fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
     expect(screen.getByText('Please select an option')).toBeInTheDocument()
   })
 
   test('boolean field does not require selection', async () => {
     global.fetch = vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ ok: true }) }))
+    useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Alice', contact: 'a@b.com' } })
     render(<ChallengeForm form={[booleanField]} locationId="001" />)
-    fireEvent.change(screen.getByLabelText('Your name or team'), { target: { value: 'Alice' } })
     fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
     await waitFor(() => expect(screen.getByText('✓ Answers submitted')).toBeInTheDocument())
     vi.restoreAllMocks()
@@ -97,6 +101,7 @@ describe('submission validation', () => {
 
   test('does not call fetch when validation fails', () => {
     global.fetch = vi.fn()
+    useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Alice', contact: 'a@b.com' } })
     render(<ChallengeForm form={[stringField]} locationId="001" />)
     fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
     expect(global.fetch).not.toHaveBeenCalled()
@@ -109,8 +114,8 @@ describe('submission states', () => {
 
   test('POSTs correct payload to /form-submit', async () => {
     global.fetch = vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ ok: true }) }))
+    useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Alice', contact: 'a@b.com' } })
     render(<ChallengeForm form={[stringField, booleanField]} locationId="001" />)
-    fireEvent.change(screen.getByLabelText('Your name or team'), { target: { value: 'Alice' } })
     fireEvent.change(screen.getByLabelText('What is the motto?'), { target: { value: 'Pro Rege' } })
     fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
 
@@ -120,31 +125,31 @@ describe('submission states', () => {
     expect(options.method).toBe('POST')
     const body = JSON.parse(options.body)
     expect(body.locationId).toBe('001')
-    expect(body.submitterId).toBe('Alice')
+    expect(body.teamName).toBe('Alice')
     expect(body.fields.motto).toBe('Pro Rege')
     expect(body.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/)
   })
 
   test('shows Submitting… while fetch is pending', async () => {
     global.fetch = vi.fn(() => new Promise(() => {}))
+    useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Alice', contact: 'a@b.com' } })
     render(<ChallengeForm form={[booleanField]} locationId="001" />)
-    fireEvent.change(screen.getByLabelText('Your name or team'), { target: { value: 'Alice' } })
     fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
     await waitFor(() => expect(screen.getByText('Submitting…')).toBeInTheDocument())
   })
 
   test('shows success confirmation after ok response', async () => {
     global.fetch = vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ ok: true }) }))
+    useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Alice', contact: 'a@b.com' } })
     render(<ChallengeForm form={[booleanField]} locationId="001" />)
-    fireEvent.change(screen.getByLabelText('Your name or team'), { target: { value: 'Alice' } })
     fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
     await waitFor(() => expect(screen.getByText('✓ Answers submitted')).toBeInTheDocument())
   })
 
   test('shows Try again after non-ok response', async () => {
     global.fetch = vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ ok: false }) }))
+    useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Alice', contact: 'a@b.com' } })
     render(<ChallengeForm form={[booleanField]} locationId="001" />)
-    fireEvent.change(screen.getByLabelText('Your name or team'), { target: { value: 'Alice' } })
     fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
     await waitFor(() => expect(screen.getByText('Try again')).toBeInTheDocument())
     expect(screen.getByText('Submission failed. Please try again.')).toBeInTheDocument()
@@ -152,9 +157,26 @@ describe('submission states', () => {
 
   test('shows Try again when fetch throws', async () => {
     global.fetch = vi.fn(() => Promise.reject(new Error('Network error')))
+    useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Alice', contact: 'a@b.com' } })
     render(<ChallengeForm form={[booleanField]} locationId="001" />)
-    fireEvent.change(screen.getByLabelText('Your name or team'), { target: { value: 'Alice' } })
     fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
     await waitFor(() => expect(screen.getByText('Try again')).toBeInTheDocument())
   })
+})
+
+const photoField = { id: 'proof', type: 'photo', label: 'Photo proof' }
+
+test('photo field renders nothing in the form', () => {
+  render(<ChallengeForm form={[photoField]} locationId="001" />)
+  expect(screen.queryByText('Photo proof')).not.toBeInTheDocument()
+  expect(screen.queryByText(/Invalid field/)).not.toBeInTheDocument()
+})
+
+test('photo field does not block submission of other fields', async () => {
+  global.fetch = vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ ok: true }) }))
+  useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Alice', contact: 'a@b.com' } })
+  render(<ChallengeForm form={[booleanField, photoField]} locationId="001" />)
+  fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
+  await waitFor(() => expect(screen.getByText('✓ Answers submitted')).toBeInTheDocument())
+  vi.restoreAllMocks()
 })

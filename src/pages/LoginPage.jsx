@@ -17,10 +17,6 @@ export default function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)

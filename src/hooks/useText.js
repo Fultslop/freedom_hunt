@@ -5,8 +5,16 @@ const modules = import.meta.glob('../data/text/**/*.yaml')
 
 export function useText(path) {
   const { currentLang } = useContext(LanguageContext)
-  const [text, setText] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [text, setText] = useState(() => {
+    const key = `../data/text/${currentLang}/${path}.yaml`
+    const loader = modules[key]
+    return loader ? null : null
+  })
+  const [loading, setLoading] = useState(() => {
+    const key = `../data/text/${currentLang}/${path}.yaml`
+    const loader = modules[key]
+    return loader ? true : false
+  })
 
   useEffect(() => {
     const key = `../data/text/${currentLang}/${path}.yaml`

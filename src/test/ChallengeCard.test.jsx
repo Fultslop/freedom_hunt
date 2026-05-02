@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { vi } from 'vitest'
 import { ThemeProvider } from '../theme/ThemeContext'
 import ChallengeCard from '../components/ChallengeCard'
 
@@ -12,6 +13,10 @@ vi.mock('leaflet', () => ({
   default: { divIcon: () => ({}) },
 }))
 
+vi.mock('../auth/AuthContext', () => ({
+  useAuth: vi.fn(() => ({ activeAuth: null })),
+}))
+
 const location = {
   locationId: 1,
   title: 'The Final Civic Act',
@@ -22,6 +27,14 @@ const location = {
   challenge: { description: 'Register to vote.' },
   breadcrumb: 'Find the inner courtyard.',
   themeColor: '#8B1A1A',
+}
+
+const locationWithPhoto = {
+  ...location,
+  challenge: {
+    ...location.challenge,
+    form: [{ id: 'proof', type: 'photo', label: 'Photo proof' }],
+  },
 }
 
 function Wrapper({ children }) {
@@ -92,7 +105,7 @@ test('badge falls back to theme accent when themeColor absent', () => {
 })
 
 test('submit button has idle class in default state', () => {
-  render(<Wrapper><ChallengeCard location={location} index={1} /></Wrapper>)
+  render(<Wrapper><ChallengeCard location={locationWithPhoto} index={1} /></Wrapper>)
   expect(screen.getByTestId('submit-btn')).toHaveClass('cc-photo-btn--idle')
 })
 
@@ -101,14 +114,24 @@ describe('photo upload', () => {
     vi.restoreAllMocks()
   })
 
+  test('photo section is hidden when form has no photo field', () => {
+    render(<Wrapper><ChallengeCard location={location} index={1} /></Wrapper>)
+    expect(screen.queryByText('Submit photo proof')).not.toBeInTheDocument()
+  })
+
+  test('photo section is visible when form has a photo field', () => {
+    render(<Wrapper><ChallengeCard location={locationWithPhoto} index={1} /></Wrapper>)
+    expect(screen.getByText('Submit photo proof')).toBeInTheDocument()
+  })
+
   test('renders camera button in idle state', () => {
-    render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
+    render(<Wrapper><ChallengeCard location={locationWithPhoto} /></Wrapper>)
     expect(screen.getByText('Submit photo proof')).toBeInTheDocument()
   })
 
   test('shows uploading state while fetch is pending', async () => {
     global.fetch = vi.fn(() => new Promise(() => {}))
-    render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
+    render(<Wrapper><ChallengeCard location={locationWithPhoto} /></Wrapper>)
     const input = document.querySelector('input[type="file"]')
     fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
     await waitFor(() => expect(screen.getByText('Uploading…')).toBeInTheDocument())
@@ -118,7 +141,7 @@ describe('photo upload', () => {
     global.fetch = vi.fn(() => Promise.resolve({
       json: () => Promise.resolve({ ok: true, key: '001_123.jpg' }),
     }))
-    render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
+    render(<Wrapper><ChallengeCard location={locationWithPhoto} /></Wrapper>)
     const input = document.querySelector('input[type="file"]')
     fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
     await waitFor(() => expect(screen.getByText('✓ Photo submitted')).toBeInTheDocument())
@@ -128,7 +151,7 @@ describe('photo upload', () => {
     global.fetch = vi.fn(() => Promise.resolve({
       json: () => Promise.resolve({ ok: false, error: 'Upload failed' }),
     }))
-    render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
+    render(<Wrapper><ChallengeCard location={locationWithPhoto} /></Wrapper>)
     const input = document.querySelector('input[type="file"]')
     fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
     await waitFor(() => expect(screen.getByText('Try again')).toBeInTheDocument())
@@ -150,13 +173,12 @@ describe('ChallengeForm integration', () => {
       },
     }
     render(<Wrapper><ChallengeCard location={loc} /></Wrapper>)
-    expect(screen.getByLabelText('Your name or team')).toBeInTheDocument()
     expect(screen.getByLabelText('What do you see?')).toBeInTheDocument()
   })
 
   test('does not render ChallengeForm when challenge.form is absent', () => {
     render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
-    expect(screen.queryByLabelText('Your name or team')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('What do you see?')).not.toBeInTheDocument()
   })
 
   test('does not render ChallengeForm when challenge.form is empty array', () => {
@@ -165,6 +187,6 @@ describe('ChallengeForm integration', () => {
       challenge: { ...location.challenge, form: [] },
     }
     render(<Wrapper><ChallengeCard location={loc} /></Wrapper>)
-    expect(screen.queryByLabelText('Your name or team')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('What do you see?')).not.toBeInTheDocument()
   })
 })

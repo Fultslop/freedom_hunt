@@ -1,8 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { vi } from 'vitest'
 import { ThemeProvider } from '../theme/ThemeContext'
 import { TitleBarProvider, useTitleBar } from '../theme/TitleBarContext'
+import { FontSizeProvider } from '../theme/FontSizeContext'
 import TitleBar from '../components/TitleBar'
 
 vi.mock('../auth/AuthContext', () => ({
@@ -15,9 +16,11 @@ function Wrapper({ children }) {
   return (
     <MemoryRouter>
       <ThemeProvider>
-        <TitleBarProvider>
-          {children}
-        </TitleBarProvider>
+        <FontSizeProvider>
+          <TitleBarProvider>
+            {children}
+          </TitleBarProvider>
+        </FontSizeProvider>
       </ThemeProvider>
     </MemoryRouter>
   )
@@ -111,13 +114,15 @@ test('clicking back in Profile returns to root menu', () => {
   expect(screen.queryByRole('button', { name: /sign out/i })).not.toBeInTheDocument()
 })
 
-test('sign out calls logout and closes menu', () => {
+test('sign out calls logout and closes menu', async () => {
   const logoutMock = vi.fn()
   useAuth.mockReturnValue({ activeAuth: { projectId: 'test', teamName: 'Team A', contact: '' }, logout: logoutMock })
   render(<Wrapper><Setup config={base} /></Wrapper>)
   fireEvent.click(screen.getByLabelText('Menu'))
   fireEvent.click(screen.getByText('Profile'))
-  fireEvent.click(screen.getByRole('button', { name: /sign out/i }))
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /sign out/i }))
+  })
   expect(logoutMock).toHaveBeenCalled()
   expect(screen.queryByText('Profile')).not.toBeInTheDocument()
 })
