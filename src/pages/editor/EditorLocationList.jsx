@@ -32,10 +32,35 @@ export default function EditorLocationList() {
     }
   }, [project, city])
 
+  const syncPending = useCallback(() => {
+    const items = getPending(project, city)
+    setPending(items)
+    if (!items.length) return
+    const numbers = items
+      .map(p => p.prUrl?.match(/\/pull\/(\d+)/)?.[1])
+      .filter(Boolean)
+    if (!numbers.length) return
+    fetch(`/editor/pr-status?numbers=${numbers.join(',')}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.ok) return
+        let changed = false
+        items.forEach(p => {
+          const n = p.prUrl?.match(/\/pull\/(\d+)/)?.[1]
+          if (n && data.statuses[n] === 'closed') {
+            removePending(project, city, p.filename)
+            changed = true
+          }
+        })
+        if (changed) setPending(getPending(project, city))
+      })
+      .catch(() => {})
+  }, [project, city])
+
   useEffect(() => {
     fetchLocations()
-    setPending(getPending(project, city))
-  }, [fetchLocations, project, city])
+    syncPending()
+  }, [fetchLocations, syncPending])
 
   async function handleHide(loc, sha) {
     if (!window.confirm(`Hide "${loc.title}"? This will open a PR setting hidden: true.`)) return
@@ -97,7 +122,7 @@ export default function EditorLocationList() {
         >
           + Add location
         </button>
-        <button className="loc-list__refresh-btn" onClick={fetchLocations}>
+        <button className="loc-list__refresh-btn" onClick={() => { fetchLocations(); syncPending() }}>
           Refresh
         </button>
       </div>
