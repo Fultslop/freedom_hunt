@@ -104,60 +104,6 @@ test('badge falls back to theme accent when themeColor absent', () => {
   expect(screen.getByTestId('location-badge')).toHaveStyle({ background: '#f59e0b' })
 })
 
-test('submit button has idle class in default state', () => {
-  render(<Wrapper><ChallengeCard location={locationWithPhoto} index={1} /></Wrapper>)
-  expect(screen.getByTestId('submit-btn')).toHaveClass('cc-photo-btn--idle')
-})
-
-describe('photo upload', () => {
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
-  test('photo section is hidden when form has no photo field', () => {
-    render(<Wrapper><ChallengeCard location={location} index={1} /></Wrapper>)
-    expect(screen.queryByText('Submit photo proof')).not.toBeInTheDocument()
-  })
-
-  test('photo section is visible when form has a photo field', () => {
-    render(<Wrapper><ChallengeCard location={locationWithPhoto} index={1} /></Wrapper>)
-    expect(screen.getByText('Submit photo proof')).toBeInTheDocument()
-  })
-
-  test('renders camera button in idle state', () => {
-    render(<Wrapper><ChallengeCard location={locationWithPhoto} /></Wrapper>)
-    expect(screen.getByText('Submit photo proof')).toBeInTheDocument()
-  })
-
-  test('shows uploading state while fetch is pending', async () => {
-    global.fetch = vi.fn(() => new Promise(() => {}))
-    render(<Wrapper><ChallengeCard location={locationWithPhoto} /></Wrapper>)
-    const input = document.querySelector('input[type="file"]')
-    fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
-    await waitFor(() => expect(screen.getByText('Uploading…')).toBeInTheDocument())
-  })
-
-  test('shows success confirmation after upload', async () => {
-    global.fetch = vi.fn(() => Promise.resolve({
-      json: () => Promise.resolve({ ok: true, key: '001_123.jpg' }),
-    }))
-    render(<Wrapper><ChallengeCard location={locationWithPhoto} /></Wrapper>)
-    const input = document.querySelector('input[type="file"]')
-    fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
-    await waitFor(() => expect(screen.getByText('✓ Photo submitted')).toBeInTheDocument())
-  })
-
-  test('shows retry button on failed upload', async () => {
-    global.fetch = vi.fn(() => Promise.resolve({
-      json: () => Promise.resolve({ ok: false, error: 'Upload failed' }),
-    }))
-    render(<Wrapper><ChallengeCard location={locationWithPhoto} /></Wrapper>)
-    const input = document.querySelector('input[type="file"]')
-    fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
-    await waitFor(() => expect(screen.getByText('Try again')).toBeInTheDocument())
-  })
-})
-
 test('does not render hero image when image field absent', () => {
   render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
   expect(screen.queryByRole('img')).not.toBeInTheDocument()

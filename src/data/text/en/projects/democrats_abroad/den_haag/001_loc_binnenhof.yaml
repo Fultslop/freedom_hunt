@@ -46,6 +46,6 @@ challenge:
         - UK
     - id: photo
       type: photo
-      label: Take a photo.
+      label: Take a photo of something
 breadcrumb: |
   Find the inner courtyard where a statue of William of Orange keeps watch. What motto is engraved on the plaque at his feet?

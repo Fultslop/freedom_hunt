@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { vi } from 'vitest'
 import ChallengeForm from '../components/ChallengeForm'
 
@@ -166,10 +166,11 @@ describe('submission states', () => {
 
 const photoField = { id: 'proof', type: 'photo', label: 'Photo proof' }
 
-test('photo field renders nothing in the form', () => {
+test('photo field does not render a form field (it renders as a separate photo section)', () => {
   render(<ChallengeForm form={[photoField]} locationId="001" />)
-  expect(screen.queryByText('Photo proof')).not.toBeInTheDocument()
-  expect(screen.queryByText(/Invalid field/)).not.toBeInTheDocument()
+  const textInputs = screen.queryAllByRole('textbox')
+  expect(textInputs).toHaveLength(0)
+  expect(screen.getByText('Photo proof')).toBeInTheDocument()
 })
 
 test('photo field does not block submission of other fields', async () => {
@@ -179,4 +180,49 @@ test('photo field does not block submission of other fields', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Submit answers' }))
   await waitFor(() => expect(screen.getByText('✓ Answers submitted')).toBeInTheDocument())
   vi.restoreAllMocks()
+})
+
+describe('photo upload', () => {
+  afterEach(() => { vi.restoreAllMocks() })
+
+  test('photo upload section appears before submit button when form has photo field', () => {
+    render(<ChallengeForm form={[photoField]} locationId="001" />)
+    const submitBtn = screen.getByRole('button', { name: 'Submit answers' })
+    const photoBtn = screen.getByTestId('submit-btn')
+    const pos = submitBtn.compareDocumentPosition(photoBtn)
+    expect(pos & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy()
+  })
+
+  test('photo button uses label from form field data', () => {
+    render(<ChallengeForm form={[photoField]} locationId="001" />)
+    expect(screen.getByText('Photo proof')).toBeInTheDocument()
+  })
+
+  test('shows uploading state while fetch is pending', async () => {
+    global.fetch = vi.fn(() => new Promise(() => {}))
+    render(<ChallengeForm form={[photoField]} locationId="001" />)
+    const input = document.querySelector('input[type="file"]')
+    fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
+    await waitFor(() => expect(screen.getByText('Uploading…')).toBeInTheDocument())
+  })
+
+  test('shows success confirmation after upload', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({
+      json: () => Promise.resolve({ ok: true }),
+    }))
+    render(<ChallengeForm form={[photoField]} locationId="001" />)
+    const input = document.querySelector('input[type="file"]')
+    fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
+    await waitFor(() => expect(screen.getByText('✓ Photo submitted')).toBeInTheDocument())
+  })
+
+  test('shows retry button on failed upload', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({
+      json: () => Promise.resolve({ ok: false }),
+    }))
+    render(<ChallengeForm form={[photoField]} locationId="001" />)
+    const input = document.querySelector('input[type="file"]')
+    fireEvent.change(input, { target: { files: [new File(['img'], 'photo.jpg', { type: 'image/jpeg' })] } })
+    await waitFor(() => expect(screen.getByText('Try again')).toBeInTheDocument())
+  })
 })
