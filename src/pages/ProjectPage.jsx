@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useText } from '../hooks/useText'
 import { useTheme } from '../theme/ThemeContext'
 import { useTitleBar } from '../theme/TitleBarContext'
+import { fetchImage } from '../assets/AssetManager'
 
 import CitySelector from '../components/CitySelector'
 import MarkdownText from '../components/MarkdownText'
@@ -14,10 +15,17 @@ export default function ProjectPage() {
   const { text: projectMeta } = useText(`projects/${project}/${project}`)
   const { text: citiesText, loading: citiesLoading } = useText(`projects/${project}/cities`)
   const { theme, setThemeName } = useTheme()
+  const [logoUrl, setLogoUrl] = useState(null)
 
   useEffect(() => {
     if (projectMeta) setThemeName(projectMeta.style ?? 'app')
   }, [projectMeta, setThemeName])
+
+  useEffect(() => {
+    if (projectMeta?.['project.image']) {
+      fetchImage(projectMeta['project.image']).then(setLogoUrl)
+    }
+  }, [projectMeta])
 
   useTitleBar({
     title: citiesText?.['page.title'] ?? project,
@@ -34,6 +42,7 @@ export default function ProjectPage() {
 
   return (
     <div className="project-page">
+      {logoUrl && <img src={logoUrl} alt="" className="project-page__logo" />}
       <h1 className="project-page__title">{citiesText['page.title']}</h1>
       <MarkdownText text={citiesText['page.text']} />
       <h2 className="project-page__select-city">{citiesText['page.selectCity']}</h2>

@@ -18,3 +18,15 @@
 .project-page__city-list {
   margin-top: 24px;
 }
+
+.project-page__logo {
+  position: fixed;
+  transform: translateX(-1%) translateY(-40%) perspective(300px) rotateY(-25deg) rotateX(40deg) scale(3.0);
+  bottom: 24px;
+  right: 24px;
+  height: 160px;
+  width: auto;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
