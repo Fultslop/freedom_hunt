@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useText } from '../hooks/useText'
 import { useTheme } from '../theme/ThemeContext'
 import { useTitleBar } from '../theme/TitleBarContext'
+import { fetchImage } from '../assets/AssetManager'
 import RouteSelector from '../components/RouteSelector'
 import MarkdownText from '../components/MarkdownText'
 import './CityPage.css'
@@ -14,7 +16,15 @@ export default function CityPage() {
   const { text: routesText, loading: routesLoading } = useText(
     `projects/${project}/${city}/routes`
   )
+  const { text: projectMeta } = useText(`projects/${project}/${project}`)
   const { theme } = useTheme()
+  const [logoUrl, setLogoUrl] = useState(null)
+
+  useEffect(() => {
+    if (projectMeta?.['project.image']) {
+      fetchImage(projectMeta['project.image']).then(setLogoUrl)
+    }
+  }, [projectMeta])
 
   useTitleBar({
     title: cityText?.['city.title'] ?? city,
@@ -31,6 +41,7 @@ export default function CityPage() {
 
   return (
     <div className="city-page">
+      {logoUrl && <img src={logoUrl} alt="" className="city-page__logo" />}
       {cityText && (
         <div className="city-page__intro">
           <h1 className="city-page__title">{cityText['city.title']}</h1>

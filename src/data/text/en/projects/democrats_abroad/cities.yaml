@@ -2,6 +2,7 @@ page.title: "Yes.We.Vote"
 page.text: |
   This scavenger hunt connects the history of European resistance to fascism with the stakes of American democracy today.
 page.selectCity: "Choose a city"
+page.image: da_abroad_logo.png
 items:
   - id: den_haag
     name: "Den Haag"
