@@ -8,7 +8,7 @@ address: Street 500
 coordinates:
   latitude: 100
   longitude: 200
-storyline: New story line was added via the deployment
+storyline: New story line was added via the deployment. Let's test PR auto clears
 challenge:
   name: challenge name
   description: Challenge description
