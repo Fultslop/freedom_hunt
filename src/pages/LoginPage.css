@@ -19,7 +19,7 @@
 }
 
 .login-page__project {
-  font-size: 11px;
+  font-size: var(--font-size-lg);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -35,7 +35,7 @@
 }
 
 .login-page__subtext {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   line-height: 1.5;
 }
@@ -59,7 +59,7 @@
 
 .login-page__label {
   display: block;
-  font-size: 11px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: 4px;
@@ -79,7 +79,7 @@
   border: 1.5px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-surface);
-  font-size: 13px;
+  font-size: var(--font-size-base);
   color: var(--color-text);
   box-sizing: border-box;
 }
@@ -110,4 +110,18 @@
 .login-page__submit--loading {
   opacity: 0.7;
   cursor: default;
+}
+
+
+.login-page__eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  color: var(--color-text-muted);
 }
