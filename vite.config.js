@@ -18,8 +18,10 @@ function devImageServer() {
         const file = req.url.replace(/^\//, '')
         const src = join(__dirname, 'src', 'data', 'img', decodeURIComponent(file))
         if (existsSync(src)) {
+          const ext = file.split('.').pop().toLowerCase()
+          const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg'
           res.setHeader('Cache-Control', 'no-cache')
-          res.setHeader('Content-Type', 'image/jpeg')
+          res.setHeader('Content-Type', mime)
           res.setHeader('Access-Control-Allow-Origin', '*')
           res.end(readFileSync(src))
         }

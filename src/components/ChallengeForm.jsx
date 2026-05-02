@@ -1,12 +1,15 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import './ChallengeForm.css'
 
-const VALID_TYPES = ['string', 'number', 'boolean', 'radio']
+const VALID_TYPES = ['string', 'number', 'boolean', 'radio', 'multiple']
 
 function checkDefinition(field) {
   if (!VALID_TYPES.includes(field.type)) return `unknown type "${field.type}"`
   if (field.type === 'radio' && (!field.options || field.options.length === 0)) return 'radio field missing options'
+  if (field.type === 'multiple' && (!field.options || field.options.length === 0)) return 'multiple field missing options'
+  if (field.type === 'multiple' && (field.min == null || field.max == null)) return 'multiple field missing min/max'
+  if (field.type === 'multiple' && field.min > field.max) return 'multiple field: min > max'
   return null
 }
 
@@ -15,9 +18,26 @@ export default function ChallengeForm({ form, locationId, routeId }) {
   const [values, setValues] = useState({})
   const [errors, setErrors] = useState({})
   const [submitState, setSubmitState] = useState('idle')
+  const [maxWarning, setMaxWarning] = useState(null)
+  const maxWarningTimer = useRef(null)
 
   function setValue(id, value) {
     setValues(prev => ({ ...prev, [id]: value }))
+    setErrors(prev => { const next = { ...prev }; delete next[id]; return next })
+  }
+
+  function toggleMultiple(id, opt, max) {
+    setValues(prev => {
+      const current = prev[id] ?? []
+      if (!current.includes(opt) && current.length >= max) {
+        clearTimeout(maxWarningTimer.current)
+        setMaxWarning(id)
+        maxWarningTimer.current = setTimeout(() => setMaxWarning(null), 1500)
+        return prev
+      }
+      const next = current.includes(opt) ? current.filter(v => v !== opt) : [...current, opt]
+      return { ...prev, [id]: next }
+    })
     setErrors(prev => { const next = { ...prev }; delete next[id]; return next })
   }
 
@@ -27,6 +47,11 @@ export default function ChallengeForm({ form, locationId, routeId }) {
       if (checkDefinition(field)) continue
       if (field.type === 'boolean') continue
       if (field.type === 'radio' && !values[field.id]) newErrors[field.id] = 'Please select an option'
+      if (field.type === 'multiple') {
+        const selected = values[field.id] ?? []
+        if (selected.length < field.min) newErrors[field.id] = `Select at least ${field.min} option${field.min > 1 ? 's' : ''}`
+        else if (selected.length > field.max) newErrors[field.id] = `Select at most ${field.max} option${field.max > 1 ? 's' : ''}`
+      }
       if (field.type === 'string' && !String(values[field.id] ?? '').trim()) newErrors[field.id] = 'This field is required'
       if (field.type === 'number' && (values[field.id] === '' || values[field.id] === undefined)) newErrors[field.id] = 'This field is required'
     }
@@ -123,6 +148,28 @@ export default function ChallengeForm({ form, locationId, routeId }) {
                   </label>
                 ))}
               </div>
+            )}
+            {field.type === 'multiple' && (
+              <>
+                <span className="cf-multi-hint">Select {field.min === field.max ? field.min : `${field.min}–${field.max}`}</span>
+                <div className="cf-radio-group">
+                  {field.options.map(opt => (
+                    <label key={opt} htmlFor={`${field.id}-${opt}`} className="cf-label--radio">
+                      <input
+                        id={`${field.id}-${opt}`}
+                        type="checkbox"
+                        value={opt}
+                        checked={(values[field.id] ?? []).includes(opt)}
+                        onChange={() => toggleMultiple(field.id, opt, field.max)}
+                      />
+                      {opt}
+                    </label>
+                  ))}
+                </div>
+                {maxWarning === field.id && (
+                  <div className="cf-max-warning">Maximum of {field.max} option{field.max > 1 ? 's' : ''} reached</div>
+                )}
+              </>
             )}
           </>
         )}

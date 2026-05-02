@@ -32,5 +32,17 @@ challenge:
         - Morning (before 12:00)
         - Afternoon (12:00–17:00)
         - Evening (after 17:00)
+    - id: flags
+      label: What flags can you see flying in the courtyard right now?
+      type: multiple
+      min: 1
+      max: 3
+      options:
+        - Dutch
+        - European Union
+        - The Hague city flag
+        - American
+        - German
+        - UK
 breadcrumb: |
   Find the inner courtyard where a statue of William of Orange keeps watch. What motto is engraved on the plaque at his feet?

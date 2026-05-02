@@ -14,11 +14,22 @@ export default function AppPage() {
   const { theme, setThemeName } = useTheme()
   const [landingImageUrl, setLandingImageUrl] = useState(null)
   const [imgHeight, setImgHeight] = useState(0)
+  const [projectImageUrls, setProjectImageUrls] = useState({})
 
   useTitleBar({ title: appText?.['app.title'], progress: null, backPath: null })
 
   useEffect(() => { setThemeName('app') }, [setThemeName])
   useEffect(() => { fetchImage('landing-page.jpg').then(setLandingImageUrl) }, [])
+  useEffect(() => {
+    if (!projectsText?.items) return
+    projectsText.items.forEach(project => {
+      if (project.image) {
+        fetchImage(project.image).then(url => {
+          if (url) setProjectImageUrls(prev => ({ ...prev, [project.id]: url }))
+        })
+      }
+    })
+  }, [projectsText])
 
   if (appLoading || projectsLoading) return (
     <div style={{ padding: 24, background: theme.background, color: theme.text }}>Loading…</div>
@@ -71,11 +82,20 @@ export default function AppPage() {
             onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && navigate(`/${project.id}`)}
             className="app-page__project-card"
           >
-            <div className="app-page__project-name">{project.name}</div>
-            <MarkdownText
-              text={project.description}
-              style={{ fontSize: 13, color: theme.textMuted, marginTop: 4, lineHeight: 1.5 }}
-            />
+            {projectImageUrls[project.id] && (
+              <img
+                src={projectImageUrls[project.id]}
+                alt=""
+                className="app-page__project-img"
+              />
+            )}
+            <div className="app-page__project-body">
+              <div className="app-page__project-name">{project.name}</div>
+              <MarkdownText
+                text={project.description}
+                style={{ fontSize: 13, color: theme.textMuted, marginTop: 4, lineHeight: 1.5 }}
+              />
+            </div>
           </div>
         ))}
       </div>
