@@ -1,8 +1,9 @@
-# Searchspace-scavenger-hunt — Claude Context
+# Searchspace-scavenger-hunt — Agent Context
 
 ## Project
 
 A city based scavenger hunt across European cities. Currently live with Den Haag (for the Democrats Abroad / GWC project).
+
 See `doc/architecture.md` for full project context.
 
 ## Dev Commands
