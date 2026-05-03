@@ -7,6 +7,7 @@ This document covers the one-time manual setup required to make form submissions
 ## Part 1: Google Apps Script
 
 ### What you need
+
 - A Google account (the Sheet will live in this account's Google Drive)
 - About 10 minutes
 
@@ -22,10 +23,12 @@ This document covers the one-time manual setup required to make form submissions
 > **Troubleshooting:** If the menu fails with "Kan het bestand momenteel niet openen", use the direct method below instead.
 
 **Option A — From the Sheet menu:**
+
 1. In your new Sheet, click the menu: **Extensions → Apps Script**
 2. If it fails, close the Sheet tab and try again, or use Option B
 
 **Option B — Direct (recommended if Option A fails):**
+
 1. Go to **[script.google.com](https://script.google.com)** and sign in
 2. Click **+ New Project**
 3. Name it **Freedom Hunt Forms** and delete the default `myFunction`
@@ -34,8 +37,8 @@ This document covers the one-time manual setup required to make form submissions
 6. To link this script to your Sheet: in the Sheet, go to **Extensions → Apps Script** — your saved project should now appear in the dropdown. If not, refresh the Sheet page.
 7. If the script can't find the Sheet (shows "No active spreadsheet"), add your Sheet ID directly. Open your Google Sheet, copy the ID from the URL (the long string between `/spreadsheets/d/` and `/edit`), and update the script:
    ```javascript
-   var spreadsheetId = 'YOUR_SHEET_ID_HERE'
-   var sheet = SpreadsheetApp.openById(spreadsheetId).getActiveSheet()
+   var spreadsheetId = "YOUR_SHEET_ID_HERE";
+   var sheet = SpreadsheetApp.openById(spreadsheetId).getActiveSheet();
    ```
 8. A new browser tab opens with the Apps Script editor
 9. You'll see a default function `myFunction() {}` — delete it entirely
@@ -47,21 +50,21 @@ Copy and paste the following into the editor (replacing the deleted code):
 ```javascript
 function doPost(e) {
   try {
-    var data = JSON.parse(e.postData.contents)
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
+    var data = JSON.parse(e.postData.contents);
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     sheet.appendRow([
       data.timestamp,
       data.locationId,
       data.submitterId,
       JSON.stringify(data.fields),
-    ])
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: true }))
-      .setMimeType(ContentService.MimeType.JSON)
+    ]);
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: true }),
+    ).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: false, error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON)
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: false, error: err.message }),
+    ).setMimeType(ContentService.MimeType.JSON);
   }
 }
 ```
@@ -209,15 +212,18 @@ After that, organizers manage passwords entirely through the Cloudflare dashboar
 ## Troubleshooting
 
 **No row appears in the Sheet after submitting:**
+
 - Check the browser's Network tab for the `/form-submit` request. If it returns `{ ok: false }`, the Worker received it but the Script call failed.
 - Open the Apps Script editor → **Executions** (left sidebar) to see error logs.
 - Make sure the deployment is set to "Anyone" access — re-deploy if needed.
 
 **The form shows "Submission failed" immediately:**
+
 - The Worker may not have the secret set. Run `wrangler secret list` to verify `FORM_SCRIPT_URL` appears.
 - Redeploy the Worker after setting the secret: `npm run deploy`.
 
 **"Google hasn't verified this app" warning during authorization:**
+
 - This is expected for personal scripts. Follow the "Advanced → Go to [project] (unsafe)" steps in Part 1, Step 6.
 
 ---

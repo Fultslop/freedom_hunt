@@ -4,7 +4,7 @@
 // Drop a file in src/data/img/ and reference it by name in YAML data — no code changes.
 
 /** @type {Map<string, string>} */
-const _cache = new Map()
+const _cache = new Map();
 
 /**
  * Fetch a image from the deployment and cache it. Subsequent calls for the same
@@ -13,22 +13,22 @@ const _cache = new Map()
  * @returns {Promise<string|null>} The object URL, or null on failure.
  */
 export async function fetchImage(imageName) {
-  if (!imageName) return null
+  if (!imageName) return null;
 
   // Return cached URL immediately if available
   if (_cache.has(imageName)) {
-    return _cache.get(imageName)
+    return _cache.get(imageName);
   }
 
   try {
-    const res = await fetch(`/assets/img/${imageName}`)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const blob = await res.blob()
-    const objectUrl = URL.createObjectURL(blob)
-    _cache.set(imageName, objectUrl)
-    return objectUrl
+    const res = await fetch(`/assets/img/${imageName}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    _cache.set(imageName, objectUrl);
+    return objectUrl;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -39,7 +39,7 @@ export async function fetchImage(imageName) {
  * @returns {string|null}
  */
 export function getCachedImageUrl(imageName) {
-  return _cache.get(imageName) ?? null
+  return _cache.get(imageName) ?? null;
 }
 
 /**
@@ -49,5 +49,5 @@ export function getCachedImageUrl(imageName) {
  * @returns {Promise<void>}
  */
 export async function preloadImages(imageNames) {
-  await Promise.all(imageNames.map(fetchImage))
+  await Promise.all(imageNames.map(fetchImage));
 }

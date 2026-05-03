@@ -3,6 +3,7 @@
 Create the 3 location YAML files with the new schema, delete the old JSON files, then verify the app renders location data correctly in the browser.
 
 **Files:**
+
 - Create: `src/data/text/en/projects/democrats_abroad/den_haag/001_loc_binnenhof.yaml`
 - Create: `src/data/text/en/projects/democrats_abroad/den_haag/002_loc_vredespaleis.yaml`
 - Create: `src/data/text/en/projects/democrats_abroad/den_haag/003_loc_plein.yaml`
@@ -104,6 +105,7 @@ npm run dev
 Navigate to `http://localhost:5173/democrats_abroad/den_haag/short_walk` in a browser.
 
 Swipe through all 3 cards. For each card verify:
+
 - Title renders (e.g. "Binnenhof", "Peace Palace", "Plein 1813")
 - Storyline paragraph renders (the historical description text)
 - Clue section renders the breadcrumb text (the find-the-thing instruction)

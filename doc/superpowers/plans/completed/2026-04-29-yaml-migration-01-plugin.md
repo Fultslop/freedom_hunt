@@ -1,6 +1,7 @@
 # Task 1: Add YAML Plugin
 
 **Files:**
+
 - Modify: `vite.config.js`
 
 ---
@@ -16,9 +17,10 @@ Expected output: package added to `devDependencies` in `package.json`, no errors
 - [ ] **Step 2: Add the plugin to `vite.config.js`**
 
 Current `vite.config.js`:
+
 ```js
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 import { cloudflare } from "@cloudflare/vite-plugin";
 
 export default defineConfig({
@@ -27,20 +29,21 @@ export default defineConfig({
     historyApiFallback: true,
   },
   test: {
-    environment: 'jsdom',
+    environment: "jsdom",
     globals: true,
-    setupFiles: './src/test/setup.js',
+    setupFiles: "./src/test/setup.js",
     passWithNoTests: true,
   },
-})
+});
 ```
 
 Replace with:
+
 ```js
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 import { cloudflare } from "@cloudflare/vite-plugin";
-import yaml from '@modyfi/vite-plugin-yaml'
+import yaml from "@modyfi/vite-plugin-yaml";
 
 export default defineConfig({
   plugins: [react(), cloudflare(), yaml()],
@@ -48,12 +51,12 @@ export default defineConfig({
     historyApiFallback: true,
   },
   test: {
-    environment: 'jsdom',
+    environment: "jsdom",
     globals: true,
-    setupFiles: './src/test/setup.js',
+    setupFiles: "./src/test/setup.js",
     passWithNoTests: true,
   },
-})
+});
 ```
 
 - [ ] **Step 3: Run tests to verify nothing broke**

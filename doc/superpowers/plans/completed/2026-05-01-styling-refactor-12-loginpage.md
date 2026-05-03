@@ -4,6 +4,7 @@
 **Next:** [Task 13 — CLAUDE.md](2026-05-01-styling-refactor-13-claude-md.md)
 
 **Files:**
+
 - Create: `src/pages/LoginPage.css`
 - Modify: `src/pages/LoginPage.jsx`
 
@@ -132,67 +133,65 @@ The password input border changes colour on error — it currently uses `theme.a
 - [ ] **Step 2: Rewrite `src/pages/LoginPage.jsx`**
 
 ```jsx
-import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useTheme } from '../theme/ThemeContext'
-import { useAuth } from '../auth/AuthContext'
-import './LoginPage.css'
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useTheme } from "../theme/ThemeContext";
+import { useAuth } from "../auth/AuthContext";
+import "./LoginPage.css";
 
 export default function LoginPage() {
-  const { project } = useParams()
-  const navigate = useNavigate()
-  const { theme } = useTheme()
-  const { login } = useAuth()
-  const [teamName, setTeamName] = useState('')
-  const [contact, setContact] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const { project } = useParams();
+  const navigate = useNavigate();
+  const { theme } = useTheme();
+  const { login } = useAuth();
+  const [teamName, setTeamName] = useState("");
+  const [contact, setContact] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
     try {
-      const res = await fetch('/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ project, teamName, contact, password }),
-      })
-      const data = await res.json()
+      });
+      const data = await res.json();
       if (data.ok) {
-        login(project, data.teamName, data.contact)
-        navigate(`/${project}`)
+        login(project, data.teamName, data.contact);
+        navigate(`/${project}`);
       } else {
-        setError(data.error || 'Incorrect password. Please try again.')
+        setError(data.error || "Incorrect password. Please try again.");
       }
     } catch {
-      setError('Connection error. Please try again.')
+      setError("Connection error. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   return (
     <div className="login-page">
       <div className="login-page__header">
-        <div className="login-page__project">
-          {project.replace(/_/g, ' ')}
-        </div>
+        <div className="login-page__project">{project.replace(/_/g, " ")}</div>
         <div className="login-page__headline">Join the Hunt</div>
         <div className="login-page__subtext">
-          Enter your team details and the password<br />shared by your event organizer.
+          Enter your team details and the password
+          <br />
+          shared by your event organizer.
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="login-page__form">
         <div className="login-page__field">
-          <label className="login-page__label">
-            Team name
-          </label>
+          <label className="login-page__label">Team name</label>
           <input
             value={teamName}
-            onChange={e => setTeamName(e.target.value)}
+            onChange={(e) => setTeamName(e.target.value)}
             required
             placeholder="Your team name"
             className="login-page__input"
@@ -201,63 +200,66 @@ export default function LoginPage() {
 
         <div className="login-page__field">
           <label className="login-page__label">
-            Contact email <span className="login-page__label-note">(optional)</span>
+            Contact email{" "}
+            <span className="login-page__label-note">(optional)</span>
           </label>
           <input
             type="email"
             value={contact}
-            onChange={e => setContact(e.target.value)}
+            onChange={(e) => setContact(e.target.value)}
             placeholder="you@example.com"
             className="login-page__input"
           />
         </div>
 
-        <div className={error ? 'login-page__field--last-error' : 'login-page__field--last'}>
-          <label className="login-page__label">
-            Password
-          </label>
+        <div
+          className={
+            error ? "login-page__field--last-error" : "login-page__field--last"
+          }
+        >
+          <label className="login-page__label">Password</label>
           <input
             type="password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="Event password"
-            className={`login-page__input${error ? ' login-page__input--error' : ''}`}
+            className={`login-page__input${error ? " login-page__input--error" : ""}`}
           />
         </div>
 
-        {error && (
-          <div className="login-page__error">✕ {error}</div>
-        )}
+        {error && <div className="login-page__error">✕ {error}</div>}
 
         <button
           type="submit"
           disabled={loading}
-          className={`login-page__submit${loading ? ' login-page__submit--loading' : ''}`}
+          className={`login-page__submit${loading ? " login-page__submit--loading" : ""}`}
         >
-          {loading ? 'Joining…' : 'Join the Hunt'}
+          {loading ? "Joining…" : "Join the Hunt"}
         </button>
       </form>
     </div>
-  )
+  );
 }
 ```
 
 Note: `useTheme` import is kept because `theme` is still used in the loading and error message logic for... actually looking at the code, after migration `theme` is no longer used in this component at all. Remove the `useTheme` import.
 
 Corrected — remove these two lines:
+
 ```jsx
-import { useTheme } from '../theme/ThemeContext'
+import { useTheme } from "../theme/ThemeContext";
 // and
-const { theme } = useTheme()
+const { theme } = useTheme();
 ```
 
 Final import section:
+
 ```jsx
-import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth/AuthContext'
-import './LoginPage.css'
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import "./LoginPage.css";
 ```
 
 - [ ] **Step 3: Run the test suite**
@@ -271,6 +273,7 @@ Expected: all tests pass.
 - [ ] **Step 4: Visual smoke test**
 
 Navigate to `/login/democrats_abroad`. Verify:
+
 - Form renders correctly in all themes
 - Submitting with no password turns the input border to accent colour
 - Error message appears in accent colour

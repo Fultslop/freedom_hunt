@@ -4,6 +4,7 @@
 **Next:** [Task 05 — ChallengeForm](2026-05-01-styling-refactor-05-challengeform.md)
 
 **Files:**
+
 - Create: `src/components/RouteSelector.css`
 - Modify: `src/components/RouteSelector.jsx`
 
@@ -46,29 +47,27 @@ Hardcoded colours `#ddd`, `#666`, `#aaa` are replaced with CSS custom properties
 - [ ] **Step 2: Rewrite `src/components/RouteSelector.jsx`**
 
 ```jsx
-import { useNavigate } from 'react-router-dom'
-import './RouteSelector.css'
+import { useNavigate } from "react-router-dom";
+import "./RouteSelector.css";
 
 export default function RouteSelector({ project, city, routeId, route }) {
-  const navigate = useNavigate()
-  const handleNav = () => navigate(`/${project}/${city}/${routeId}`)
+  const navigate = useNavigate();
+  const handleNav = () => navigate(`/${project}/${city}/${routeId}`);
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={handleNav}
-      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && handleNav()}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleNav()}
       className="route-card"
     >
-      <div className="route-card__name">
-        {routeId.replace(/_/g, ' ')}
-      </div>
+      <div className="route-card__name">{routeId.replace(/_/g, " ")}</div>
       <div className="route-card__description">{route.description}</div>
       <div className="route-card__stops">
-        {route.locations.length} stop{route.locations.length !== 1 ? 's' : ''}
+        {route.locations.length} stop{route.locations.length !== 1 ? "s" : ""}
       </div>
     </div>
-  )
+  );
 }
 ```
 

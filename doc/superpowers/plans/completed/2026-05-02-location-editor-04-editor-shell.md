@@ -7,6 +7,7 @@ Status: Completed
 **Goal:** Add the `/editor` subtree to the app: a dedicated login page (no team/contact fields), a landing page with three tiles (City and Route are placeholders; Location is active), and the React Router routes that wire them together.
 
 **Files:**
+
 - Create: `src/pages/editor/EditorLoginPage.jsx` + `EditorLoginPage.css`
 - Create: `src/pages/editor/EditorPage.jsx` + `EditorPage.css`
 - Modify: `src/App.jsx` — import new pages + AdminRoute, add `/editor/login` and `/editor` routes
@@ -124,42 +125,42 @@ Status: Completed
 - [ ] **Step 2: Create `src/pages/editor/EditorLoginPage.jsx`**
 
 ```jsx
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../auth/AuthContext'
-import './EditorLoginPage.css'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/AuthContext";
+import "./EditorLoginPage.css";
 
 export default function EditorLoginPage() {
-  const navigate = useNavigate()
-  const { login } = useAuth()
-  const [project, setProject] = useState('democrats_abroad')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [project, setProject] = useState("democrats_abroad");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
     try {
-      const res = await fetch('/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project, teamName: '', contact: '', password }),
-      })
-      const data = await res.json()
+      const res = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project, teamName: "", contact: "", password }),
+      });
+      const data = await res.json();
       if (data.ok && data.isAdmin) {
-        login(project, '', '', true)
-        navigate('/editor')
+        login(project, "", "", true);
+        navigate("/editor");
       } else if (data.ok && !data.isAdmin) {
-        setError('These credentials do not have organiser access.')
+        setError("These credentials do not have organiser access.");
       } else {
-        setError(data.error || 'Incorrect password.')
+        setError(data.error || "Incorrect password.");
       }
     } catch {
-      setError('Connection error. Please try again.')
+      setError("Connection error. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -174,32 +175,38 @@ export default function EditorLoginPage() {
           <label className="editor-login__label">Project</label>
           <input
             value={project}
-            onChange={e => setProject(e.target.value)}
+            onChange={(e) => setProject(e.target.value)}
             required
             className="editor-login__input"
           />
         </div>
-        <div className={error ? 'editor-login__field--last-error' : 'editor-login__field--last'}>
+        <div
+          className={
+            error
+              ? "editor-login__field--last-error"
+              : "editor-login__field--last"
+          }
+        >
           <label className="editor-login__label">Admin password</label>
           <input
             type="password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
-            className={`editor-login__input${error ? ' editor-login__input--error' : ''}`}
+            className={`editor-login__input${error ? " editor-login__input--error" : ""}`}
           />
         </div>
         {error && <div className="editor-login__error">✕ {error}</div>}
         <button
           type="submit"
           disabled={loading}
-          className={`editor-login__submit${loading ? ' editor-login__submit--loading' : ''}`}
+          className={`editor-login__submit${loading ? " editor-login__submit--loading" : ""}`}
         >
-          {loading ? 'Signing in…' : 'Sign in'}
+          {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
     </div>
-  )
+  );
 }
 ```
 
@@ -243,7 +250,9 @@ export default function EditorLoginPage() {
   background: var(--color-surface);
   text-decoration: none;
   cursor: pointer;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .editor-page__tile:hover:not(.editor-page__tile--disabled) {
@@ -285,21 +294,21 @@ export default function EditorLoginPage() {
 - [ ] **Step 4: Create `src/pages/editor/EditorPage.jsx`**
 
 ```jsx
-import { Link } from 'react-router-dom'
-import { useAuth } from '../../auth/AuthContext'
-import { useTitleBar } from '../../theme/TitleBarContext'
-import './EditorPage.css'
+import { Link } from "react-router-dom";
+import { useAuth } from "../../auth/AuthContext";
+import { useTitleBar } from "../../theme/TitleBarContext";
+import "./EditorPage.css";
 
 export default function EditorPage() {
-  const { activeAuth } = useAuth()
-  useTitleBar({ title: 'Editor', progress: null, backPath: null })
+  const { activeAuth } = useAuth();
+  useTitleBar({ title: "Editor", progress: null, backPath: null });
 
-  const project = activeAuth?.projectId ?? 'democrats_abroad'
+  const project = activeAuth?.projectId ?? "democrats_abroad";
 
   return (
     <div className="editor-page">
       <h1 className="editor-page__title">Organiser tools</h1>
-      <p className="editor-page__subtitle">{project.replace(/_/g, ' ')}</p>
+      <p className="editor-page__subtitle">{project.replace(/_/g, " ")}</p>
 
       <div className="editor-page__tiles">
         <div className="editor-page__tile editor-page__tile--disabled">
@@ -310,7 +319,9 @@ export default function EditorPage() {
 
         <div className="editor-page__tile editor-page__tile--disabled">
           <div className="editor-page__tile-name">Routes</div>
-          <div className="editor-page__tile-desc">Define which locations belong to each route</div>
+          <div className="editor-page__tile-desc">
+            Define which locations belong to each route
+          </div>
           <span className="editor-page__tile-tag">Coming soon</span>
         </div>
 
@@ -319,11 +330,13 @@ export default function EditorPage() {
           className="editor-page__tile"
         >
           <div className="editor-page__tile-name">Locations</div>
-          <div className="editor-page__tile-desc">Add, edit, or hide individual hunt locations</div>
+          <div className="editor-page__tile-desc">
+            Add, edit, or hide individual hunt locations
+          </div>
         </Link>
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -332,9 +345,9 @@ export default function EditorPage() {
 Add three imports after the existing page imports:
 
 ```jsx
-import AdminRoute from './auth/AdminRoute'
-import EditorLoginPage from './pages/editor/EditorLoginPage'
-import EditorPage from './pages/editor/EditorPage'
+import AdminRoute from "./auth/AdminRoute";
+import EditorLoginPage from "./pages/editor/EditorLoginPage";
+import EditorPage from "./pages/editor/EditorPage";
 ```
 
 Add two routes inside `<Routes>`, after the existing routes:

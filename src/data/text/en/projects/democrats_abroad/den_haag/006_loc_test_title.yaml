@@ -1,6 +1,6 @@
 locationId: 6
 title: Test title
-image: ''
+image: ""
 name:
   label: Name Label
   value: Name Value
@@ -12,6 +12,6 @@ storyline: New story line was added via the deployment. Let's test PR auto clear
 challenge:
   name: challenge name
   description: Challenge description
-  notes: 'Notes '
+  notes: "Notes "
   form: []
-breadcrumb: 'Clue to the next '
+breadcrumb: "Clue to the next "

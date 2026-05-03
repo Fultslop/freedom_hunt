@@ -1,6 +1,7 @@
 # Task 06 — ProtectedRoute (cookie-based)
 
 **Files:**
+
 - Create: `src/auth/ProtectedRoute.jsx`
 - Create: `src/test/ProtectedRoute.test.jsx`
 
@@ -11,20 +12,20 @@
 Create `src/test/ProtectedRoute.test.jsx`:
 
 ```jsx
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { vi } from 'vitest'
-import ProtectedRoute from '../auth/ProtectedRoute'
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { vi } from "vitest";
+import ProtectedRoute from "../auth/ProtectedRoute";
 
-vi.mock('../auth/AuthContext', () => ({
+vi.mock("../auth/AuthContext", () => ({
   useAuth: vi.fn(),
-}))
+}));
 
-vi.mock('../pages/LoginPage', () => ({
+vi.mock("../pages/LoginPage", () => ({
   default: () => <div>Login Page</div>,
-}))
+}));
 
-import { useAuth } from '../auth/AuthContext'
+import { useAuth } from "../auth/AuthContext";
 
 function wrap(projectId, element) {
   return render(
@@ -32,33 +33,52 @@ function wrap(projectId, element) {
       <Routes>
         <Route path="/:project" element={element} />
       </Routes>
-    </MemoryRouter>
-  )
+    </MemoryRouter>,
+  );
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
-})
+  vi.clearAllMocks();
+});
 
-test('renders children when authenticated for the correct project', () => {
-  useAuth.mockReturnValue({ activeAuth: { projectId: 'my_project', teamName: 'Team A', contact: '' } })
-  wrap('my_project', <ProtectedRoute><div>Protected Content</div></ProtectedRoute>)
-  expect(screen.getByText('Protected Content')).toBeInTheDocument()
-})
+test("renders children when authenticated for the correct project", () => {
+  useAuth.mockReturnValue({
+    activeAuth: { projectId: "my_project", teamName: "Team A", contact: "" },
+  });
+  wrap(
+    "my_project",
+    <ProtectedRoute>
+      <div>Protected Content</div>
+    </ProtectedRoute>,
+  );
+  expect(screen.getByText("Protected Content")).toBeInTheDocument();
+});
 
-test('renders LoginPage when not authenticated', () => {
-  useAuth.mockReturnValue({ activeAuth: null })
-  wrap('my_project', <ProtectedRoute><div>Protected Content</div></ProtectedRoute>)
-  expect(screen.getByText('Login Page')).toBeInTheDocument()
-  expect(screen.queryByText('Protected Content')).not.toBeInTheDocument()
-})
+test("renders LoginPage when not authenticated", () => {
+  useAuth.mockReturnValue({ activeAuth: null });
+  wrap(
+    "my_project",
+    <ProtectedRoute>
+      <div>Protected Content</div>
+    </ProtectedRoute>,
+  );
+  expect(screen.getByText("Login Page")).toBeInTheDocument();
+  expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
+});
 
-test('renders LoginPage when authenticated for a different project', () => {
-  useAuth.mockReturnValue({ activeAuth: { projectId: 'other_project', teamName: 'Team A', contact: '' } })
-  wrap('my_project', <ProtectedRoute><div>Protected Content</div></ProtectedRoute>)
-  expect(screen.getByText('Login Page')).toBeInTheDocument()
-  expect(screen.queryByText('Protected Content')).not.toBeInTheDocument()
-})
+test("renders LoginPage when authenticated for a different project", () => {
+  useAuth.mockReturnValue({
+    activeAuth: { projectId: "other_project", teamName: "Team A", contact: "" },
+  });
+  wrap(
+    "my_project",
+    <ProtectedRoute>
+      <div>Protected Content</div>
+    </ProtectedRoute>,
+  );
+  expect(screen.getByText("Login Page")).toBeInTheDocument();
+  expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
+});
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -72,15 +92,15 @@ Expected: all 3 tests FAIL (module not found).
 - [ ] **Step 3: Create src/auth/ProtectedRoute.jsx**
 
 ```jsx
-import { useParams } from 'react-router-dom'
-import { useAuth } from './AuthContext'
-import LoginPage from '../pages/LoginPage'
+import { useParams } from "react-router-dom";
+import { useAuth } from "./AuthContext";
+import LoginPage from "../pages/LoginPage";
 
 export default function ProtectedRoute({ children }) {
-  const { project } = useParams()
-  const { activeAuth } = useAuth()
-  if (!activeAuth || activeAuth.projectId !== project) return <LoginPage />
-  return children
+  const { project } = useParams();
+  const { activeAuth } = useAuth();
+  if (!activeAuth || activeAuth.projectId !== project) return <LoginPage />;
+  return children;
 }
 ```
 

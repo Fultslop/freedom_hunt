@@ -18,7 +18,7 @@
   --color-clue-background: transparent;
   --color-clue-border-color: transparent;
   /* Static utility colours — not in themes.js, not overridden per-theme */
-  --color-error: #BF0A30;
+  --color-error: #bf0a30;
   --color-success: #2d7a2d;
   /* Font size tokens — small (default) */
   --font-size-xs: 10px;
@@ -51,7 +51,7 @@
 }
 
 :root[data-theme="app"] {
-  --font-family: 'Comfortaa', sans-serif;
+  --font-family: "Comfortaa", sans-serif;
   --color-background: #0f172a;
   --color-surface: #1e293b;
   --color-border: #334155;
@@ -70,20 +70,20 @@
 }
 
 :root[data-theme="GWC"] {
-  --font-family: 'Quicksand', sans-serif;
+  --font-family: "Quicksand", sans-serif;
   --color-background: #ffffff;
   --color-surface: #f0f4ff;
   --color-border: #e5e7eb;
   --color-text: #002868;
   --color-text-secondary: #374151;
   --color-text-muted: #6b7280;
-  --color-accent: #BF0A30;
+  --color-accent: #bf0a30;
   --color-bar-background: #002868;
   --color-bar-border: #002868;
   --color-bar-text: #ffffff;
   --color-bar-text-secondary: #93c5fd;
   --color-progress-track: #001a4d;
-  --color-progress-fill: #BF0A30;
+  --color-progress-fill: #bf0a30;
   --color-clue-background: #f0f4ff;
   --color-clue-border-color: #002868;
 }

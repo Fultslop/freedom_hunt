@@ -4,6 +4,7 @@
 **Next:** [Task 09 — ProjectPage](2026-05-01-styling-refactor-09-projectpage.md)
 
 **Files:**
+
 - Create: `src/pages/AppPage.css`
 - Modify: `src/pages/AppPage.jsx`
 
@@ -39,7 +40,11 @@ The `<style>{STYLE_RESET}</style>` tags are removed — `global.css` now handles
   left: 0;
   right: 0;
   height: 50%;
-  background: linear-gradient(to bottom, rgba(255,255,255,0), var(--color-background));
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    var(--color-background)
+  );
 }
 
 .app-page__content {
@@ -96,51 +101,68 @@ The `<style>{STYLE_RESET}</style>` tags are removed — `global.css` now handles
 `STYLE_RESET` const and all `<style>` tags removed. Dynamic computed values (`imgHeight`, `contentMarginTop`) remain inline. `theme.background` references replaced with `'var(--color-background)'` in inline styles where CSS class can't be used (the `linear-gradient` is now in CSS, so the inline gradient is removed entirely).
 
 ```jsx
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useText } from '../hooks/useText'
-import { useTheme } from '../theme/ThemeContext'
-import { useTitleBar } from '../theme/TitleBarContext'
-import MarkdownText from '../components/MarkdownText'
-import { fetchImage } from '../assets/AssetManager'
-import './AppPage.css'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useText } from "../hooks/useText";
+import { useTheme } from "../theme/ThemeContext";
+import { useTitleBar } from "../theme/TitleBarContext";
+import MarkdownText from "../components/MarkdownText";
+import { fetchImage } from "../assets/AssetManager";
+import "./AppPage.css";
 
 export default function AppPage() {
-  const navigate = useNavigate()
-  const { text: appText, loading: appLoading } = useText('application')
-  const { text: projectsText, loading: projectsLoading } = useText('projects/projects')
-  const { theme, setThemeName } = useTheme()
-  const [landingImageUrl, setLandingImageUrl] = useState(null)
-  const [imgHeight, setImgHeight] = useState(0)
+  const navigate = useNavigate();
+  const { text: appText, loading: appLoading } = useText("application");
+  const { text: projectsText, loading: projectsLoading } =
+    useText("projects/projects");
+  const { theme, setThemeName } = useTheme();
+  const [landingImageUrl, setLandingImageUrl] = useState(null);
+  const [imgHeight, setImgHeight] = useState(0);
 
   // xxx todo move to data
-  useTitleBar({ title: 'Way-ward', progress: null, backPath: null })
+  useTitleBar({ title: "Way-ward", progress: null, backPath: null });
 
-  useEffect(() => { setThemeName('app') }, [setThemeName])
-  useEffect(() => { fetchImage('landing-page.jpg').then(setLandingImageUrl) }, [])
+  useEffect(() => {
+    setThemeName("app");
+  }, [setThemeName]);
+  useEffect(() => {
+    fetchImage("landing-page.jpg").then(setLandingImageUrl);
+  }, []);
 
-  if (appLoading || projectsLoading) return (
-    <div style={{ padding: 24, background: theme.background, color: theme.text }}>Loading…</div>
-  )
-  if (!projectsText) return (
-    <div style={{ padding: 24, background: theme.background, color: theme.text }}>Content unavailable.</div>
-  )
+  if (appLoading || projectsLoading)
+    return (
+      <div
+        style={{ padding: 24, background: theme.background, color: theme.text }}
+      >
+        Loading…
+      </div>
+    );
+  if (!projectsText)
+    return (
+      <div
+        style={{ padding: 24, background: theme.background, color: theme.text }}
+      >
+        Content unavailable.
+      </div>
+    );
 
   const contentMarginTop = imgHeight
     ? Math.round(-(imgHeight / 2 - window.innerHeight * 0.2))
-    : (landingImageUrl ? -80 : 0)
+    : landingImageUrl
+      ? -80
+      : 0;
 
   return (
     <div className="app-page">
       {landingImageUrl && (
         <div
           className="app-page__hero-wrap"
-          style={{ height: imgHeight ? imgHeight / 2 : 'auto' }}
+          style={{ height: imgHeight ? imgHeight / 2 : "auto" }}
         >
           <img
             src={landingImageUrl}
             alt=""
-            onLoad={e => setImgHeight(e.target.offsetHeight)}
+            onLoad={(e) => setImgHeight(e.target.offsetHeight)}
             className="app-page__hero-img"
           />
           <div className="app-page__hero-gradient" />
@@ -153,32 +175,37 @@ export default function AppPage() {
       >
         {appText && (
           <div className="app-page__heading">
-            <h1 className="app-page__title">{appText['app.title']}</h1>
-            <p className="app-page__tagline">{appText['app.tagline']}</p>
+            <h1 className="app-page__title">{appText["app.title"]}</h1>
+            <p className="app-page__tagline">{appText["app.tagline"]}</p>
           </div>
         )}
-        <h2 className="app-page__subtitle">
-          {projectsText['page.subtitle']}
-        </h2>
-        {projectsText.items.map(project => (
+        <h2 className="app-page__subtitle">{projectsText["page.subtitle"]}</h2>
+        {projectsText.items.map((project) => (
           <div
             key={project.id}
             role="button"
             tabIndex={0}
             onClick={() => navigate(`/${project.id}`)}
-            onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && navigate(`/${project.id}`)}
+            onKeyDown={(e) =>
+              (e.key === "Enter" || e.key === " ") && navigate(`/${project.id}`)
+            }
             className="app-page__project-card"
           >
             <div className="app-page__project-name">{project.name}</div>
             <MarkdownText
               text={project.description}
-              style={{ fontSize: 13, color: theme.textMuted, marginTop: 4, lineHeight: 1.5 }}
+              style={{
+                fontSize: 13,
+                color: theme.textMuted,
+                marginTop: 4,
+                lineHeight: 1.5,
+              }}
             />
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -195,6 +222,7 @@ Expected: all tests pass.
 - [ ] **Step 4: Visual smoke test**
 
 Open the home page. Verify:
+
 - Landing hero image loads and the parallax-crop effect works
 - Gradient strip fades from image to page background
 - Project cards render with correct colours in all themes

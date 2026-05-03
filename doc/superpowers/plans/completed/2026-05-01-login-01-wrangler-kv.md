@@ -1,6 +1,7 @@
 # Task 01 — wrangler.jsonc: KV binding
 
 **Files:**
+
 - Modify: `wrangler.jsonc`
 
 ---
@@ -44,7 +45,6 @@ $rng = [System.Security.Cryptography.RNGCryptoServiceProvider]::Create()
 $rng.GetBytes($bytes)
 [Convert]::ToBase64String($bytes)
 ```
-
 
 This is the HMAC signing key — keep it secret.
 

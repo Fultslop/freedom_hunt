@@ -31,6 +31,7 @@ See `doc/architecture.md` for full project context.
 ## Session Start
 
 Before starting work, read:
+
 1. `doc/architecture.md` — understand the project structure
 2. Last 3 entries in `doc/devlog/_devlog.md` — entries are delimited by `**DD/MM/YYYY, Author**:` lines, newest first
 
@@ -40,4 +41,4 @@ Before starting work, read:
 
 ## Limitations
 
-* The user will control Git, do not invoke git commands
+- The user will control Git, do not invoke git commands

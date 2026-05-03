@@ -10,20 +10,20 @@ Participants visit historically significant sites, complete challenges at each l
 
 ## Tech Stack
 
-| Layer | Choice |
-|-------|--------|
-| Framework | React 19 |
-| Build tool | Vite 8 |
-| Routing | React Router v7 |
-| Language | JSX (no TypeScript) |
-| Styling | Co-located `.css` files + CSS custom properties (no CSS modules, no Tailwind) |
-| Data | Static YAML files in `src/data/text/` |
-| YAML loading | `@modyfi/vite-plugin-yaml` (bundled at build time) |
-| Maps | Leaflet + react-leaflet |
-| Markdown | marked |
-| Icons | lucide-react |
-| Deployment | Cloudflare Workers via `@cloudflare/vite-plugin` + wrangler |
-| Testing | Vitest + @testing-library/react |
+| Layer        | Choice                                                                        |
+| ------------ | ----------------------------------------------------------------------------- |
+| Framework    | React 19                                                                      |
+| Build tool   | Vite 8                                                                        |
+| Routing      | React Router v7                                                               |
+| Language     | JSX (no TypeScript)                                                           |
+| Styling      | Co-located `.css` files + CSS custom properties (no CSS modules, no Tailwind) |
+| Data         | Static YAML files in `src/data/text/`                                         |
+| YAML loading | `@modyfi/vite-plugin-yaml` (bundled at build time)                            |
+| Maps         | Leaflet + react-leaflet                                                       |
+| Markdown     | marked                                                                        |
+| Icons        | lucide-react                                                                  |
+| Deployment   | Cloudflare Workers via `@cloudflare/vite-plugin` + wrangler                   |
+| Testing      | Vitest + @testing-library/react                                               |
 
 ## File Structure
 
@@ -81,24 +81,26 @@ doc/
 
 ## Routing
 
-| Path | Component | Notes |
-|------|-----------|-------|
-| `/` | `AppPage` | Lists projects from `projects/projects.yaml` |
-| `/:project` | `ProjectPage` | City picker; loads `projects/<project>/cities.yaml` |
-| `/:project/:city` | `CityPage` | Route picker; loads `<city>/routes.yaml` |
-| `/:project/:city/:route` | `RoutePage` | Swipe-based challenge flow; loads location YAMLs |
+| Path                     | Component     | Notes                                               |
+| ------------------------ | ------------- | --------------------------------------------------- |
+| `/`                      | `AppPage`     | Lists projects from `projects/projects.yaml`        |
+| `/:project`              | `ProjectPage` | City picker; loads `projects/<project>/cities.yaml` |
+| `/:project/:city`        | `CityPage`    | Route picker; loads `<city>/routes.yaml`            |
+| `/:project/:city/:route` | `RoutePage`   | Swipe-based challenge flow; loads location YAMLs    |
 
 **RoutePage states:** loading → location cards rendered as a swipeable stack. Swipe left advances, swipe right retreats. Current index is persisted to `localStorage` keyed by project/city/route so reload resumes position.
 
 ## Data Model
 
 ### `application.yaml`
+
 ```yaml
 app.title: "YES. WE. VOTE."
 app.tagline: "..."
 ```
 
 ### `projects/projects.yaml` — Project index
+
 ```yaml
 items:
   - id: democrats_abroad
@@ -107,6 +109,7 @@ items:
 ```
 
 ### `projects/<projectId>/cities.yaml` — City list
+
 ```yaml
 items:
   - id: den_haag
@@ -117,6 +120,7 @@ items:
 ```
 
 ### `projects/<projectId>/<cityId>/routes.yaml` — Route definitions
+
 ```yaml
 short_loop:
   description: "A 2.5–3 hour route..."

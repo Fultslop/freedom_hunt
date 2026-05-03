@@ -3,6 +3,7 @@
 Create YAML equivalents of the 7 non-location files, update both hooks to load `.yaml` instead of `.json`, then delete the old JSON files. All 15 tests should pass after this step.
 
 **Files:**
+
 - Create: `src/data/text/en/application.yaml`
 - Create: `src/data/text/en/projects/projects.yaml`
 - Create: `src/data/text/en/projects/democrats_abroad/democrats_abroad.yaml`
@@ -85,37 +86,37 @@ hello: world
 Change the glob pattern and key to use `.yaml`:
 
 ```js
-import { useState, useEffect, useContext } from 'react'
-import { LanguageContext } from '../i18n/LanguageContext'
+import { useState, useEffect, useContext } from "react";
+import { LanguageContext } from "../i18n/LanguageContext";
 
-const modules = import.meta.glob('../data/text/**/*.yaml')
+const modules = import.meta.glob("../data/text/**/*.yaml");
 
 export function useText(path) {
-  const { currentLang } = useContext(LanguageContext)
-  const [text, setText] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { currentLang } = useContext(LanguageContext);
+  const [text, setText] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const key = `../data/text/${currentLang}/${path}.yaml`
-    const loader = modules[key]
+    const key = `../data/text/${currentLang}/${path}.yaml`;
+    const loader = modules[key];
     if (!loader) {
-      setText(null)
-      setLoading(false)
-      return
+      setText(null);
+      setLoading(false);
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     loader()
-      .then(mod => {
-        setText(mod.default)
-        setLoading(false)
+      .then((mod) => {
+        setText(mod.default);
+        setLoading(false);
       })
       .catch(() => {
-        setText(null)
-        setLoading(false)
-      })
-  }, [currentLang, path])
+        setText(null);
+        setLoading(false);
+      });
+  }, [currentLang, path]);
 
-  return { text, loading }
+  return { text, loading };
 }
 ```
 
@@ -124,41 +125,41 @@ export function useText(path) {
 Change the glob pattern and key to use `.yaml`:
 
 ```js
-import { useState, useEffect, useContext } from 'react'
-import { LanguageContext } from '../i18n/LanguageContext'
+import { useState, useEffect, useContext } from "react";
+import { LanguageContext } from "../i18n/LanguageContext";
 
-const modules = import.meta.glob('../data/text/**/*.yaml')
+const modules = import.meta.glob("../data/text/**/*.yaml");
 
 export function useLocations(paths) {
-  const { currentLang } = useContext(LanguageContext)
-  const [locations, setLocations] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { currentLang } = useContext(LanguageContext);
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!paths || paths.length === 0) {
-      setLocations([])
-      setLoading(false)
-      return
+      setLocations([]);
+      setLoading(false);
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     Promise.all(
-      paths.map(path => {
-        const key = `../data/text/${currentLang}/${path}.yaml`
-        const loader = modules[key]
-        return loader ? loader().then(m => m.default) : Promise.resolve(null)
-      })
+      paths.map((path) => {
+        const key = `../data/text/${currentLang}/${path}.yaml`;
+        const loader = modules[key];
+        return loader ? loader().then((m) => m.default) : Promise.resolve(null);
+      }),
     )
-      .then(results => {
-        setLocations(results.filter(Boolean))
-        setLoading(false)
+      .then((results) => {
+        setLocations(results.filter(Boolean));
+        setLoading(false);
       })
       .catch(() => {
-        setLocations([])
-        setLoading(false)
-      })
-  }, [currentLang, JSON.stringify(paths)])
+        setLocations([]);
+        setLoading(false);
+      });
+  }, [currentLang, JSON.stringify(paths)]);
 
-  return { locations, loading }
+  return { locations, loading };
 }
 ```
 

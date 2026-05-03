@@ -41,21 +41,22 @@ src/
 
 ## Token Mapping
 
-| JS theme key         | CSS custom property      |
-|----------------------|--------------------------|
-| `theme.surface`      | `--color-surface`        |
-| `theme.accent`       | `--color-accent`         |
-| `theme.border`       | `--color-border`        |
-| `theme.text`         | `--color-text`          |
-| `theme.textSecondary`| `--color-text-secondary`|
-| `theme.textMuted`    | `--color-text-muted`     |
-| `theme.background`   | `--color-background`    |
-| `theme.barBackground`| `--color-bar-background` |
-| `theme.barBorder`    | `--color-bar-border`     |
-| `theme.barText`      | `--color-bar-text`       |
-| `theme.barTextSecondary`| `--color-bar-text-secondary` |
+| JS theme key             | CSS custom property          |
+| ------------------------ | ---------------------------- |
+| `theme.surface`          | `--color-surface`            |
+| `theme.accent`           | `--color-accent`             |
+| `theme.border`           | `--color-border`             |
+| `theme.text`             | `--color-text`               |
+| `theme.textSecondary`    | `--color-text-secondary`     |
+| `theme.textMuted`        | `--color-text-muted`         |
+| `theme.background`       | `--color-background`         |
+| `theme.barBackground`    | `--color-bar-background`     |
+| `theme.barBorder`        | `--color-bar-border`         |
+| `theme.barText`          | `--color-bar-text`           |
+| `theme.barTextSecondary` | `--color-bar-text-secondary` |
 
 Hardcoded colors being fixed:
+
 - `#BF0A30` → `--color-error` (used in ChallengeForm for error states)
 - `#2d7a2d` → `--color-success` (used in ChallengeForm for success states)
 - `#002868` → already covered by theme tokens in some contexts, hardcoded in others → `--color-accent` or theme token
@@ -77,7 +78,7 @@ Hardcoded colors being fixed:
   --color-bar-border: #e5e7eb;
   --color-bar-text: #111111;
   --color-bar-text-secondary: #6b7280;
-  --color-error: #BF0A30;
+  --color-error: #bf0a30;
   --color-success: #2d7a2d;
 }
 
@@ -111,18 +112,18 @@ Hardcoded colors being fixed:
 
 ```js
 // src/hooks/useCssVars.js
-import { useEffect } from 'react'
-import { useTheme } from '../theme/ThemeContext'
+import { useEffect } from "react";
+import { useTheme } from "../theme/ThemeContext";
 
 export function useCssVars() {
-  const { theme, themeName } = useTheme()
+  const { theme, themeName } = useTheme();
   useEffect(() => {
-    const root = document.documentElement
-    root.dataset.theme = themeName
+    const root = document.documentElement;
+    root.dataset.theme = themeName;
     Object.entries(theme).forEach(([key, value]) => {
-      root.style.setProperty(`--color-${key}`, value)
-    })
-  }, [theme, themeName])
+      root.style.setProperty(`--color-${key}`, value);
+    });
+  }, [theme, themeName]);
 }
 ```
 
@@ -149,11 +150,11 @@ Called once in `App.jsx` to activate global CSS variable sync.
 
 ## Hardcoded Color Fixes
 
-| File | Before | After |
-|------|--------|-------|
+| File          | Before                                                                          | After                                                                |
+| ------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | ChallengeForm | `#BF0A30` (error), `#2d7a2d` (success), `#002868` (submit btn), `#333` (labels) | `--color-error`, `--color-success`, `--color-accent`, `--color-text` |
-| CitySelector | `#ddd`, `#666`, `#888`, `#aaa` | `--color-border`, `--color-text-secondary`, `--color-text-muted` |
-| RouteSelector | `#ddd`, `#666`, `#aaa` | `--color-border`, `--color-text-secondary`, `--color-text-muted` |
+| CitySelector  | `#ddd`, `#666`, `#888`, `#aaa`                                                  | `--color-border`, `--color-text-secondary`, `--color-text-muted`     |
+| RouteSelector | `#ddd`, `#666`, `#aaa`                                                          | `--color-border`, `--color-text-secondary`, `--color-text-muted`     |
 
 ## Testing Notes
 

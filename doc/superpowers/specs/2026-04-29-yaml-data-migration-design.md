@@ -18,13 +18,15 @@ Single migration — all changes in one pass. Scope is small (10 files, 1 compon
 **New dependency:** `@modyfi/vite-plugin-yaml`
 
 **`vite.config.js`** — add YAML plugin:
+
 ```js
-import yaml from '@modyfi/vite-plugin-yaml'
+import yaml from "@modyfi/vite-plugin-yaml";
 // ...
-plugins: [react(), yaml()]
+plugins: [react(), yaml()];
 ```
 
 **`src/hooks/useText.js`** — two changes:
+
 - Glob: `'../data/text/**/*.json'` → `'../data/text/**/*.yaml'`
 - Key: `` `.../${path}.json` `` → `` `.../${path}.yaml` ``
 
@@ -40,30 +42,31 @@ Hook API and return shape are unchanged. The YAML plugin makes `.yaml` files beh
 
 Each file is rewritten as YAML with identical keys. Original `.json` file is deleted.
 
-| File |
-|------|
-| `src/data/text/en/application.json` |
-| `src/data/text/en/projects/projects.json` |
-| `src/data/text/en/projects/democrats_abroad/democrats_abroad.json` |
-| `src/data/text/en/projects/democrats_abroad/cities.json` |
+| File                                                                |
+| ------------------------------------------------------------------- |
+| `src/data/text/en/application.json`                                 |
+| `src/data/text/en/projects/projects.json`                           |
+| `src/data/text/en/projects/democrats_abroad/democrats_abroad.json`  |
+| `src/data/text/en/projects/democrats_abroad/cities.json`            |
 | `src/data/text/en/projects/democrats_abroad/den_haag/den_haag.json` |
-| `src/data/text/en/projects/democrats_abroad/den_haag/routes.json` |
-| `src/data/text/en/test_fixture.json` |
+| `src/data/text/en/projects/democrats_abroad/den_haag/routes.json`   |
+| `src/data/text/en/test_fixture.json`                                |
 
 ### Location files (new schema)
 
 The 3 location JSON files are replaced with YAML equivalents (originals deleted). Field mapping:
 
-| Old field | New field |
-|-----------|-----------|
-| `title` | `title` (unchanged) |
-| `location.lat` | `coordinates.lattitude` (spelling preserved from spec) |
-| `location.long` | `coordinates.longitude` |
-| `description` | `storyline` |
-| `clue` | `breadcrumb` |
-| `challenge` | `challenge.description` |
+| Old field       | New field                                              |
+| --------------- | ------------------------------------------------------ |
+| `title`         | `title` (unchanged)                                    |
+| `location.lat`  | `coordinates.lattitude` (spelling preserved from spec) |
+| `location.long` | `coordinates.longitude`                                |
+| `description`   | `storyline`                                            |
+| `clue`          | `breadcrumb`                                           |
+| `challenge`     | `challenge.description`                                |
 
 New fields with placeholders:
+
 - `locationId`: 1, 2, 3 (matching file order)
 - `name.label`: `"location details"`
 - `name.value`: `""`
@@ -72,6 +75,7 @@ New fields with placeholders:
 - `challenge.notes`: `""`
 
 **Canonical example (`001_loc_binnenhof.yaml`):**
+
 ```yaml
 locationId: 1
 title: "Binnenhof"
@@ -98,6 +102,7 @@ breadcrumb: |
 ## Section 3: Component + Tests
 
 **`src/components/ChallengeCard.jsx`** — three field references updated:
+
 - `location.description` → `location.storyline`
 - `location.clue` → `location.breadcrumb`
 - `location.challenge` → `location.challenge.description`

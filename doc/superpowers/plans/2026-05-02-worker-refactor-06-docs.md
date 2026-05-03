@@ -5,6 +5,7 @@
 **Goal:** Add comments to non-obvious functions, verify no dead code remains.
 
 **Files:**
+
 - Modify: `src/worker/auth.js`
 - Modify: `src/worker/github.js`
 - Modify: `src/worker/routes/editorRoutes.js`
@@ -20,6 +21,7 @@ grep -rn "verifyToken\|buildR2Key\|createToken\|decodeGitHubContent\|encodeGitHu
 ```
 
 Expected findings:
+
 - `verifyToken` — used inside `requireAuth` in `auth.js`; also imported directly in `worker.auth.test.js`. Not dead.
 - `buildR2Key` — used in `uploadRoute.js`; also imported in `worker.test.js`. Not dead.
 - `createToken` — used in `authRoutes.js`; also imported in `worker.auth.test.js` and `worker.test.js`. Not dead.
@@ -34,12 +36,14 @@ No dead code to remove. If the grep returns any other hits, investigate before d
 Add the following comments to the non-obvious functions. Do not add comments to functions whose name already explains what they do.
 
 Above `verifyToken`:
+
 ```js
 // Returns null instead of throwing so callers can treat any invalid token as unauthenticated.
 export async function verifyToken(token, secret) {
 ```
 
 Above `checkRateLimit`:
+
 ```js
 // Sliding window: resets the counter when more than RATE_LIMIT_WINDOW_MS has passed since windowStart.
 // Returns true if the request should be blocked.
@@ -59,6 +63,7 @@ export async function createLocationPR(...)
 ```
 
 Add above `fetchPRStatuses`:
+
 ```js
 // GitHub uses state "closed" for both merged and rejected PRs.
 export async function fetchPRStatuses(numbers, env) {

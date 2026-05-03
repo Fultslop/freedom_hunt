@@ -1,6 +1,7 @@
 # Task 03 — Worker: /auth/login endpoint (httpOnly cookie)
 
 **Files:**
+
 - Modify: `src/worker.js`
 
 ---
@@ -10,40 +11,45 @@
 In `src/worker.js`, add this block immediately before the `/upload` handler:
 
 ```javascript
-    if (request.method === 'POST' && url.pathname === '/auth/login') {
-      try {
-        const clientIP = request.headers.get('CF-Connecting-IP') || 'unknown'
-        const rateLimited = await checkRateLimit(clientIP, env)
-        if (rateLimited) {
-          return json({ ok: false, error: 'Too many attempts. Please wait a moment.' }, 429)
-        }
-        const { project, teamName, contact, password } = await request.json()
-        if (!project || !password) {
-          return json({ ok: false, error: 'Missing required fields' }, 400)
-        }
-        const stored = await env.AUTH_STORE.get(`auth:${project}`)
-        if (stored === null) {
-          return json({ ok: false, error: 'Project not found' }, 401)
-        }
-        if (password !== stored) {
-          return json({ ok: false, error: 'Incorrect password' }, 401)
-        }
-        const payload = {
-          project,
-          teamName: teamName || '',
-          contact: contact || '',
-          exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
-        }
-        const token = await createToken(payload, env.AUTH_SECRET)
-        return json(
-          { ok: true, teamName: payload.teamName, contact: payload.contact },
-          200,
-          { 'Set-Cookie': `freedom_hunt_auth=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000` }
-        )
-      } catch {
-        return json({ ok: false, error: 'Login failed' }, 500)
-      }
+if (request.method === "POST" && url.pathname === "/auth/login") {
+  try {
+    const clientIP = request.headers.get("CF-Connecting-IP") || "unknown";
+    const rateLimited = await checkRateLimit(clientIP, env);
+    if (rateLimited) {
+      return json(
+        { ok: false, error: "Too many attempts. Please wait a moment." },
+        429,
+      );
     }
+    const { project, teamName, contact, password } = await request.json();
+    if (!project || !password) {
+      return json({ ok: false, error: "Missing required fields" }, 400);
+    }
+    const stored = await env.AUTH_STORE.get(`auth:${project}`);
+    if (stored === null) {
+      return json({ ok: false, error: "Project not found" }, 401);
+    }
+    if (password !== stored) {
+      return json({ ok: false, error: "Incorrect password" }, 401);
+    }
+    const payload = {
+      project,
+      teamName: teamName || "",
+      contact: contact || "",
+      exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
+    };
+    const token = await createToken(payload, env.AUTH_SECRET);
+    return json(
+      { ok: true, teamName: payload.teamName, contact: payload.contact },
+      200,
+      {
+        "Set-Cookie": `freedom_hunt_auth=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000`,
+      },
+    );
+  } catch {
+    return json({ ok: false, error: "Login failed" }, 500);
+  }
+}
 ```
 
 - [ ] **Step 2: Build to verify no syntax errors**
@@ -61,11 +67,13 @@ npm run preview
 ```
 
 In another terminal, first add a test password to KV:
+
 ```bash
 npx wrangler kv key put --namespace-id=<YOUR_KV_ID> "auth:test_project" "secret123"
 ```
 
 Then test:
+
 ```bash
 # Wrong password → 401
 curl -v -X POST http://localhost:8787/auth/login \

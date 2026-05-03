@@ -3,6 +3,7 @@
 **Next:** [Task 02 — App wiring](2026-05-01-styling-refactor-02-app-wiring.md)
 
 **Files:**
+
 - Create: `src/styles/tokens.css`
 - Create: `src/styles/global.css`
 - Create: `src/hooks/useCssVars.js`
@@ -32,7 +33,7 @@ This file declares all 15 CSS custom properties for each theme. The `:root` bloc
   --color-progress-fill: #555555;
   --color-clue-background: transparent;
   --color-clue-border: transparent;
-  --color-error: #BF0A30;
+  --color-error: #bf0a30;
   --color-success: #2d7a2d;
 }
 
@@ -61,13 +62,13 @@ This file declares all 15 CSS custom properties for each theme. The `:root` bloc
   --color-text: #002868;
   --color-text-secondary: #374151;
   --color-text-muted: #6b7280;
-  --color-accent: #BF0A30;
+  --color-accent: #bf0a30;
   --color-bar-background: #002868;
   --color-bar-border: #002868;
   --color-bar-text: #ffffff;
   --color-bar-text-secondary: #93c5fd;
   --color-progress-track: #001a4d;
-  --color-progress-fill: #BF0A30;
+  --color-progress-fill: #bf0a30;
   --color-clue-background: #f0f4ff;
   --color-clue-border: #002868;
 }
@@ -80,24 +81,44 @@ This replaces all per-page `<style>` reset tags and centralises keyframe animati
 ```css
 /* src/styles/global.css */
 
-html, body, #root {
+html,
+body,
+#root {
   margin: 0;
   padding: 0;
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideInFromRight {
-  from { transform: translateX(40px); opacity: 0; }
-  to   { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes slideInFromLeft {
-  from { transform: translateX(-40px); opacity: 0; }
-  to   { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(-40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 ```
 
@@ -107,22 +128,22 @@ The hook converts camelCase theme keys (`barBackground`) to kebab-case CSS var n
 
 ```js
 // src/hooks/useCssVars.js
-import { useEffect } from 'react'
-import { useTheme } from '../theme/ThemeContext'
+import { useEffect } from "react";
+import { useTheme } from "../theme/ThemeContext";
 
 function toKebab(key) {
-  return key.replace(/([A-Z])/g, '-$1').toLowerCase()
+  return key.replace(/([A-Z])/g, "-$1").toLowerCase();
 }
 
 export function useCssVars() {
-  const { theme, themeName } = useTheme()
+  const { theme, themeName } = useTheme();
   useEffect(() => {
-    const root = document.documentElement
-    root.dataset.theme = themeName
+    const root = document.documentElement;
+    root.dataset.theme = themeName;
     Object.entries(theme).forEach(([key, value]) => {
-      root.style.setProperty(`--color-${toKebab(key)}`, value)
-    })
-  }, [theme, themeName])
+      root.style.setProperty(`--color-${toKebab(key)}`, value);
+    });
+  }, [theme, themeName]);
 }
 ```
 

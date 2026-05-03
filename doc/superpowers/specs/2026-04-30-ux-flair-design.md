@@ -1,4 +1,5 @@
 # UX Flair — Design Spec
+
 **Date:** 2026-04-30
 **Status:** Approved
 
@@ -46,8 +47,14 @@ Add a `fadeInUp` CSS keyframe via an injected `<style>` block:
 
 ```css
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 ```
 
@@ -57,11 +64,11 @@ Apply `animation: fadeInUp 400ms ease-out` to the clue container. The component 
 
 **Where:** `RoutePage.jsx` bottom bar
 
-| Button | Style |
-|--------|-------|
+| Button | Style                                                           |
+| ------ | --------------------------------------------------------------- |
 | Next   | Filled amber (`theme.accent`), black text, `border-radius: 8px` |
-| Prev   | Border only (`theme.border`), theme text |
-| Exit   | No border, muted text (`theme.textMuted`), no background |
+| Prev   | Border only (`theme.border`), theme text                        |
+| Exit   | No border, muted text (`theme.textMuted`), no background        |
 
 ### 7. Icons via Lucide React
 
@@ -69,19 +76,21 @@ Apply `animation: fadeInUp 400ms ease-out` to the clue container. The component 
 
 **Usage — ChallengeCard section headers (14px, same color as label):**
 
-| Section | Icon |
-|---------|------|
-| Storyline | `BookOpen` |
-| Location | `MapPin` |
+| Section   | Icon        |
+| --------- | ----------- |
+| Storyline | `BookOpen`  |
+| Location  | `MapPin`    |
 | Challenge | `Crosshair` |
-| Next Clue | `Compass` |
+| Next Clue | `Compass`   |
 
 **Usage — RoutePage nav buttons:**
+
 - `ChevronLeft` replaces `← Prev` text
 - `ChevronRight` replaces `Next →` text
 - Exit stays as text only
 
 **Usage — Submit button:**
+
 - `Camera` icon replaces the 📷 emoji
 
 Total: ~8 icon usages across two files. No icons on city/route selection screens.

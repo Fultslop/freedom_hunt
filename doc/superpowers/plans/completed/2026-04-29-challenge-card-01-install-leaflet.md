@@ -5,6 +5,7 @@
 **Next:** [Task 2 — Add image field to Binnenhof YAML](2026-04-29-challenge-card-02-image-field.md)
 
 **Files:**
+
 - Modify: `package.json` (via npm install — do not edit by hand)
 
 ---

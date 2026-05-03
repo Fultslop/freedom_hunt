@@ -21,7 +21,8 @@
 
 .project-page__logo {
   position: fixed;
-  transform: translateX(-1%) translateY(-40%) perspective(300px) rotateY(-25deg) rotateX(40deg) scale(3.0);
+  transform: translateX(-1%) translateY(-40%) perspective(300px) rotateY(-25deg)
+    rotateX(40deg) scale(3);
   bottom: 24px;
   right: 24px;
   height: 160px;

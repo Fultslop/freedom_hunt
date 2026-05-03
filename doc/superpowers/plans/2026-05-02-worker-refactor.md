@@ -12,14 +12,14 @@
 
 ## Task index
 
-| # | Task | Files touched |
-|---|------|---------------|
-| [01](2026-05-02-worker-refactor-01-test-gaps.md) | Close route test gaps | `src/test/worker.test.js` |
-| [02](2026-05-02-worker-refactor-02-auth-module.md) | Extract auth utilities module | `src/worker/auth.js`, `src/test/worker.auth.test.js`, `src/worker.js` |
-| [03](2026-05-02-worker-refactor-03-github-module.md) | Extract GitHub utilities module | `src/worker/github.js`, `src/test/worker.github.test.js`, `src/worker.js` |
+| #                                                     | Task                                     | Files touched                                                                               |
+| ----------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
+| [01](2026-05-02-worker-refactor-01-test-gaps.md)      | Close route test gaps                    | `src/test/worker.test.js`                                                                   |
+| [02](2026-05-02-worker-refactor-02-auth-module.md)    | Extract auth utilities module            | `src/worker/auth.js`, `src/test/worker.auth.test.js`, `src/worker.js`                       |
+| [03](2026-05-02-worker-refactor-03-github-module.md)  | Extract GitHub utilities module          | `src/worker/github.js`, `src/test/worker.github.test.js`, `src/worker.js`                   |
 | [04](2026-05-02-worker-refactor-04-route-handlers.md) | Extract route handlers + thin dispatcher | `src/worker/utils.js`, `src/worker/routes/*.js`, `src/worker.js`, `src/test/worker.test.js` |
-| [05](2026-05-02-worker-refactor-05-constants.md) | Final magic-value sweep | `src/worker/auth.js`, route handler files |
-| [06](2026-05-02-worker-refactor-06-docs.md) | Documentation + dead code audit | `src/worker/auth.js`, `src/worker/github.js` |
+| [05](2026-05-02-worker-refactor-05-constants.md)      | Final magic-value sweep                  | `src/worker/auth.js`, route handler files                                                   |
+| [06](2026-05-02-worker-refactor-06-docs.md)           | Documentation + dead code audit          | `src/worker/auth.js`, `src/worker/github.js`                                                |
 
 ## Final file structure
 

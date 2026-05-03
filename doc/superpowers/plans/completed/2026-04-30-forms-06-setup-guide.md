@@ -1,6 +1,7 @@
 # Task 6 — Setup guide
 
 **Files:**
+
 - Create: `doc/setup.md`
 
 ---
@@ -21,6 +22,7 @@ This document covers the one-time manual setup required to make form submissions
 ## Part 1: Google Apps Script
 
 ### What you need
+
 - A Google account (the Sheet will live in this account's Google Drive)
 - About 10 minutes
 
@@ -44,21 +46,21 @@ Copy and paste the following into the editor (replacing the deleted code):
 ```javascript
 function doPost(e) {
   try {
-    var data = JSON.parse(e.postData.contents)
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
+    var data = JSON.parse(e.postData.contents);
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     sheet.appendRow([
       data.timestamp,
       data.locationId,
       data.submitterId,
       JSON.stringify(data.fields),
-    ])
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: true }))
-      .setMimeType(ContentService.MimeType.JSON)
+    ]);
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: true }),
+    ).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: false, error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON)
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: false, error: err.message }),
+    ).setMimeType(ContentService.MimeType.JSON);
   }
 }
 ```
@@ -134,15 +136,18 @@ Submit a test form in the live app. Check your Google Sheet — a new row should
 ## Troubleshooting
 
 **No row appears in the Sheet after submitting:**
+
 - Check the browser's Network tab for the `/form-submit` request. If it returns `{ ok: false }`, the Worker received it but the Script call failed.
 - Open the Apps Script editor → **Executions** (left sidebar) to see error logs.
 - Make sure the deployment is set to "Anyone" access — re-deploy if needed.
 
 **The form shows "Submission failed" immediately:**
+
 - The Worker may not have the secret set. Run `wrangler secret list` to verify `FORM_SCRIPT_URL` appears.
 - Redeploy the Worker after setting the secret: `npm run deploy`.
 
 **"Google hasn't verified this app" warning during authorization:**
+
 - This is expected for personal scripts. Follow the "Advanced → Go to [project] (unsafe)" steps in Part 1, Step 6.
 ````
 
@@ -152,4 +157,7 @@ Submit a test form in the live app. Check your Google Sheet — a new row should
 git add doc/setup.md
 git commit -m "docs: add setup guide for Google Apps Script and Cloudflare Worker secret"
 ```
-````
+
+```
+
+```

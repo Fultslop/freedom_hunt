@@ -15,6 +15,7 @@
 ## File Map
 
 ### New files
+
 - `src/styles/tokens.css` — all 15 CSS custom properties, one `:root` block per theme
 - `src/styles/global.css` — html/body/root reset + all `@keyframes`
 - `src/hooks/useCssVars.js` — syncs JS theme object → `--color-*` vars on `:root`
@@ -30,6 +31,7 @@
 - `src/pages/LoginPage.css`
 
 ### Modified files
+
 - `src/App.jsx` — import `global.css`, call `useCssVars()` inside `ThemeBodySync`
 - `src/components/CitySelector.jsx` — swap inline styles → className
 - `src/components/RouteSelector.jsx` — swap inline styles → className
@@ -48,22 +50,22 @@
 
 ## Tasks
 
-| # | File(s) | What |
-|---|---------|------|
-| 01 | `src/styles/tokens.css`, `src/styles/global.css`, `src/hooks/useCssVars.js` | CSS infrastructure |
-| 02 | `src/App.jsx` | Wire `useCssVars` + import `global.css` |
-| 03 | `src/components/CitySelector.*` | Migrate CitySelector |
-| 04 | `src/components/RouteSelector.*` | Migrate RouteSelector |
-| 05 | `src/components/ChallengeForm.*` | Migrate ChallengeForm + fix hardcoded colours |
-| 06 | `src/components/TitleBar.*` | Migrate TitleBar |
-| 07 | `src/components/ChallengeCard.*` | Migrate ChallengeCard + move keyframes |
-| 08 | `src/pages/AppPage.*` | Migrate AppPage |
-| 09 | `src/pages/ProjectPage.*` | Migrate ProjectPage |
-| 10 | `src/pages/CityPage.*` | Migrate CityPage |
-| 11 | `src/pages/RoutePage.*` | Migrate RoutePage + move keyframes |
-| 12 | `src/pages/LoginPage.*` | Migrate LoginPage |
-| 13 | `.claude/CLAUDE.md` | Update coding conventions |
-| 14 | `doc/architecture.md` | Update architecture docs |
+| #   | File(s)                                                                     | What                                          |
+| --- | --------------------------------------------------------------------------- | --------------------------------------------- |
+| 01  | `src/styles/tokens.css`, `src/styles/global.css`, `src/hooks/useCssVars.js` | CSS infrastructure                            |
+| 02  | `src/App.jsx`                                                               | Wire `useCssVars` + import `global.css`       |
+| 03  | `src/components/CitySelector.*`                                             | Migrate CitySelector                          |
+| 04  | `src/components/RouteSelector.*`                                            | Migrate RouteSelector                         |
+| 05  | `src/components/ChallengeForm.*`                                            | Migrate ChallengeForm + fix hardcoded colours |
+| 06  | `src/components/TitleBar.*`                                                 | Migrate TitleBar                              |
+| 07  | `src/components/ChallengeCard.*`                                            | Migrate ChallengeCard + move keyframes        |
+| 08  | `src/pages/AppPage.*`                                                       | Migrate AppPage                               |
+| 09  | `src/pages/ProjectPage.*`                                                   | Migrate ProjectPage                           |
+| 10  | `src/pages/CityPage.*`                                                      | Migrate CityPage                              |
+| 11  | `src/pages/RoutePage.*`                                                     | Migrate RoutePage + move keyframes            |
+| 12  | `src/pages/LoginPage.*`                                                     | Migrate LoginPage                             |
+| 13  | `.claude/CLAUDE.md`                                                         | Update coding conventions                     |
+| 14  | `doc/architecture.md`                                                       | Update architecture docs                      |
 
 - [2026-05-01-styling-refactor-01-css-infrastructure.md](2026-05-01-styling-refactor-01-css-infrastructure.md)
 - [2026-05-01-styling-refactor-02-app-wiring.md](2026-05-01-styling-refactor-02-app-wiring.md)

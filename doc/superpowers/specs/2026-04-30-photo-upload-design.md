@@ -1,4 +1,5 @@
 # Photo Upload — Design Spec
+
 **Date:** 2026-04-30
 **Status:** Approved
 
@@ -18,6 +19,7 @@ Two additions to the existing deployment:
 2. **R2 bucket `gwc-2026-photos`** — created once manually in the Cloudflare dashboard. Bound to the Worker as `PHOTOS`.
 
 `wrangler.jsonc` gains:
+
 - `"main": "src/worker.js"` — activates the Worker script
 - `r2_buckets` binding: `{ "binding": "PHOTOS", "bucket_name": "gwc-2026-photos" }`
 
@@ -30,10 +32,12 @@ No other files change outside of `ChallengeCard.jsx` and `wrangler.jsonc`.
 **Route:** `POST /upload`
 
 **Request:** `multipart/form-data` with two fields:
+
 - `photo` — the image file (any browser-supported image MIME type)
 - `locationId` — string identifying the location (e.g., `"001"`)
 
 **Processing:**
+
 1. Parse form data, extract `photo` and `locationId`
 2. Derive extension from `photo.type` (`image/jpeg` → `.jpg`, `image/png` → `.png`, fallback `.jpg`)
 3. Build R2 key: `{locationId}_{Date.now()}.{ext}`
@@ -53,6 +57,7 @@ No other files change outside of `ChallengeCard.jsx` and `wrangler.jsonc`.
 **Placement:** A camera button added directly below the challenge description box, inside the Location section (between the challenge box and the section border).
 
 **Implementation:**
+
 - A hidden `<input type="file" accept="image/*" capture="environment" ref={fileInputRef}>` — invisible, triggered programmatically
 - A visible styled button that calls `fileInputRef.current.click()` on press
 - On mobile, `capture="environment"` launches the rear camera directly
@@ -62,12 +67,12 @@ No other files change outside of `ChallengeCard.jsx` and `wrangler.jsonc`.
 
 **Upload states (local `useState`, resets on reload):**
 
-| State | Button label | Interaction |
-|---|---|---|
-| `idle` | `📷 Upload` | Clickable |
-| `uploading` | `Uploading…` | Disabled |
-| `success` | — | Button replaced by `✓ Photo submitted` (green) |
-| `error` | `📷 Try again` | Clickable; error message shown below |
+| State       | Button label   | Interaction                                    |
+| ----------- | -------------- | ---------------------------------------------- |
+| `idle`      | `📷 Upload`    | Clickable                                      |
+| `uploading` | `Uploading…`   | Disabled                                       |
+| `success`   | —              | Button replaced by `✓ Photo submitted` (green) |
+| `error`     | `📷 Try again` | Clickable; error message shown below           |
 
 **Upload logic:** On file selection, build a `FormData` with `photo` (the file) and `locationId` (from `location.locationId`), POST to `/upload`, update state based on response.
 

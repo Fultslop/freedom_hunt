@@ -8,9 +8,22 @@
   color: var(--color-text);
 }
 
-.markdown-text h1 { font-size: var(--font-size-2xl); color: var(--color-text); }
-.markdown-text h2 { font-size: var(--font-size-xl); color: var(--color-text); }
-.markdown-text h3 { font-size: var(--font-size-lg); color: var(--color-text); }
+.markdown-text h1 {
+  font-size: var(--font-size-2xl);
+  color: var(--color-text);
+}
+.markdown-text h2 {
+  font-size: var(--font-size-xl);
+  color: var(--color-text);
+}
+.markdown-text h3 {
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+}
 
-.markdown-text p { margin: 0 0 0.75em; }
-.markdown-text p:last-child { margin-bottom: 0; }
+.markdown-text p {
+  margin: 0 0 0.75em;
+}
+.markdown-text p:last-child {
+  margin-bottom: 0;
+}

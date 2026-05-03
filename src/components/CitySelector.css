@@ -11,12 +11,15 @@
   margin-bottom: 12px;
   background: var(--color-surface);
   position: relative;
-  transition: border-color 150ms ease, box-shadow 150ms ease, transform 100ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 100ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .city-card::after {
-  content: '›';
+  content: "›";
   position: absolute;
   right: 14px;
   top: 50%;

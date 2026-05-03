@@ -1,6 +1,7 @@
 # Task 08 — App.jsx: wire AuthProvider + ProtectedRoute
 
 **Files:**
+
 - Modify: `src/App.jsx`
 
 ---
@@ -10,8 +11,8 @@
 Add these two imports after the existing imports:
 
 ```jsx
-import { AuthProvider } from './auth/AuthContext'
-import ProtectedRoute from './auth/ProtectedRoute'
+import { AuthProvider } from "./auth/AuthContext";
+import ProtectedRoute from "./auth/ProtectedRoute";
 ```
 
 - [ ] **Step 2: Wrap with AuthProvider**
@@ -19,18 +20,39 @@ import ProtectedRoute from './auth/ProtectedRoute'
 Wrap the contents of `BrowserRouter` with `AuthProvider`:
 
 ```jsx
-          <BrowserRouter>
-            <AuthProvider>
-              <ThemeBodySync />
-              <TitleBar />
-              <Routes>
-                <Route path="/" element={<AppPage />} />
-                <Route path="/:project" element={<ProtectedRoute><ProjectPage /></ProtectedRoute>} />
-                <Route path="/:project/:city" element={<ProtectedRoute><CityPage /></ProtectedRoute>} />
-                <Route path="/:project/:city/:route" element={<ProtectedRoute><RoutePage /></ProtectedRoute>} />
-              </Routes>
-            </AuthProvider>
-          </BrowserRouter>
+<BrowserRouter>
+  <AuthProvider>
+    <ThemeBodySync />
+    <TitleBar />
+    <Routes>
+      <Route path="/" element={<AppPage />} />
+      <Route
+        path="/:project"
+        element={
+          <ProtectedRoute>
+            <ProjectPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/:project/:city"
+        element={
+          <ProtectedRoute>
+            <CityPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/:project/:city/:route"
+        element={
+          <ProtectedRoute>
+            <RoutePage />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  </AuthProvider>
+</BrowserRouter>
 ```
 
 - [ ] **Step 3: Run the full test suite**
