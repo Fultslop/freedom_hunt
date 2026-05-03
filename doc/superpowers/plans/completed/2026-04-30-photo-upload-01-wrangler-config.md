@@ -5,6 +5,7 @@
 **Next:** [Task 2 — Create Worker script](2026-04-30-photo-upload-02-worker-script.md)
 
 **Files:**
+
 - Modify: `wrangler.jsonc`
 
 ---
@@ -20,21 +21,19 @@ Replace the contents of `wrangler.jsonc` with:
   "main": "src/worker.js",
   "compatibility_date": "2025-09-27",
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
   },
   "r2_buckets": [
     {
       "binding": "PHOTOS",
-      "bucket_name": "gwc-2026-photos"
-    }
+      "bucket_name": "gwc-2026-photos",
+    },
   ],
-  "compatibility_flags": [
-    "nodejs_compat"
-  ]
+  "compatibility_flags": ["nodejs_compat"],
 }
 ```
 

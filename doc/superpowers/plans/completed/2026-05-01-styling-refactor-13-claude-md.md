@@ -4,6 +4,7 @@
 **Next:** [Task 14 — architecture.md](2026-05-01-styling-refactor-14-architecture-md.md)
 
 **Files:**
+
 - Modify: `.claude/CLAUDE.md`
 
 ---

@@ -16,15 +16,15 @@ Status: Completed
 
 ## Tasks
 
-| # | File(s) | What it does |
-|---|---------|-------------|
-| [01](2026-05-02-location-editor-01-deps-config.md) | `package.json`, `wrangler.jsonc` | Install js-yaml; add GITHUB_REPO var |
-| [02](2026-05-02-location-editor-02-worker-github.md) | `src/worker.js`, `src/test/worker.test.js` | Worker GitHub proxy routes |
-| [03](2026-05-02-location-editor-03-admin-auth.md) | `src/worker.js`, `src/auth/AuthContext.jsx`, `src/auth/AdminRoute.jsx`, `src/pages/LoginPage.jsx` | Admin auth tier (skip if dashboard-03 done) |
-| [04](2026-05-02-location-editor-04-editor-shell.md) | `src/pages/editor/EditorLoginPage.jsx`, `src/pages/editor/EditorPage.jsx`, `src/App.jsx` | Editor login, landing shell, routing |
-| [05](2026-05-02-location-editor-05-location-list.md) | `src/pages/editor/EditorLocationList.jsx` | Location list with pending overlay |
-| [06](2026-05-02-location-editor-06-location-form.md) | `src/pages/editor/EditorLocationForm.jsx` | Add / edit / hide form → PR |
-| [07](2026-05-02-location-editor-07-setup-docs.md) | `doc/setup.md` | GITHUB_PAT + GITHUB_REPO setup guide |
+| #                                                    | File(s)                                                                                           | What it does                                |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| [01](2026-05-02-location-editor-01-deps-config.md)   | `package.json`, `wrangler.jsonc`                                                                  | Install js-yaml; add GITHUB_REPO var        |
+| [02](2026-05-02-location-editor-02-worker-github.md) | `src/worker.js`, `src/test/worker.test.js`                                                        | Worker GitHub proxy routes                  |
+| [03](2026-05-02-location-editor-03-admin-auth.md)    | `src/worker.js`, `src/auth/AuthContext.jsx`, `src/auth/AdminRoute.jsx`, `src/pages/LoginPage.jsx` | Admin auth tier (skip if dashboard-03 done) |
+| [04](2026-05-02-location-editor-04-editor-shell.md)  | `src/pages/editor/EditorLoginPage.jsx`, `src/pages/editor/EditorPage.jsx`, `src/App.jsx`          | Editor login, landing shell, routing        |
+| [05](2026-05-02-location-editor-05-location-list.md) | `src/pages/editor/EditorLocationList.jsx`                                                         | Location list with pending overlay          |
+| [06](2026-05-02-location-editor-06-location-form.md) | `src/pages/editor/EditorLocationForm.jsx`                                                         | Add / edit / hide form → PR                 |
+| [07](2026-05-02-location-editor-07-setup-docs.md)    | `doc/setup.md`                                                                                    | GITHUB_PAT + GITHUB_REPO setup guide        |
 
 ---
 
@@ -33,28 +33,28 @@ Status: Completed
 Every location file (`001_loc_binnenhof.yaml`, etc.) has this shape. Fields marked **editable** appear in the form; `challenge.form` is read-only in v1.
 
 ```yaml
-locationId: 1                        # read-only in form
-title: "The Final Civic Act"         # editable
-image: filename.jpg                  # editable (filename only, no upload in v1)
+locationId: 1 # read-only in form
+title: "The Final Civic Act" # editable
+image: filename.jpg # editable (filename only, no upload in v1)
 name:
-  label: ""                          # editable
-  value: "Binnenhof / Het Plein"     # editable
-address: "Binnenhof 1"              # editable
+  label: "" # editable
+  value: "Binnenhof / Het Plein" # editable
+address: "Binnenhof 1" # editable
 coordinates:
-  longitude: 4.3133                  # editable
-  latitude: 52.0799                  # editable
-storyline: |                         # editable (textarea)
+  longitude: 4.3133 # editable
+  latitude: 52.0799 # editable
+storyline: | # editable (textarea)
   …
 challenge:
-  name: ""                           # editable
-  description: |                     # editable (textarea)
+  name: "" # editable
+  description: | # editable (textarea)
     …
-  notes: ""                          # editable
-  form:                              # NOT editable in v1, preserved round-trip
+  notes: "" # editable
+  form: # NOT editable in v1, preserved round-trip
     - …
-breadcrumb: |                        # editable (textarea)
+breadcrumb: | # editable (textarea)
   …
-hidden: true                         # set by Hide action only (not in form)
+hidden: true # set by Hide action only (not in form)
 ```
 
 ## GitHub PR flow (reference)

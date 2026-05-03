@@ -13,12 +13,12 @@ A complete blank-slate rebuild of the Freedom Hunt app on the same tech stack (R
 
 Four screens, four URL levels. Browser navigation handles selection; swiping handles challenge progression within a route.
 
-| Screen | URL | Purpose |
-|---|---|---|
-| App home | `/` | Lists available projects — simple orientation |
-| Project page | `/:project` | Lists cities for the selected project — simple orientation |
-| City page | `/:project/:city` | Lists available routes for the city |
-| Route page | `/:project/:city/:route` | Full swipe-based challenge flow |
+| Screen       | URL                      | Purpose                                                    |
+| ------------ | ------------------------ | ---------------------------------------------------------- |
+| App home     | `/`                      | Lists available projects — simple orientation              |
+| Project page | `/:project`              | Lists cities for the selected project — simple orientation |
+| City page    | `/:project/:city`        | Lists available routes for the city                        |
+| Route page   | `/:project/:city/:route` | Full swipe-based challenge flow                            |
 
 The challenge index within a route is **not** a URL segment. It lives in React state, persisted to `localStorage` so reload returns the participant to their last stop. Browser back/forward navigates between selection screens, not between individual challenges.
 
@@ -61,6 +61,7 @@ Adding a new language means adding a parallel `text/{lang}/` tree with the same 
 ### File shapes
 
 **`application.json`** — app-level UI strings:
+
 ```json
 {
   "app.title": "Scavenger Hunt",
@@ -69,6 +70,7 @@ Adding a new language means adding a parallel `text/{lang}/` tree with the same 
 ```
 
 **`routes.json`** — named routes, each an ordered list of location file IDs:
+
 ```json
 {
   "short_walk": {
@@ -77,7 +79,11 @@ Adding a new language means adding a parallel `text/{lang}/` tree with the same 
   },
   "full_route": {
     "description": "The complete hunt, ~4 hours",
-    "locations": ["001_loc_binnenhof", "002_loc_peace_palace", "003_loc_ridderzaal"]
+    "locations": [
+      "001_loc_binnenhof",
+      "002_loc_peace_palace",
+      "003_loc_ridderzaal"
+    ]
   }
 }
 ```
@@ -85,6 +91,7 @@ Adding a new language means adding a parallel `text/{lang}/` tree with the same 
 Routes can be organized by duration/distance or by theme — the structure supports both equally.
 
 **`{id}_loc_{name}.json`** — a single location/challenge:
+
 ```json
 {
   "title": "Binnenhof",
@@ -147,6 +154,7 @@ src/
 **CityPage** loads `routes.json` for the selected city and renders a list of `RouteSelector` cards.
 
 **RoutePage** is the core experience:
+
 - Loads all location JSON files for the active route up front (files are small)
 - Renders one `ChallengeCard` at a time based on `currentIndex`
 - Swipe left/right (or prev/next buttons as fallback) advances the index

@@ -7,6 +7,7 @@ State: Completed
 **Next:** [Task 7 — AppPage](2026-04-29-theming-07-apppage.md)
 
 **Files:**
+
 - Modify: `src/data/text/en/projects/democrats_abroad/democrats_abroad.json`
 
 Adding `"style": "GWC"` tells `ProjectPage` which theme to activate when a user enters this project. Any project JSON without this field falls back to `"app"`.

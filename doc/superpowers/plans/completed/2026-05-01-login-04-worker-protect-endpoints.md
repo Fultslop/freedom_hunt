@@ -1,6 +1,7 @@
 # Task 04 — Worker: /auth/me, /auth/logout, and protect /upload + /form-submit
 
 **Files:**
+
 - Modify: `src/worker.js`
 
 ---
@@ -10,11 +11,16 @@
 In `src/worker.js`, add this block immediately after the `/auth/login` block (before the `/upload` handler):
 
 ```javascript
-    if (request.method === 'GET' && url.pathname === '/auth/me') {
-      const payload = await requireAuth(request, env)
-      if (!payload) return json({ ok: false, error: 'Not authenticated' }, 401)
-      return json({ ok: true, project: payload.project, teamName: payload.teamName, contact: payload.contact })
-    }
+if (request.method === "GET" && url.pathname === "/auth/me") {
+  const payload = await requireAuth(request, env);
+  if (!payload) return json({ ok: false, error: "Not authenticated" }, 401);
+  return json({
+    ok: true,
+    project: payload.project,
+    teamName: payload.teamName,
+    contact: payload.contact,
+  });
+}
 ```
 
 - [ ] **Step 2: Add the /auth/logout endpoint inside the fetch handler**
@@ -22,13 +28,12 @@ In `src/worker.js`, add this block immediately after the `/auth/login` block (be
 Add this block immediately after the `/auth/me` block:
 
 ```javascript
-    if (request.method === 'POST' && url.pathname === '/auth/logout') {
-      return json(
-        { ok: true },
-        200,
-        { 'Set-Cookie': 'freedom_hunt_auth=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0' }
-      )
-    }
+if (request.method === "POST" && url.pathname === "/auth/logout") {
+  return json({ ok: true }, 200, {
+    "Set-Cookie":
+      "freedom_hunt_auth=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0",
+  });
+}
 ```
 
 - [ ] **Step 3: Add auth check to the /upload handler**

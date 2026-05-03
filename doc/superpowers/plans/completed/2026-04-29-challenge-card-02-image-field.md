@@ -5,6 +5,7 @@
 **Next:** [Task 3 — Rewrite ChallengeCard tests](2026-04-29-challenge-card-03-tests.md)
 
 **Files:**
+
 - Modify: `src/data/text/en/projects/democrats_abroad/den_haag/001_loc_binnenhof.yaml`
 
 The image file `alireza-parpaei-den-haag-unsplash.jpg` already exists at `src/data/img/`. Locations 002 and 003 intentionally have no `image` field — they exercise the no-hero fallback path.

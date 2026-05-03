@@ -7,6 +7,7 @@
 **This task is mostly manual.** The code changes are to the Apps Script (done in the Google browser editor) and to `doc/setup.md` in the repo. There is no new Worker route in this task — the Worker endpoint that calls `FORM_SCRIPT_URL` with GET is added in Task 05.
 
 **Files:**
+
 - Modify: `doc/setup.md` — update the script in Part 1 Step 3, add a new Part 4 for reading data
 - Manual: redeploy the Apps Script as a new version in the Google editor
 
@@ -23,48 +24,50 @@ Delete everything and paste:
 ```javascript
 function doPost(e) {
   try {
-    var data = JSON.parse(e.postData.contents)
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
+    var data = JSON.parse(e.postData.contents);
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     sheet.appendRow([
-      data.timestamp  || '',
-      data.routeId    || '',
-      data.locationId || '',
-      data.teamName   || '',
-      data.email      || '',
+      data.timestamp || "",
+      data.routeId || "",
+      data.locationId || "",
+      data.teamName || "",
+      data.email || "",
       JSON.stringify(data.fields || {}),
-    ])
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: true }))
-      .setMimeType(ContentService.MimeType.JSON)
+    ]);
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: true }),
+    ).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: false, error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON)
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: false, error: err.message }),
+    ).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
 function doGet(e) {
   try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
-    var allValues = sheet.getDataRange().getValues()
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var allValues = sheet.getDataRange().getValues();
     if (allValues.length < 2) {
-      return ContentService
-        .createTextOutput(JSON.stringify({ ok: true, rows: [] }))
-        .setMimeType(ContentService.MimeType.JSON)
+      return ContentService.createTextOutput(
+        JSON.stringify({ ok: true, rows: [] }),
+      ).setMimeType(ContentService.MimeType.JSON);
     }
-    var headers = allValues[0]
-    var rows = allValues.slice(1).map(function(row) {
-      var obj = {}
-      headers.forEach(function(h, i) { obj[h] = row[i] })
-      return obj
-    })
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: true, rows: rows }))
-      .setMimeType(ContentService.MimeType.JSON)
+    var headers = allValues[0];
+    var rows = allValues.slice(1).map(function (row) {
+      var obj = {};
+      headers.forEach(function (h, i) {
+        obj[h] = row[i];
+      });
+      return obj;
+    });
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: true, rows: rows }),
+    ).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: false, error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON)
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: false, error: err.message }),
+    ).setMimeType(ContentService.MimeType.JSON);
   }
 }
 ```
@@ -116,8 +119,8 @@ The `doGet()` function added to the Apps Script in Part 1 allows the Cloudflare 
 
 After the Part 1 update, your sheet should have these headers in row 1:
 
-| A | B | C | D | E | F |
-|---|---|---|---|---|---|
+| A         | B       | C          | D        | E     | F      |
+| --------- | ------- | ---------- | -------- | ----- | ------ |
 | timestamp | routeId | locationId | teamName | email | fields |
 
 `fields` is a JSON string — e.g. `{"q1":"answer","q2":"42"}`.

@@ -40,16 +40,16 @@ This system provides **access control, not authentication** — similar to how M
 
 ### Cloudflare
 
-| Resource | Detail |
-|----------|--------|
-| KV namespace | `AUTH_STORE` — bound in `wrangler.jsonc` |
-| KV key format | `auth:{projectId}` → plaintext password (e.g. `auth:democrats_abroad`) |
-| KV key format (rate limit) | `rl:{ip}` → JSON `{ count: N, windowStart: timestamp }` with 60s TTL |
-| Worker secret | `AUTH_SECRET` — set via `wrangler secret put AUTH_SECRET` |
-| New endpoint | `POST /auth/login` — validate password, set httpOnly cookie, return user info |
-| New endpoint | `GET /auth/me` — return decoded token payload from cookie (for React to display team name/contact) |
-| New endpoint | `POST /auth/logout` — clear the cookie |
-| Protected endpoints | `/upload`, `/form-submit` (validate cookie) |
+| Resource                   | Detail                                                                                             |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
+| KV namespace               | `AUTH_STORE` — bound in `wrangler.jsonc`                                                           |
+| KV key format              | `auth:{projectId}` → plaintext password (e.g. `auth:democrats_abroad`)                             |
+| KV key format (rate limit) | `rl:{ip}` → JSON `{ count: N, windowStart: timestamp }` with 60s TTL                               |
+| Worker secret              | `AUTH_SECRET` — set via `wrangler secret put AUTH_SECRET`                                          |
+| New endpoint               | `POST /auth/login` — validate password, set httpOnly cookie, return user info                      |
+| New endpoint               | `GET /auth/me` — return decoded token payload from cookie (for React to display team name/contact) |
+| New endpoint               | `POST /auth/logout` — clear the cookie                                                             |
+| Protected endpoints        | `/upload`, `/form-submit` (validate cookie)                                                        |
 
 ### Token Format
 
@@ -58,8 +58,14 @@ base64url(JSON.stringify(payload)) + "." + base64url(HMAC-SHA256(payload, AUTH_S
 ```
 
 Payload shape:
+
 ```json
-{ "project": "democrats_abroad", "teamName": "The Founding Runners", "contact": "team@example.com", "exp": 1748000000 }
+{
+  "project": "democrats_abroad",
+  "teamName": "The Founding Runners",
+  "contact": "team@example.com",
+  "exp": 1748000000
+}
 ```
 
 The payload is **not encrypted** — it is base64-encoded and readable by anyone who intercepts the token. This is acceptable because the payload contains no secrets (team name and contact are self-reported identifiers).
@@ -80,25 +86,32 @@ The cookie's `project` field is checked against the URL on every request to ensu
 
 ### React
 
-| Item | Detail |
-|------|--------|
-| `src/auth/AuthContext.jsx` | New — calls `GET /auth/me` on mount; exposes `{ activeAuth, login, logout }` |
-| `src/auth/ProtectedRoute.jsx` | New — reads `projectId` from URL params, checks auth for that project, renders `LoginPage` if unauthenticated |
-| `src/pages/LoginPage.jsx` | New — full-screen themed login form |
-| `src/App.jsx` | Add `AuthProvider`; wrap `/:project`, `/:project/:city`, `/:project/:city/:route` with `ProtectedRoute` |
-| `src/components/TitleBar.jsx` | Drill-down menu replaces flat theme list |
-| `src/worker.js` | Add `/auth/login`, `/auth/me`, `/auth/logout` handlers; add rate limiting; validate cookie on `/upload` and `/form-submit` |
+| Item                          | Detail                                                                                                                     |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `src/auth/AuthContext.jsx`    | New — calls `GET /auth/me` on mount; exposes `{ activeAuth, login, logout }`                                               |
+| `src/auth/ProtectedRoute.jsx` | New — reads `projectId` from URL params, checks auth for that project, renders `LoginPage` if unauthenticated              |
+| `src/pages/LoginPage.jsx`     | New — full-screen themed login form                                                                                        |
+| `src/App.jsx`                 | Add `AuthProvider`; wrap `/:project`, `/:project/:city`, `/:project/:city/:route` with `ProtectedRoute`                    |
+| `src/components/TitleBar.jsx` | Drill-down menu replaces flat theme list                                                                                   |
+| `src/worker.js`               | Add `/auth/login`, `/auth/me`, `/auth/logout` handlers; add rate limiting; validate cookie on `/upload` and `/form-submit` |
 
 ---
 
 ## Worker: POST /auth/login
 
 **Request body:**
+
 ```json
-{ "project": "democrats_abroad", "teamName": "The Founding Runners", "contact": "team@example.com", "password": "hunter2" }
+{
+  "project": "democrats_abroad",
+  "teamName": "The Founding Runners",
+  "contact": "team@example.com",
+  "password": "hunter2"
+}
 ```
 
 **Flow:**
+
 1. **Rate limit check** — look up `rl:{clientIP}` in KV. If count ≥ 5 and windowStart is within 60 seconds → 429 `{ ok: false, error: 'Too many attempts. Please wait a moment.' }`
 2. Look up `AUTH_STORE.get('auth:' + project)`
 3. If not found → increment rate limit counter → 401 `{ ok: false, error: 'Project not found' }`
@@ -109,18 +122,19 @@ The cookie's `project` field is checked against the URL on every request to ensu
 8. Return 200 with `Set-Cookie` header and body `{ ok: true, teamName, contact }`
 
 **Rate limit implementation:**
+
 ```javascript
 async function checkRateLimit(ip, env) {
-  const key = `rl:${ip}`
-  const raw = await env.AUTH_STORE.get(key)
-  const now = Date.now()
-  let record = raw ? JSON.parse(raw) : { count: 0, windowStart: now }
+  const key = `rl:${ip}`;
+  const raw = await env.AUTH_STORE.get(key);
+  const now = Date.now();
+  let record = raw ? JSON.parse(raw) : { count: 0, windowStart: now };
   if (now - record.windowStart > 60000) {
-    record = { count: 0, windowStart: now }
+    record = { count: 0, windowStart: now };
   }
-  record.count++
-  await env.AUTH_STORE.put(key, JSON.stringify(record), { expirationTtl: 60 })
-  return record.count > 5
+  record.count++;
+  await env.AUTH_STORE.put(key, JSON.stringify(record), { expirationTtl: 60 });
+  return record.count > 5;
 }
 ```
 
@@ -129,6 +143,7 @@ async function checkRateLimit(ip, env) {
 ## Worker: GET /auth/me
 
 **Flow:**
+
 1. Read `freedom_hunt_auth` cookie from request
 2. If absent → 401 `{ ok: false, error: 'Not authenticated' }`
 3. Verify token signature and expiry
@@ -139,6 +154,7 @@ async function checkRateLimit(ip, env) {
 ## Worker: POST /auth/logout
 
 **Flow:**
+
 1. Return 200 with `Set-Cookie: freedom_hunt_auth=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0` (clears the cookie)
 2. Return `{ ok: true }`
 
@@ -150,10 +166,10 @@ Used by `/upload`, `/form-submit`, and `/auth/me`:
 
 ```javascript
 async function requireAuth(request, env) {
-  const cookie = request.headers.get('Cookie') || ''
-  const match = cookie.match(/(?:^|;\s*)freedom_hunt_auth=([^;]+)/)
-  if (!match) return null
-  return verifyToken(match[1], env.AUTH_SECRET)
+  const cookie = request.headers.get("Cookie") || "";
+  const match = cookie.match(/(?:^|;\s*)freedom_hunt_auth=([^;]+)/);
+  if (!match) return null;
+  return verifyToken(match[1], env.AUTH_SECRET);
 }
 ```
 
@@ -182,10 +198,10 @@ TitleBar reads `activeAuth` to populate the Profile sub-view (team name and cont
 
 ```jsx
 function ProtectedRoute({ children }) {
-  const { project } = useParams()
-  const { activeAuth } = useAuth()
-  if (!activeAuth || activeAuth.projectId !== project) return <LoginPage />
-  return children
+  const { project } = useParams();
+  const { activeAuth } = useAuth();
+  if (!activeAuth || activeAuth.projectId !== project) return <LoginPage />;
+  return children;
 }
 ```
 
@@ -242,16 +258,16 @@ Themes sub-view:
 
 ## Session Lifecycle
 
-| Event | Behaviour |
-|-------|-----------|
-| First visit / deep link | `ProtectedRoute` checks auth → no `activeAuth` → `LoginPage` |
-| Successful login | Worker sets httpOnly cookie, React stores `activeAuth` → `ProtectedRoute` re-renders actual page |
-| Returning within 30 days | Cookie sent automatically, `GET /auth/me` populates `activeAuth` → skips login |
-| Token expired | `GET /auth/me` returns 401 → `activeAuth` is null → `LoginPage` |
-| Sign out | `POST /auth/logout` clears cookie, React clears `activeAuth` → `LoginPage` |
-| Password rotated | Existing cookies remain valid up to 30 days |
-| `AUTH_SECRET` rotated | All cookies immediately invalid (signature check fails) |
-| Too many login attempts | 429 response → rate limit message shown |
+| Event                    | Behaviour                                                                                        |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| First visit / deep link  | `ProtectedRoute` checks auth → no `activeAuth` → `LoginPage`                                     |
+| Successful login         | Worker sets httpOnly cookie, React stores `activeAuth` → `ProtectedRoute` re-renders actual page |
+| Returning within 30 days | Cookie sent automatically, `GET /auth/me` populates `activeAuth` → skips login                   |
+| Token expired            | `GET /auth/me` returns 401 → `activeAuth` is null → `LoginPage`                                  |
+| Sign out                 | `POST /auth/logout` clears cookie, React clears `activeAuth` → `LoginPage`                       |
+| Password rotated         | Existing cookies remain valid up to 30 days                                                      |
+| `AUTH_SECRET` rotated    | All cookies immediately invalid (signature check fails)                                          |
+| Too many login attempts  | 429 response → rate limit message shown                                                          |
 
 ---
 

@@ -4,6 +4,7 @@
 **Next:** [Task 04 — RouteSelector](2026-05-01-styling-refactor-04-routeselector.md)
 
 **Files:**
+
 - Create: `src/components/CitySelector.css`
 - Modify: `src/components/CitySelector.jsx`
 
@@ -58,39 +59,40 @@ Hardcoded colours `#ddd`, `#666`, `#888` are replaced with CSS custom properties
 Remove all inline `style` props. Remove the unused `useTheme` import (it was never imported here — CitySelector previously had no theme hook). Add the CSS import.
 
 ```jsx
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { fetchImage } from '../assets/AssetManager'
-import './CitySelector.css'
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { fetchImage } from "../assets/AssetManager";
+import "./CitySelector.css";
 
 export default function CitySelector({ project, city }) {
-  const navigate = useNavigate()
-  const [imageSrc, setImageSrc] = useState(null)
+  const navigate = useNavigate();
+  const [imageSrc, setImageSrc] = useState(null);
 
   useEffect(() => {
-    if (!city.image) { setImageSrc(null); return }
-    let cancelled = false
-    fetchImage(city.image).then(url => {
-      if (!cancelled) setImageSrc(url)
-    })
-    return () => { cancelled = true }
-  }, [city.image])
+    if (!city.image) {
+      setImageSrc(null);
+      return;
+    }
+    let cancelled = false;
+    fetchImage(city.image).then((url) => {
+      if (!cancelled) setImageSrc(url);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [city.image]);
 
-  const handleNav = () => navigate(`/${project}/${city.id}`)
+  const handleNav = () => navigate(`/${project}/${city.id}`);
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={handleNav}
-      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && handleNav()}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && handleNav()}
       className="city-card"
     >
       {imageSrc && (
-        <img
-          src={imageSrc}
-          alt={city.name}
-          className="city-card__image"
-        />
+        <img src={imageSrc} alt={city.name} className="city-card__image" />
       )}
       <div>
         <div className="city-card__name">{city.name}</div>
@@ -100,7 +102,7 @@ export default function CitySelector({ project, city }) {
         )}
       </div>
     </div>
-  )
+  );
 }
 ```
 

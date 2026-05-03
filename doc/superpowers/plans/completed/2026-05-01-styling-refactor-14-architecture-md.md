@@ -3,6 +3,7 @@
 **Depends on:** [Task 13 — CLAUDE.md](2026-05-01-styling-refactor-13-claude-md.md)
 
 **Files:**
+
 - Modify: `doc/architecture.md`
 
 ---

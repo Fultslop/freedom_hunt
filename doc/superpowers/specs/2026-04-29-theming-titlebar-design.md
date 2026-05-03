@@ -1,4 +1,5 @@
 # Theming & Title Bar — Design Spec
+
 **Date:** 2026-04-29  
 **Status:** Approved
 
@@ -20,13 +21,13 @@ Add a persistent title bar and a runtime-switchable theme system to the Freedom 
 
 ## Design Decisions
 
-| Decision | Choice | Reason |
-|---|---|---|
-| Theme system | React Context (dual context) | Matches inline-style convention; TitleBar mounts once without re-mount flicker |
-| Style switcher location | Title bar ☰ menu | Always accessible; doesn't eat screen space |
-| Default style fallback | `"app"` | Wireframe is too bare for real use; app is the neutral production default |
-| Style default source | Project JSON `style` field | Consistent with existing data-driven philosophy |
-| Light/dark | Not implemented | Architecture supports it (add variant tokens to each preset later) |
+| Decision                | Choice                       | Reason                                                                         |
+| ----------------------- | ---------------------------- | ------------------------------------------------------------------------------ |
+| Theme system            | React Context (dual context) | Matches inline-style convention; TitleBar mounts once without re-mount flicker |
+| Style switcher location | Title bar ☰ menu            | Always accessible; doesn't eat screen space                                    |
+| Default style fallback  | `"app"`                      | Wireframe is too bare for real use; app is the neutral production default      |
+| Style default source    | Project JSON `style` field   | Consistent with existing data-driven philosophy                                |
+| Light/dark              | Not implemented              | Architecture supports it (add variant tokens to each preset later)             |
 
 ---
 
@@ -57,23 +58,23 @@ No other JSON files change — style is set once at the project level and applie
 
 Three named theme preset objects. Each is a flat map of design tokens:
 
-| Token | Purpose |
-|---|---|
-| `background` | Page background color |
-| `surface` | Card / section background |
-| `border` | Divider and border color |
-| `text` | Primary body text |
-| `textSecondary` | Secondary / description text |
-| `textMuted` | Labels, meta text |
-| `accent` | Highlight color (progress fill, label color) |
-| `barBackground` | Title bar background |
-| `barBorder` | Title bar bottom border |
-| `barText` | Title bar primary text |
-| `barTextSecondary` | Title bar secondary text (back label) |
-| `progressTrack` | Progress bar track background |
-| `progressFill` | Progress bar fill |
-| `clueBackground` | Clue section background tint |
-| `clueBorderColor` | Clue section left border color |
+| Token              | Purpose                                      |
+| ------------------ | -------------------------------------------- |
+| `background`       | Page background color                        |
+| `surface`          | Card / section background                    |
+| `border`           | Divider and border color                     |
+| `text`             | Primary body text                            |
+| `textSecondary`    | Secondary / description text                 |
+| `textMuted`        | Labels, meta text                            |
+| `accent`           | Highlight color (progress fill, label color) |
+| `barBackground`    | Title bar background                         |
+| `barBorder`        | Title bar bottom border                      |
+| `barText`          | Title bar primary text                       |
+| `barTextSecondary` | Title bar secondary text (back label)        |
+| `progressTrack`    | Progress bar track background                |
+| `progressFill`     | Progress bar fill                            |
+| `clueBackground`   | Clue section background tint                 |
+| `clueBorderColor`  | Clue section left border color               |
 
 Style directions (exact hex values determined during implementation):
 
@@ -84,6 +85,7 @@ Style directions (exact hex values determined during implementation):
 ### `src/theme/ThemeContext.jsx`
 
 Exports:
+
 - `ThemeProvider` — wraps the app; initial `themeName` is `"app"`
 - `useTheme()` — returns `{ theme, themeName, setThemeName }`
   - `theme` is the full resolved token object for the current `themeName`
@@ -96,10 +98,12 @@ Exports:
 ### `src/theme/TitleBarContext.jsx`
 
 Exports:
+
 - `TitleBarProvider` — wraps the app; default state: `{ title: 'Freedom Hunt', progress: null, backPath: null }`
 - `useTitleBar(config?)` — when called with a config object, sets the title bar state in a `useEffect`; when called with no argument, returns `{ titleBar, setTitleBar }` for direct reads/writes
 
 `titleBar` shape:
+
 ```js
 {
   title: string,
@@ -113,15 +117,18 @@ Exports:
 Reads from both `ThemeContext` and `TitleBarContext`. Layout (top to bottom):
 
 **Main row:**
+
 - Left: `←` back button if `backPath` is set, calls `navigate(backPath)`
 - Center-left: `title` text
 - Right: `☰` icon that toggles a style-switcher overlay
 
 **Progress row** (rendered only when `progress` is non-null):
+
 - A filled bar proportional to `current / total`
 - Styled with `theme.progressTrack` and `theme.progressFill`
 
 **Style-switcher overlay:**
+
 - Lists the three style names
 - Clicking one calls `setThemeName(name)`
 - Closes on selection or outside click
@@ -134,18 +141,19 @@ Reads from both `ThemeContext` and `TitleBarContext`. Layout (top to bottom):
 
 ### `useTitleBar` call per page
 
-| Page | title | progress | backPath |
-|---|---|---|---|
-| AppPage | `'Freedom Hunt'` | null | null |
-| ProjectPage | project name from JSON | null | `'/'` |
-| CityPage | city name from JSON | null | `/${project}` |
-| RoutePage | route name from JSON | `{ current: index+1, total }` | `/${project}/${city}` |
+| Page        | title                  | progress                      | backPath              |
+| ----------- | ---------------------- | ----------------------------- | --------------------- |
+| AppPage     | `'Freedom Hunt'`       | null                          | null                  |
+| ProjectPage | project name from JSON | null                          | `'/'`                 |
+| CityPage    | city name from JSON    | null                          | `/${project}`         |
+| RoutePage   | route name from JSON   | `{ current: index+1, total }` | `/${project}/${city}` |
 
 RoutePage updates progress as `currentIndex` changes — added to the existing `useEffect` that writes to `localStorage`.
 
 ### Theme application in pages
 
 Each page:
+
 1. Calls `useTheme()` to get the current token object
 2. Replaces all hardcoded color values with theme tokens on the root `div` and child elements
 3. Adds `background: theme.background` to the root `div` so the theme color fills the full screen (alongside the existing `<style>` reset tag)
@@ -159,12 +167,14 @@ Each page:
 ## File Checklist
 
 New files:
+
 - `src/theme/themes.js`
 - `src/theme/ThemeContext.jsx`
 - `src/theme/TitleBarContext.jsx`
 - `src/components/TitleBar.jsx`
 
 Modified files:
+
 - `src/App.jsx` — add providers, render `TitleBar`
 - `src/pages/AppPage.jsx` — add `useTheme`, `useTitleBar`
 - `src/pages/ProjectPage.jsx` — add `useTheme`, `useTitleBar`, `setThemeName`

@@ -4,6 +4,7 @@
 **Next:** [Task 06 — TitleBar](2026-05-01-styling-refactor-06-titlebar.md)
 
 **Files:**
+
 - Create: `src/components/ChallengeForm.css`
 - Modify: `src/components/ChallengeForm.jsx`
 
@@ -14,6 +15,7 @@ ChallengeForm currently has no `useTheme()` call and uses only hardcoded colours
 - [ ] **Step 1: Create `src/components/ChallengeForm.css`**
 
 Hardcoded colours fixed:
+
 - `#BF0A30` → `var(--color-error)`
 - `#2d7a2d` → `var(--color-success)`
 - `#002868` → `var(--color-accent)`
@@ -132,86 +134,98 @@ Hardcoded colours fixed:
 - [ ] **Step 2: Rewrite `src/components/ChallengeForm.jsx`**
 
 ```jsx
-import { useState } from 'react'
-import './ChallengeForm.css'
+import { useState } from "react";
+import "./ChallengeForm.css";
 
-const VALID_TYPES = ['string', 'number', 'boolean', 'radio']
+const VALID_TYPES = ["string", "number", "boolean", "radio"];
 
 function checkDefinition(field) {
-  if (!VALID_TYPES.includes(field.type)) return `unknown type "${field.type}"`
-  if (field.type === 'radio' && (!field.options || field.options.length === 0)) return 'radio field missing options'
-  return null
+  if (!VALID_TYPES.includes(field.type)) return `unknown type "${field.type}"`;
+  if (field.type === "radio" && (!field.options || field.options.length === 0))
+    return "radio field missing options";
+  return null;
 }
 
 export default function ChallengeForm({ form, locationId }) {
-  const [submitterId, setSubmitterId] = useState('')
-  const [values, setValues] = useState({})
-  const [errors, setErrors] = useState({})
-  const [submitState, setSubmitState] = useState('idle')
+  const [submitterId, setSubmitterId] = useState("");
+  const [values, setValues] = useState({});
+  const [errors, setErrors] = useState({});
+  const [submitState, setSubmitState] = useState("idle");
 
   function setValue(id, value) {
-    setValues(prev => ({ ...prev, [id]: value }))
-    setErrors(prev => { const next = { ...prev }; delete next[id]; return next })
+    setValues((prev) => ({ ...prev, [id]: value }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   }
 
   function validate() {
-    const newErrors = {}
-    if (!submitterId.trim()) newErrors.__submitterId = 'Please enter your name or team'
+    const newErrors = {};
+    if (!submitterId.trim())
+      newErrors.__submitterId = "Please enter your name or team";
     for (const field of form) {
-      if (checkDefinition(field)) continue
-      if (field.type === 'boolean') continue
-      if (field.type === 'radio' && !values[field.id]) newErrors[field.id] = 'Please select an option'
-      if (field.type === 'string' && !String(values[field.id] ?? '').trim()) newErrors[field.id] = 'This field is required'
-      if (field.type === 'number' && (values[field.id] === '' || values[field.id] === undefined)) newErrors[field.id] = 'This field is required'
+      if (checkDefinition(field)) continue;
+      if (field.type === "boolean") continue;
+      if (field.type === "radio" && !values[field.id])
+        newErrors[field.id] = "Please select an option";
+      if (field.type === "string" && !String(values[field.id] ?? "").trim())
+        newErrors[field.id] = "This field is required";
+      if (
+        field.type === "number" &&
+        (values[field.id] === "" || values[field.id] === undefined)
+      )
+        newErrors[field.id] = "This field is required";
     }
-    return newErrors
+    return newErrors;
   }
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    const newErrors = validate()
+    e.preventDefault();
+    const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
+      setErrors(newErrors);
+      return;
     }
-    setSubmitState('submitting')
+    setSubmitState("submitting");
     try {
-      const res = await fetch('/form-submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/form-submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           locationId: String(locationId),
           timestamp: new Date().toISOString(),
           submitterId: submitterId.trim(),
           fields: values,
         }),
-      })
-      const data = await res.json()
-      setSubmitState(data.ok ? 'success' : 'error')
+      });
+      const data = await res.json();
+      setSubmitState(data.ok ? "success" : "error");
     } catch {
-      setSubmitState('error')
+      setSubmitState("error");
     }
   }
 
   function renderField(field) {
-    const defError = checkDefinition(field)
+    const defError = checkDefinition(field);
     if (defError) {
       return (
         <div key={field.id} className="cf-invalid-field">
           {`⚠ Invalid field "${field.id}": ${defError}`}
         </div>
-      )
+      );
     }
 
     return (
       <div key={field.id} className="cf-field">
-        {field.type === 'boolean' ? (
+        {field.type === "boolean" ? (
           <label htmlFor={field.id} className="cf-label--checkbox">
             <input
               id={field.id}
               type="checkbox"
               checked={values[field.id] ?? false}
-              onChange={e => setValue(field.id, e.target.checked)}
+              onChange={(e) => setValue(field.id, e.target.checked)}
               className="cf-checkbox"
             />
             {field.label}
@@ -221,28 +235,37 @@ export default function ChallengeForm({ form, locationId }) {
             <label htmlFor={field.id} className="cf-label">
               {field.label}
             </label>
-            {field.type === 'string' && (
+            {field.type === "string" && (
               <input
                 id={field.id}
                 type="text"
-                value={values[field.id] ?? ''}
-                onChange={e => setValue(field.id, e.target.value)}
-                className={`cf-input${errors[field.id] ? ' cf-input--error' : ''}`}
+                value={values[field.id] ?? ""}
+                onChange={(e) => setValue(field.id, e.target.value)}
+                className={`cf-input${errors[field.id] ? " cf-input--error" : ""}`}
               />
             )}
-            {field.type === 'number' && (
+            {field.type === "number" && (
               <input
                 id={field.id}
                 type="number"
-                value={values[field.id] ?? ''}
-                onChange={e => setValue(field.id, e.target.value === '' ? '' : Number(e.target.value))}
-                className={`cf-input${errors[field.id] ? ' cf-input--error' : ''}`}
+                value={values[field.id] ?? ""}
+                onChange={(e) =>
+                  setValue(
+                    field.id,
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  )
+                }
+                className={`cf-input${errors[field.id] ? " cf-input--error" : ""}`}
               />
             )}
-            {field.type === 'radio' && (
+            {field.type === "radio" && (
               <div className="cf-radio-group">
-                {field.options.map(opt => (
-                  <label key={opt} htmlFor={`${field.id}-${opt}`} className="cf-label--radio">
+                {field.options.map((opt) => (
+                  <label
+                    key={opt}
+                    htmlFor={`${field.id}-${opt}`}
+                    className="cf-label--radio"
+                  >
                     <input
                       id={`${field.id}-${opt}`}
                       type="radio"
@@ -262,11 +285,11 @@ export default function ChallengeForm({ form, locationId }) {
           <div className="cf-error-msg">{errors[field.id]}</div>
         )}
       </div>
-    )
+    );
   }
 
-  if (submitState === 'success') {
-    return <div className="cf-success">✓ Answers submitted</div>
+  if (submitState === "success") {
+    return <div className="cf-success">✓ Answers submitted</div>;
   }
 
   return (
@@ -279,11 +302,15 @@ export default function ChallengeForm({ form, locationId }) {
           id="submitter-id"
           type="text"
           value={submitterId}
-          onChange={e => {
-            setSubmitterId(e.target.value)
-            setErrors(prev => { const next = { ...prev }; delete next.__submitterId; return next })
+          onChange={(e) => {
+            setSubmitterId(e.target.value);
+            setErrors((prev) => {
+              const next = { ...prev };
+              delete next.__submitterId;
+              return next;
+            });
           }}
-          className={`cf-input${errors.__submitterId ? ' cf-input--error' : ''}`}
+          className={`cf-input${errors.__submitterId ? " cf-input--error" : ""}`}
         />
         {errors.__submitterId && (
           <div className="cf-error-msg">{errors.__submitterId}</div>
@@ -294,16 +321,22 @@ export default function ChallengeForm({ form, locationId }) {
 
       <button
         type="submit"
-        disabled={submitState === 'submitting'}
-        className={`cf-submit-btn${submitState === 'submitting' ? ' cf-submit-btn--submitting' : ''}`}
+        disabled={submitState === "submitting"}
+        className={`cf-submit-btn${submitState === "submitting" ? " cf-submit-btn--submitting" : ""}`}
       >
-        {submitState === 'submitting' ? 'Submitting…' : submitState === 'error' ? 'Try again' : 'Submit answers'}
+        {submitState === "submitting"
+          ? "Submitting…"
+          : submitState === "error"
+            ? "Try again"
+            : "Submit answers"}
       </button>
-      {submitState === 'error' && (
-        <div className="cf-submit-error">Submission failed. Please try again.</div>
+      {submitState === "error" && (
+        <div className="cf-submit-error">
+          Submission failed. Please try again.
+        </div>
       )}
     </form>
-  )
+  );
 }
 ```
 
@@ -318,6 +351,7 @@ Expected: all tests pass. ChallengeForm tests check behaviour (field rendering, 
 - [ ] **Step 4: Visual smoke test**
 
 Open a challenge card with a form. Verify:
+
 - Labels are readable in all three themes
 - Input borders turn red on validation error (uses `--color-error`)
 - Submit button uses accent colour and turns muted when submitting

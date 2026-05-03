@@ -4,6 +4,7 @@
 **Next:** [Task 07 — ChallengeCard](2026-05-01-styling-refactor-07-challengecard.md)
 
 **Files:**
+
 - Create: `src/components/TitleBar.css`
 - Modify: `src/components/TitleBar.jsx`
 
@@ -76,7 +77,7 @@ TitleBar is the most complex component. Most styles move to CSS. A small number 
   border-radius: 8px;
   min-width: 180px;
   z-index: 200;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
 }
 
@@ -207,27 +208,30 @@ TitleBar is the most complex component. Most styles move to CSS. A small number 
 - [ ] **Step 2: Rewrite `src/components/TitleBar.jsx`**
 
 Inline styles remain only for:
+
 - `width` on progress fill (dynamic percentage)
 - `background` and `color` on theme buttons (depend on `name === themeName` condition)
 
 ```jsx
-import { useState, useContext } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useTheme } from '../theme/ThemeContext'
-import { TitleBarContext } from '../theme/TitleBarContext'
-import { themes } from '../theme/themes'
-import { useAuth } from '../auth/AuthContext'
-import './TitleBar.css'
+import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTheme } from "../theme/ThemeContext";
+import { TitleBarContext } from "../theme/TitleBarContext";
+import { themes } from "../theme/themes";
+import { useAuth } from "../auth/AuthContext";
+import "./TitleBar.css";
 
 export default function TitleBar() {
-  const { theme, themeName, setThemeName } = useTheme()
-  const { titleBar } = useContext(TitleBarContext)
-  const { title, progress, backPath } = titleBar
-  const { activeAuth, logout } = useAuth()
-  const navigate = useNavigate()
-  const [menuView, setMenuView] = useState(null)
+  const { theme, themeName, setThemeName } = useTheme();
+  const { titleBar } = useContext(TitleBarContext);
+  const { title, progress, backPath } = titleBar;
+  const { activeAuth, logout } = useAuth();
+  const navigate = useNavigate();
+  const [menuView, setMenuView] = useState(null);
 
-  function closeMenu() { setMenuView(null) }
+  function closeMenu() {
+    setMenuView(null);
+  }
 
   return (
     <div className="titlebar">
@@ -238,32 +242,35 @@ export default function TitleBar() {
               onClick={() => navigate(backPath)}
               aria-label="Back"
               className="titlebar__back-btn"
-            >←</button>
+            >
+              ←
+            </button>
           )}
           <span className="titlebar__title">{title}</span>
         </div>
 
         <div className="titlebar__menu-wrap">
           <button
-            onClick={() => setMenuView(v => v ? null : 'root')}
+            onClick={() => setMenuView((v) => (v ? null : "root"))}
             aria-label="Menu"
             className="titlebar__menu-btn"
-          >☰</button>
+          >
+            ☰
+          </button>
 
           {menuView && (
             <div className="titlebar__dropdown">
-
-              {menuView === 'root' && (
+              {menuView === "root" && (
                 <>
                   <button
-                    onClick={() => setMenuView('profile')}
+                    onClick={() => setMenuView("profile")}
                     className="titlebar__menu-item"
                   >
                     <span className="titlebar__menu-item-label">Profile</span>
                     <span className="titlebar__menu-item-arrow">›</span>
                   </button>
                   <button
-                    onClick={() => setMenuView('themes')}
+                    onClick={() => setMenuView("themes")}
                     className="titlebar__menu-item"
                   >
                     <span className="titlebar__menu-item-label">Themes</span>
@@ -272,10 +279,10 @@ export default function TitleBar() {
                 </>
               )}
 
-              {menuView === 'profile' && (
+              {menuView === "profile" && (
                 <>
                   <button
-                    onClick={() => setMenuView('root')}
+                    onClick={() => setMenuView("root")}
                     aria-label="Back to menu"
                     className="titlebar__submenu-header"
                   >
@@ -285,43 +292,62 @@ export default function TitleBar() {
                   <div className="titlebar__profile-body">
                     <div className="titlebar__profile-field">
                       <div className="titlebar__profile-label">Team</div>
-                      <div className="titlebar__profile-value">{activeAuth?.teamName || '—'}</div>
+                      <div className="titlebar__profile-value">
+                        {activeAuth?.teamName || "—"}
+                      </div>
                     </div>
-                    <div className="titlebar__profile-field" style={{ marginBottom: 16 }}>
+                    <div
+                      className="titlebar__profile-field"
+                      style={{ marginBottom: 16 }}
+                    >
                       <div className="titlebar__profile-label">Contact</div>
-                      <div className="titlebar__profile-value--contact">{activeAuth?.contact || '—'}</div>
+                      <div className="titlebar__profile-value--contact">
+                        {activeAuth?.contact || "—"}
+                      </div>
                     </div>
                     <button
-                      onClick={async () => { await logout(); closeMenu(); navigate('/') }}
+                      onClick={async () => {
+                        await logout();
+                        closeMenu();
+                        navigate("/");
+                      }}
                       className="titlebar__signout-btn"
-                    >Sign out</button>
+                    >
+                      Sign out
+                    </button>
                   </div>
                 </>
               )}
 
-              {menuView === 'themes' && (
+              {menuView === "themes" && (
                 <>
                   <button
-                    onClick={() => setMenuView('root')}
+                    onClick={() => setMenuView("root")}
                     aria-label="Back to menu"
                     className="titlebar__submenu-header"
                   >
                     <span className="titlebar__submenu-back">‹</span>
                     <span className="titlebar__submenu-title">Themes</span>
                   </button>
-                  {Object.keys(themes).map(name => (
+                  {Object.keys(themes).map((name) => (
                     <button
                       key={name}
-                      onClick={() => { setThemeName(name); closeMenu() }}
+                      onClick={() => {
+                        setThemeName(name);
+                        closeMenu();
+                      }}
                       className="titlebar__theme-btn"
                       style={{
-                        background: name === themeName ? theme.accent : 'transparent',
-                        color: name === themeName ? '#ffffff' : theme.text,
+                        background:
+                          name === themeName ? theme.accent : "transparent",
+                        color: name === themeName ? "#ffffff" : theme.text,
                         fontWeight: name === themeName ? 700 : 400,
                       }}
                     >
                       <span>{name}</span>
-                      {name === themeName && <span className="titlebar__theme-check">✓</span>}
+                      {name === themeName && (
+                        <span className="titlebar__theme-check">✓</span>
+                      )}
                     </button>
                   ))}
                 </>
@@ -340,7 +366,7 @@ export default function TitleBar() {
         </div>
       )}
     </div>
-  )
+  );
 }
 ```
 
@@ -355,6 +381,7 @@ Expected: all tests pass. TitleBar tests use `data-testid="progress-bar"` which 
 - [ ] **Step 4: Visual smoke test**
 
 Open the app. Verify:
+
 - TitleBar renders correctly in all themes
 - Back button appears on sub-pages
 - ☰ menu opens, Profile and Themes sub-panels work

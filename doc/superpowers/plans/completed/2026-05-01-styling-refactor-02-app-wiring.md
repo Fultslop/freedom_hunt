@@ -4,6 +4,7 @@
 **Next:** [Task 03 — CitySelector](2026-05-01-styling-refactor-03-cityselector.md)
 
 **Files:**
+
 - Modify: `src/App.jsx`
 
 ---
@@ -15,29 +16,29 @@ Add the `global.css` import at the top, and call `useCssVars()` inside `ThemeBod
 Full file after changes:
 
 ```jsx
-import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { LanguageProvider } from './i18n/LanguageContext'
-import { ThemeProvider, useTheme } from './theme/ThemeContext'
-import { TitleBarProvider } from './theme/TitleBarContext'
-import { AuthProvider } from './auth/AuthContext'
-import ProtectedRoute from './auth/ProtectedRoute'
-import TitleBar from './components/TitleBar'
-import AppPage from './pages/AppPage'
-import LoginPage from './pages/LoginPage'
-import ProjectPage from './pages/ProjectPage'
-import CityPage from './pages/CityPage'
-import RoutePage from './pages/RoutePage'
-import { useCssVars } from './hooks/useCssVars'
-import './styles/global.css'
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { LanguageProvider } from "./i18n/LanguageContext";
+import { ThemeProvider, useTheme } from "./theme/ThemeContext";
+import { TitleBarProvider } from "./theme/TitleBarContext";
+import { AuthProvider } from "./auth/AuthContext";
+import ProtectedRoute from "./auth/ProtectedRoute";
+import TitleBar from "./components/TitleBar";
+import AppPage from "./pages/AppPage";
+import LoginPage from "./pages/LoginPage";
+import ProjectPage from "./pages/ProjectPage";
+import CityPage from "./pages/CityPage";
+import RoutePage from "./pages/RoutePage";
+import { useCssVars } from "./hooks/useCssVars";
+import "./styles/global.css";
 
 function ThemeBodySync() {
-  const { theme } = useTheme()
-  useCssVars()
+  const { theme } = useTheme();
+  useCssVars();
   useEffect(() => {
-    document.body.style.background = theme.background
-  }, [theme])
-  return null
+    document.body.style.background = theme.background;
+  }, [theme]);
+  return null;
 }
 
 export default function App() {
@@ -52,16 +53,37 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<AppPage />} />
                 <Route path="/login/:project" element={<LoginPage />} />
-                <Route path="/:project" element={<ProtectedRoute><ProjectPage /></ProtectedRoute>} />
-                <Route path="/:project/:city" element={<ProtectedRoute><CityPage /></ProtectedRoute>} />
-                <Route path="/:project/:city/:route" element={<ProtectedRoute><RoutePage /></ProtectedRoute>} />
+                <Route
+                  path="/:project"
+                  element={
+                    <ProtectedRoute>
+                      <ProjectPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/:project/:city"
+                  element={
+                    <ProtectedRoute>
+                      <CityPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/:project/:city/:route"
+                  element={
+                    <ProtectedRoute>
+                      <RoutePage />
+                    </ProtectedRoute>
+                  }
+                />
               </Routes>
             </AuthProvider>
           </BrowserRouter>
         </TitleBarProvider>
       </ThemeProvider>
     </LanguageProvider>
-  )
+  );
 }
 ```
 
@@ -72,6 +94,7 @@ npm run dev
 ```
 
 Open `http://localhost:5173` in a browser. Verify:
+
 - The app loads without errors
 - Open browser DevTools → Elements → `<html>` element has `data-theme="app"` attribute
 - Open DevTools → `<html>` has `--color-background: #0f172a` (and other `--color-*` vars) in its `style` attribute

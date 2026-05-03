@@ -1,41 +1,45 @@
-import { useState, useEffect } from 'react'
-import 'leaflet/dist/leaflet.css'
-import { useTheme } from '../theme/ThemeContext'
-import { MapContainer, TileLayer, Marker } from 'react-leaflet'
-import L from 'leaflet'
-import MarkdownText from './MarkdownText'
-import ChallengeForm from './ChallengeForm'
-import { BookOpen, MapPin, Crosshair, Compass } from 'lucide-react'
-import { fetchImage } from '../assets/AssetManager'
-import './ChallengeCard.css'
+import { useState, useEffect } from "react";
+import "leaflet/dist/leaflet.css";
+import { useTheme } from "../theme/ThemeContext";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import L from "leaflet";
+import MarkdownText from "./MarkdownText";
+import ChallengeForm from "./ChallengeForm";
+import { BookOpen, MapPin, Crosshair, Compass } from "lucide-react";
+import { fetchImage } from "../assets/AssetManager";
+import "./ChallengeCard.css";
 
 const pin = L.divIcon({
-  className: '',
+  className: "",
   html: '<div style="width:14px;height:14px;background:#BF0A30;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>',
   iconAnchor: [7, 7],
-})
+});
 
 export default function ChallengeCard({ location, isLast, index, routeId }) {
-  const { theme } = useTheme()
-  const [heroSrc, setHeroSrc] = useState(() => location.image ? null : null)
+  const { theme } = useTheme();
+  const [heroSrc, setHeroSrc] = useState(() => (location.image ? null : null));
 
   useEffect(() => {
     if (!location.image) {
-      setHeroSrc(null) /* eslint-disable-line react-hooks/set-state-in-effect */
-      return
+      setHeroSrc(
+        null,
+      ); /* eslint-disable-line react-hooks/set-state-in-effect */
+      return;
     }
-    let cancelled = false
-    fetchImage(location.image).then(url => {
-      if (!cancelled) setHeroSrc(url)
-    })
-    return () => { cancelled = true }
-  }, [location.image])
+    let cancelled = false;
+    fetchImage(location.image).then((url) => {
+      if (!cancelled) setHeroSrc(url);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [location.image]);
 
-  const hasHero = !!heroSrc
-  const pos = [location.coordinates.latitude, location.coordinates.longitude]
+  const hasHero = !!heroSrc;
+  const pos = [location.coordinates.latitude, location.coordinates.longitude];
 
   const titleCard = (
-    <div className={`cc-title-card${hasHero ? ' cc-title-card--shadow' : ''}`}>
+    <div className={`cc-title-card${hasHero ? " cc-title-card--shadow" : ""}`}>
       <div
         className="cc-badge"
         style={{ background: location.themeColor ?? theme.accent }}
@@ -53,7 +57,7 @@ export default function ChallengeCard({ location, isLast, index, routeId }) {
         )}
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="cc-root">
@@ -64,14 +68,10 @@ export default function ChallengeCard({ location, isLast, index, routeId }) {
             alt={location.name?.value || location.title}
             className="cc-hero-img"
           />
-          <div className="cc-hero-title-wrap">
-            {titleCard}
-          </div>
+          <div className="cc-hero-title-wrap">{titleCard}</div>
         </div>
       ) : (
-        <div className="cc-no-hero-wrap">
-          {titleCard}
-        </div>
+        <div className="cc-no-hero-wrap">{titleCard}</div>
       )}
 
       <div className="cc-section">
@@ -91,7 +91,11 @@ export default function ChallengeCard({ location, isLast, index, routeId }) {
           key={location.locationId}
           center={pos}
           zoom={16}
-          style={{ height: 180, borderRadius: 6, border: '1px solid var(--color-border)' }}
+          style={{
+            height: 180,
+            borderRadius: 6,
+            border: "1px solid var(--color-border)",
+          }}
           zoomControl={false}
           scrollWheelZoom={false}
         >
@@ -102,7 +106,8 @@ export default function ChallengeCard({ location, isLast, index, routeId }) {
           <Marker position={pos} icon={pin} />
         </MapContainer>
         <div className="cc-map-coords">
-          {location.coordinates.latitude}° N, {location.coordinates.longitude}° E
+          {location.coordinates.latitude}° N, {location.coordinates.longitude}°
+          E
         </div>
 
         <div className="cc-challenge-box">
@@ -114,7 +119,11 @@ export default function ChallengeCard({ location, isLast, index, routeId }) {
         </div>
 
         {location.challenge.form && location.challenge.form.length > 0 && (
-          <ChallengeForm form={location.challenge.form} locationId={location.locationId} routeId={routeId} />
+          <ChallengeForm
+            form={location.challenge.form}
+            locationId={location.locationId}
+            routeId={routeId}
+          />
         )}
       </div>
 
@@ -124,11 +133,9 @@ export default function ChallengeCard({ location, isLast, index, routeId }) {
             <Compass size={12} aria-hidden />
             Your clue to your next destination
           </div>
-          <p className="cc-breadcrumb">
-            {location.breadcrumb}
-          </p>
+          <p className="cc-breadcrumb">{location.breadcrumb}</p>
         </div>
       )}
     </div>
-  )
+  );
 }

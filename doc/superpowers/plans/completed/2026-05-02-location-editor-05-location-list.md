@@ -13,16 +13,17 @@ Status: Completed
 // Value: JSON array of:
 [
   {
-    filename: '001_loc_binnenhof.yaml',
-    locationTitle: 'The Final Civic Act',
-    prUrl: 'https://github.com/owner/repo/pull/5',
-    prTitle: 'Edit location: The Final Civic Act',
-    submittedAt: '2026-05-02T12:00:00Z',
-  }
-]
+    filename: "001_loc_binnenhof.yaml",
+    locationTitle: "The Final Civic Act",
+    prUrl: "https://github.com/owner/repo/pull/5",
+    prTitle: "Edit location: The Final Civic Act",
+    submittedAt: "2026-05-02T12:00:00Z",
+  },
+];
 ```
 
 **Files:**
+
 - Create: `src/pages/editor/editorStorage.js` — localStorage read/write helpers
 - Create: `src/pages/editor/EditorLocationList.jsx` + `EditorLocationList.css`
 - Modify: `src/App.jsx` — add route for the list page
@@ -32,29 +33,32 @@ Status: Completed
 - [ ] **Step 1: Create `src/pages/editor/editorStorage.js`**
 
 ```js
-const PREFIX = 'editor_pending_'
+const PREFIX = "editor_pending_";
 
 export function getPending(project, city) {
   try {
-    const raw = localStorage.getItem(`${PREFIX}${project}_${city}`)
-    return raw ? JSON.parse(raw) : []
+    const raw = localStorage.getItem(`${PREFIX}${project}_${city}`);
+    return raw ? JSON.parse(raw) : [];
   } catch {
-    return []
+    return [];
   }
 }
 
 export function addPending(project, city, entry) {
-  const current = getPending(project, city)
-  const without = current.filter(e => e.filename !== entry.filename)
-  localStorage.setItem(`${PREFIX}${project}_${city}`, JSON.stringify([...without, entry]))
+  const current = getPending(project, city);
+  const without = current.filter((e) => e.filename !== entry.filename);
+  localStorage.setItem(
+    `${PREFIX}${project}_${city}`,
+    JSON.stringify([...without, entry]),
+  );
 }
 
 export function removePending(project, city, filename) {
-  const current = getPending(project, city)
+  const current = getPending(project, city);
   localStorage.setItem(
     `${PREFIX}${project}_${city}`,
-    JSON.stringify(current.filter(e => e.filename !== filename))
-  )
+    JSON.stringify(current.filter((e) => e.filename !== filename)),
+  );
 }
 ```
 
@@ -188,52 +192,64 @@ export function removePending(project, city, filename) {
 - [ ] **Step 3: Create `src/pages/editor/EditorLocationList.jsx`**
 
 ```jsx
-import { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useTitleBar } from '../../theme/TitleBarContext'
-import { getPending, addPending } from './editorStorage'
-import './EditorLocationList.css'
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useTitleBar } from "../../theme/TitleBarContext";
+import { getPending, addPending } from "./editorStorage";
+import "./EditorLocationList.css";
 
 export default function EditorLocationList() {
-  const { project, city } = useParams()
-  const navigate = useNavigate()
-  const [locations, setLocations] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [pending, setPending] = useState([])
+  const { project, city } = useParams();
+  const navigate = useNavigate();
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pending, setPending] = useState([]);
 
-  useTitleBar({ title: 'Locations', progress: null, backPath: '/editor' })
+  useTitleBar({ title: "Locations", progress: null, backPath: "/editor" });
 
   const fetchLocations = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch(`/editor/locations?project=${project}&city=${city}`)
-      const data = await res.json()
+      const res = await fetch(
+        `/editor/locations?project=${project}&city=${city}`,
+      );
+      const data = await res.json();
       if (data.ok) {
-        setLocations(data.locations.sort((a, b) => (a.location.locationId ?? 0) - (b.location.locationId ?? 0)))
+        setLocations(
+          data.locations.sort(
+            (a, b) =>
+              (a.location.locationId ?? 0) - (b.location.locationId ?? 0),
+          ),
+        );
       } else {
-        setError(data.error ?? 'Failed to load locations')
+        setError(data.error ?? "Failed to load locations");
       }
     } catch {
-      setError('Failed to load locations')
+      setError("Failed to load locations");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [project, city])
+  }, [project, city]);
 
   useEffect(() => {
-    fetchLocations()
-    setPending(getPending(project, city))
-  }, [fetchLocations, project, city])
+    fetchLocations();
+    setPending(getPending(project, city));
+  }, [fetchLocations, project, city]);
 
   async function handleHide(loc, sha) {
-    if (!window.confirm(`Hide "${loc.title}"? This will open a PR setting hidden: true.`)) return
-    const { _filename, ...cleanLoc } = loc
+    if (
+      !window.confirm(
+        `Hide "${loc.title}"? This will open a PR setting hidden: true.`,
+      )
+    )
+      return;
+    const { _filename, ...cleanLoc } = loc;
     try {
-      const res = await fetch('/editor/location', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/editor/location", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           project,
           city,
@@ -241,8 +257,8 @@ export default function EditorLocationList() {
           existingSha: sha,
           location: { ...cleanLoc, hidden: true },
         }),
-      })
-      const data = await res.json()
+      });
+      const data = await res.json();
       if (data.ok) {
         addPending(project, city, {
           filename: loc._filename,
@@ -250,22 +266,22 @@ export default function EditorLocationList() {
           prUrl: data.prUrl,
           prTitle: `Hide location: ${loc.title}`,
           submittedAt: new Date().toISOString(),
-        })
-        setPending(getPending(project, city))
+        });
+        setPending(getPending(project, city));
       } else {
-        alert(`Failed: ${data.error}`)
+        alert(`Failed: ${data.error}`);
       }
     } catch {
-      alert('Request failed.')
+      alert("Request failed.");
     }
   }
 
   function pendingFor(filename) {
-    return pending.find(p => p.filename === filename)
+    return pending.find((p) => p.filename === filename);
   }
 
-  if (loading) return <div className="loc-list__loading">Loading…</div>
-  if (error) return <div className="loc-list__error">{error}</div>
+  if (loading) return <div className="loc-list__loading">Loading…</div>;
+  if (error) return <div className="loc-list__error">{error}</div>;
 
   return (
     <div className="loc-list">
@@ -282,12 +298,14 @@ export default function EditorLocationList() {
       </div>
 
       {locations.map(({ filename, sha, location }) => {
-        const pend = pendingFor(filename)
+        const pend = pendingFor(filename);
         return (
           <div key={filename} className="loc-list__item">
             <div className="loc-list__item-header">
               <div>
-                <div className="loc-list__item-title">{location.title || filename}</div>
+                <div className="loc-list__item-title">
+                  {location.title || filename}
+                </div>
                 <div className="loc-list__item-meta">
                   {location.address || `ID: ${location.locationId}`}
                 </div>
@@ -295,28 +313,39 @@ export default function EditorLocationList() {
               <div className="loc-list__item-actions">
                 <button
                   className="loc-list__btn"
-                  onClick={() => navigate(`/editor/locations/${project}/${city}/edit/${filename}`)}
+                  onClick={() =>
+                    navigate(
+                      `/editor/locations/${project}/${city}/edit/${filename}`,
+                    )
+                  }
                 >
                   Edit
                 </button>
                 <button
                   className="loc-list__btn loc-list__btn--danger"
-                  onClick={() => handleHide({ ...location, _filename: filename }, sha)}
+                  onClick={() =>
+                    handleHide({ ...location, _filename: filename }, sha)
+                  }
                 >
                   Hide
                 </button>
               </div>
             </div>
             {pend && (
-              <a href={pend.prUrl} target="_blank" rel="noopener noreferrer" className="loc-list__pending">
+              <a
+                href={pend.prUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="loc-list__pending"
+              >
                 ⏳ Pending edit — view PR
               </a>
             )}
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 ```
 
@@ -325,13 +354,20 @@ export default function EditorLocationList() {
 Add an import:
 
 ```jsx
-import EditorLocationList from './pages/editor/EditorLocationList'
+import EditorLocationList from "./pages/editor/EditorLocationList";
 ```
 
 Add a route inside `<Routes>` after the `/editor` route:
 
 ```jsx
-<Route path="/editor/locations/:project/:city" element={<AdminRoute><EditorLocationList /></AdminRoute>} />
+<Route
+  path="/editor/locations/:project/:city"
+  element={
+    <AdminRoute>
+      <EditorLocationList />
+    </AdminRoute>
+  }
+/>
 ```
 
 - [ ] **Step 5: Manually verify in the browser**

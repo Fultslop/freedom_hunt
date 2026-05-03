@@ -11,6 +11,7 @@
 **R2 pagination note:** `env.PHOTOS.list()` returns up to 1000 keys by default. For the expected scale of a hunt (tens of photos) this is fine. No pagination needed for v1.
 
 **Files:**
+
 - Modify: `src/worker.js` — add `GET /admin/submissions` handler
 - Modify: `src/test/worker.test.js` — tests for the new route
 
@@ -21,83 +22,98 @@
 Add to `src/test/worker.test.js`:
 
 ```js
-describe('GET /admin/submissions', () => {
+describe("GET /admin/submissions", () => {
   const makeAdminToken = async () => {
-    const payload = { ...TEST_PAYLOAD, isAdmin: true }
-    return createToken(payload, TEST_SECRET)
-  }
+    const payload = { ...TEST_PAYLOAD, isAdmin: true };
+    return createToken(payload, TEST_SECRET);
+  };
 
-  it('returns 401 when not authenticated', async () => {
+  it("returns 401 when not authenticated", async () => {
     const env = {
       AUTH_SECRET: TEST_SECRET,
       AUTH_STORE: { get: async () => null },
       PHOTOS: { list: async () => ({ objects: [] }) },
-      FORM_SCRIPT_URL: 'https://script.google.com/fake',
-    }
-    const request = new Request('https://example.com/admin/submissions')
-    const response = await worker.fetch(request, env)
-    expect(response.status).toBe(401)
-  })
+      FORM_SCRIPT_URL: "https://script.google.com/fake",
+    };
+    const request = new Request("https://example.com/admin/submissions");
+    const response = await worker.fetch(request, env);
+    expect(response.status).toBe(401);
+  });
 
-  it('returns 403 when authenticated but not admin', async () => {
+  it("returns 403 when authenticated but not admin", async () => {
     const env = {
       AUTH_SECRET: TEST_SECRET,
       AUTH_STORE: { get: async () => null },
       PHOTOS: { list: async () => ({ objects: [] }) },
-      FORM_SCRIPT_URL: 'https://script.google.com/fake',
-    }
-    const request = new Request('https://example.com/admin/submissions', {
+      FORM_SCRIPT_URL: "https://script.google.com/fake",
+    };
+    const request = new Request("https://example.com/admin/submissions", {
       headers: { Cookie: `freedom_hunt_auth=${authToken}` },
-    })
-    const response = await worker.fetch(request, env)
-    expect(response.status).toBe(403)
-  })
+    });
+    const response = await worker.fetch(request, env);
+    expect(response.status).toBe(403);
+  });
 
-  it('returns photos and submissions for admin', async () => {
-    const adminToken = await makeAdminToken()
-    const fakeRows = [{ timestamp: '2026-01-01', routeId: 'r1', locationId: '001', teamName: 'Team A', email: '', fields: '{}' }]
-    global.fetch = vi.fn(() => Promise.resolve(
-      new Response(JSON.stringify({ ok: true, rows: fakeRows }), {
-        headers: { 'Content-Type': 'application/json' },
-      })
-    ))
+  it("returns photos and submissions for admin", async () => {
+    const adminToken = await makeAdminToken();
+    const fakeRows = [
+      {
+        timestamp: "2026-01-01",
+        routeId: "r1",
+        locationId: "001",
+        teamName: "Team A",
+        email: "",
+        fields: "{}",
+      },
+    ];
+    global.fetch = vi.fn(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({ ok: true, rows: fakeRows }), {
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
     const env = {
       AUTH_SECRET: TEST_SECRET,
       AUTH_STORE: { get: async () => null },
-      PHOTOS: { list: async () => ({ objects: [{ key: 'team_a--r1--001--123.jpg' }] }) },
-      FORM_SCRIPT_URL: 'https://script.google.com/fake',
-    }
-    const request = new Request('https://example.com/admin/submissions', {
+      PHOTOS: {
+        list: async () => ({ objects: [{ key: "team_a--r1--001--123.jpg" }] }),
+      },
+      FORM_SCRIPT_URL: "https://script.google.com/fake",
+    };
+    const request = new Request("https://example.com/admin/submissions", {
       headers: { Cookie: `freedom_hunt_auth=${adminToken}` },
-    })
-    const response = await worker.fetch(request, env)
-    expect(response.status).toBe(200)
-    const data = await response.json()
-    expect(data.ok).toBe(true)
-    expect(data.photos).toEqual(['team_a--r1--001--123.jpg'])
-    expect(data.submissions).toEqual(fakeRows)
-  })
+    });
+    const response = await worker.fetch(request, env);
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.ok).toBe(true);
+    expect(data.photos).toEqual(["team_a--r1--001--123.jpg"]);
+    expect(data.submissions).toEqual(fakeRows);
+  });
 
-  it('returns empty submissions array when sheet GET fails', async () => {
-    const adminToken = await makeAdminToken()
-    global.fetch = vi.fn(() => Promise.reject(new Error('Network error')))
+  it("returns empty submissions array when sheet GET fails", async () => {
+    const adminToken = await makeAdminToken();
+    global.fetch = vi.fn(() => Promise.reject(new Error("Network error")));
     const env = {
       AUTH_SECRET: TEST_SECRET,
       AUTH_STORE: { get: async () => null },
-      PHOTOS: { list: async () => ({ objects: [{ key: 'team_a--r1--001--456.jpg' }] }) },
-      FORM_SCRIPT_URL: 'https://script.google.com/fake',
-    }
-    const request = new Request('https://example.com/admin/submissions', {
+      PHOTOS: {
+        list: async () => ({ objects: [{ key: "team_a--r1--001--456.jpg" }] }),
+      },
+      FORM_SCRIPT_URL: "https://script.google.com/fake",
+    };
+    const request = new Request("https://example.com/admin/submissions", {
       headers: { Cookie: `freedom_hunt_auth=${adminToken}` },
-    })
-    const response = await worker.fetch(request, env)
-    expect(response.status).toBe(200)
-    const data = await response.json()
-    expect(data.ok).toBe(true)
-    expect(data.submissions).toEqual([])
-    expect(data.photos).toEqual(['team_a--r1--001--456.jpg'])
-  })
-})
+    });
+    const response = await worker.fetch(request, env);
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.ok).toBe(true);
+    expect(data.submissions).toEqual([]);
+    expect(data.photos).toEqual(["team_a--r1--001--456.jpg"]);
+  });
+});
 ```
 
 - [ ] **Step 2: Run tests to confirm they fail**
@@ -113,22 +129,22 @@ Expected: FAIL — route doesn't exist yet.
 Insert before the `GET /photo/:key` block (or before the `ASSETS` fallback — order doesn't matter as long as it's before the fallback):
 
 ```js
-if (request.method === 'GET' && url.pathname === '/admin/submissions') {
-  const authPayload = await requireAuth(request, env)
-  if (!authPayload) return json({ ok: false, error: 'Unauthorized' }, 401)
-  if (!authPayload.isAdmin) return json({ ok: false, error: 'Forbidden' }, 403)
+if (request.method === "GET" && url.pathname === "/admin/submissions") {
+  const authPayload = await requireAuth(request, env);
+  if (!authPayload) return json({ ok: false, error: "Unauthorized" }, 401);
+  if (!authPayload.isAdmin) return json({ ok: false, error: "Forbidden" }, 403);
 
-  const listed = await env.PHOTOS.list()
-  const photos = listed.objects.map(o => o.key)
+  const listed = await env.PHOTOS.list();
+  const photos = listed.objects.map((o) => o.key);
 
-  let submissions = []
+  let submissions = [];
   try {
-    const res = await fetch(env.FORM_SCRIPT_URL, { method: 'GET' })
-    const data = await res.json()
-    submissions = data.rows ?? []
+    const res = await fetch(env.FORM_SCRIPT_URL, { method: "GET" });
+    const data = await res.json();
+    submissions = data.rows ?? [];
   } catch {}
 
-  return json({ ok: true, photos, submissions })
+  return json({ ok: true, photos, submissions });
 }
 ```
 

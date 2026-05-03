@@ -7,6 +7,7 @@ State: Completed
 **Next:** [Task 6 — Data JSON](2026-04-29-theming-06-data-json.md)
 
 **Files:**
+
 - Modify: `src/App.jsx`
 
 Wrap the app in `ThemeProvider` and `TitleBarProvider`. Add `ThemeBodySync` (a render-null component that syncs `theme.background` to `document.body` so the full viewport follows the active theme). Render `TitleBar` once inside `BrowserRouter`, above `<Routes>`.
@@ -16,23 +17,23 @@ Wrap the app in `ThemeProvider` and `TitleBarProvider`. Add `ThemeBodySync` (a r
 - [ ] **Step 1: Replace `src/App.jsx`**
 
 ```jsx
-import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { LanguageProvider } from './i18n/LanguageContext'
-import { ThemeProvider, useTheme } from './theme/ThemeContext'
-import { TitleBarProvider } from './theme/TitleBarContext'
-import TitleBar from './components/TitleBar'
-import AppPage from './pages/AppPage'
-import ProjectPage from './pages/ProjectPage'
-import CityPage from './pages/CityPage'
-import RoutePage from './pages/RoutePage'
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { LanguageProvider } from "./i18n/LanguageContext";
+import { ThemeProvider, useTheme } from "./theme/ThemeContext";
+import { TitleBarProvider } from "./theme/TitleBarContext";
+import TitleBar from "./components/TitleBar";
+import AppPage from "./pages/AppPage";
+import ProjectPage from "./pages/ProjectPage";
+import CityPage from "./pages/CityPage";
+import RoutePage from "./pages/RoutePage";
 
 function ThemeBodySync() {
-  const { theme } = useTheme()
+  const { theme } = useTheme();
   useEffect(() => {
-    document.body.style.background = theme.background
-  }, [theme])
-  return null
+    document.body.style.background = theme.background;
+  }, [theme]);
+  return null;
 }
 
 export default function App() {
@@ -53,7 +54,7 @@ export default function App() {
         </TitleBarProvider>
       </ThemeProvider>
     </LanguageProvider>
-  )
+  );
 }
 ```
 

@@ -1,6 +1,7 @@
 # Task 4 — ChallengeCard integration
 
 **Files:**
+
 - Modify: `src/components/ChallengeCard.jsx`
 - Modify: `src/test/ChallengeCard.test.jsx`
 
@@ -11,34 +12,50 @@
 Append to `src/test/ChallengeCard.test.jsx`:
 
 ```jsx
-describe('ChallengeForm integration', () => {
-  test('renders ChallengeForm when challenge.form is present', () => {
+describe("ChallengeForm integration", () => {
+  test("renders ChallengeForm when challenge.form is present", () => {
     const loc = {
       ...location,
       challenge: {
         ...location.challenge,
-        form: [{ id: 'q1', type: 'string', label: 'What do you see?' }],
+        form: [{ id: "q1", type: "string", label: "What do you see?" }],
       },
-    }
-    render(<Wrapper><ChallengeCard location={loc} /></Wrapper>)
-    expect(screen.getByLabelText('Your name or team')).toBeInTheDocument()
-    expect(screen.getByLabelText('What do you see?')).toBeInTheDocument()
-  })
+    };
+    render(
+      <Wrapper>
+        <ChallengeCard location={loc} />
+      </Wrapper>,
+    );
+    expect(screen.getByLabelText("Your name or team")).toBeInTheDocument();
+    expect(screen.getByLabelText("What do you see?")).toBeInTheDocument();
+  });
 
-  test('does not render ChallengeForm when challenge.form is absent', () => {
-    render(<Wrapper><ChallengeCard location={location} /></Wrapper>)
-    expect(screen.queryByLabelText('Your name or team')).not.toBeInTheDocument()
-  })
+  test("does not render ChallengeForm when challenge.form is absent", () => {
+    render(
+      <Wrapper>
+        <ChallengeCard location={location} />
+      </Wrapper>,
+    );
+    expect(
+      screen.queryByLabelText("Your name or team"),
+    ).not.toBeInTheDocument();
+  });
 
-  test('does not render ChallengeForm when challenge.form is empty array', () => {
+  test("does not render ChallengeForm when challenge.form is empty array", () => {
     const loc = {
       ...location,
       challenge: { ...location.challenge, form: [] },
-    }
-    render(<Wrapper><ChallengeCard location={loc} /></Wrapper>)
-    expect(screen.queryByLabelText('Your name or team')).not.toBeInTheDocument()
-  })
-})
+    };
+    render(
+      <Wrapper>
+        <ChallengeCard location={loc} />
+      </Wrapper>,
+    );
+    expect(
+      screen.queryByLabelText("Your name or team"),
+    ).not.toBeInTheDocument();
+  });
+});
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -56,7 +73,7 @@ In `src/components/ChallengeCard.jsx`:
 1. Add the import at the top of the file (after the existing imports):
 
 ```jsx
-import ChallengeForm from './ChallengeForm'
+import ChallengeForm from "./ChallengeForm";
 ```
 
 2. Locate the block that renders the challenge description and camera button (the inner box inside the Location section). Add `<ChallengeForm>` directly after the challenge description box, before the camera button `<input>`. The relevant section currently looks like:
@@ -82,9 +99,14 @@ import ChallengeForm from './ChallengeForm'
 Insert the conditional render between those two `<div>` blocks:
 
 ```jsx
-        {location.challenge.form && location.challenge.form.length > 0 && (
-          <ChallengeForm form={location.challenge.form} locationId={location.locationId} />
-        )}
+{
+  location.challenge.form && location.challenge.form.length > 0 && (
+    <ChallengeForm
+      form={location.challenge.form}
+      locationId={location.locationId}
+    />
+  );
+}
 ```
 
 The full Location section after the edit (only the relevant portion shown — the rest of ChallengeCard is unchanged):

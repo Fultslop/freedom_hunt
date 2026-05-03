@@ -9,6 +9,7 @@
 **Tech Stack:** Cloudflare Workers (KV + R2), Google Apps Script, React (JSX), Vitest
 
 **Prerequisites / context:**
+
 - The existing Apps Script (`doPost`) saves only 4 columns: `timestamp, locationId, submitterId, fields` — this does not match the Worker's current payload (`timestamp, routeId, locationId, teamName, email, fields`). Task 02 fixes both the script and setup.md together.
 - R2 photo keys currently have no team identifier (`{locationId}_{timestamp}.ext`). Task 01 adds one.
 - Tests run with `npm test`. Worker tests live in `src/test/worker.test.js`; component tests in `src/test/*.test.jsx`.
@@ -17,11 +18,11 @@
 
 ## Tasks
 
-| # | File | What it does |
-|---|------|-------------|
-| [01](2026-05-02-dashboard-01-photo-key.md) | `src/worker.js`, `src/components/ChallengeForm.jsx`, `src/test/worker.test.js` | Fix R2 key to include team + route |
-| [02](2026-05-02-dashboard-02-sheet-read.md) | `doc/setup.md`, Apps Script (manual) | Fix Apps Script schema + add `doGet()` |
-| [03](2026-05-02-dashboard-03-admin-auth.md) | `src/worker.js`, `src/auth/AuthContext.jsx`, `src/auth/AdminRoute.jsx` | Admin KV password + `isAdmin` token flag |
-| [04](2026-05-02-dashboard-04-photo-serve.md) | `src/worker.js`, `src/test/worker.test.js` | `GET /photo/:key` Worker route |
-| [05](2026-05-02-dashboard-05-admin-endpoint.md) | `src/worker.js`, `src/test/worker.test.js` | `GET /admin/submissions` Worker route |
-| [06](2026-05-02-dashboard-06-dashboard-page.md) | `src/pages/DashboardPage.jsx`, `src/pages/DashboardPage.css`, `src/App.jsx` | Dashboard React page + routing |
+| #                                               | File                                                                           | What it does                             |
+| ----------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------- |
+| [01](2026-05-02-dashboard-01-photo-key.md)      | `src/worker.js`, `src/components/ChallengeForm.jsx`, `src/test/worker.test.js` | Fix R2 key to include team + route       |
+| [02](2026-05-02-dashboard-02-sheet-read.md)     | `doc/setup.md`, Apps Script (manual)                                           | Fix Apps Script schema + add `doGet()`   |
+| [03](2026-05-02-dashboard-03-admin-auth.md)     | `src/worker.js`, `src/auth/AuthContext.jsx`, `src/auth/AdminRoute.jsx`         | Admin KV password + `isAdmin` token flag |
+| [04](2026-05-02-dashboard-04-photo-serve.md)    | `src/worker.js`, `src/test/worker.test.js`                                     | `GET /photo/:key` Worker route           |
+| [05](2026-05-02-dashboard-05-admin-endpoint.md) | `src/worker.js`, `src/test/worker.test.js`                                     | `GET /admin/submissions` Worker route    |
+| [06](2026-05-02-dashboard-06-dashboard-page.md) | `src/pages/DashboardPage.jsx`, `src/pages/DashboardPage.css`, `src/App.jsx`    | Dashboard React page + routing           |

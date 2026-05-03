@@ -7,6 +7,7 @@ Status: Completed
 **Goal:** Install `js-yaml` (needed by the Worker to parse YAML fetched from GitHub), and register `GITHUB_REPO` as a plain config var in `wrangler.jsonc`. The PAT itself is a secret set via `wrangler secret put` (covered in Task 07).
 
 **Files:**
+
 - Modify: `package.json` (via npm install)
 - Modify: `wrangler.jsonc` — add `vars` block with `GITHUB_REPO`
 
@@ -31,30 +32,28 @@ Open `wrangler.jsonc`. Add a `vars` block after the `kv_namespaces` array. Repla
   "main": "src/worker.js",
   "compatibility_date": "2025-09-27",
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
   },
   "r2_buckets": [
     {
       "binding": "PHOTOS",
-      "bucket_name": "gwc-2026-photos"
-    }
+      "bucket_name": "gwc-2026-photos",
+    },
   ],
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "kv_namespaces": [
     {
       "binding": "AUTH_STORE",
-      "id": "1ec42eaee97c489b83b1fdcef324a01e"
-    }
+      "id": "1ec42eaee97c489b83b1fdcef324a01e",
+    },
   ],
   "vars": {
-    "GITHUB_REPO": "pointlesspun/freedom_hunt"
-  }
+    "GITHUB_REPO": "pointlesspun/freedom_hunt",
+  },
 }
 ```
 

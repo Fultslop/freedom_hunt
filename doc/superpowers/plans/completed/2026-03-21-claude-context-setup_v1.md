@@ -15,6 +15,7 @@
 ### Task 1: Write `doc/architecture.md`
 
 **Files:**
+
 - Create: `doc/architecture.md`
 
 > Note: The file content below contains fenced code blocks (` ``` `). Write these as literal content — they are part of the Markdown file being created, not plan formatting.
@@ -152,6 +153,7 @@ Reference: `src/data/amsterdam.json` is the canonical complete example.
 ```bash
 grep -c "^##" doc/architecture.md
 ```
+
 Expected output: `6`
 
 - [ ] **Step 3: Commit**
@@ -166,6 +168,7 @@ git commit -m "docs: add architecture document"
 ### Task 2: Write `.claude/CLAUDE.md`
 
 **Files:**
+
 - Create: `.claude/CLAUDE.md`
 
 - [ ] **Step 1: Create the `.claude/` directory**
@@ -217,6 +220,7 @@ Before starting work, read:
 ```bash
 grep -c "^##" .claude/CLAUDE.md
 ```
+
 Expected output: `5`
 
 - [ ] **Step 4: Commit**

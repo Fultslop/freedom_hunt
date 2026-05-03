@@ -1,6 +1,7 @@
 # Task 05 — AuthContext (cookie-based)
 
 **Files:**
+
 - Create: `src/auth/AuthContext.jsx`
 - Create: `src/test/AuthContext.test.jsx`
 
@@ -89,44 +90,48 @@ Expected: all 5 tests FAIL with "Cannot find module '../auth/AuthContext'".
 - [ ] **Step 3: Create src/auth/AuthContext.jsx**
 
 ```jsx
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect } from "react";
 
-const AuthContext = createContext(null)
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [activeAuth, setActiveAuth] = useState(null)
+  const [activeAuth, setActiveAuth] = useState(null);
 
   useEffect(() => {
-    fetch('/auth/me')
-      .then(r => r.json())
-      .then(data => {
+    fetch("/auth/me")
+      .then((r) => r.json())
+      .then((data) => {
         if (data.ok) {
-          setActiveAuth({ projectId: data.project, teamName: data.teamName, contact: data.contact })
+          setActiveAuth({
+            projectId: data.project,
+            teamName: data.teamName,
+            contact: data.contact,
+          });
         }
       })
-      .catch(() => {})
-  }, [])
+      .catch(() => {});
+  }, []);
 
   function login(projectId, teamName, contact) {
-    setActiveAuth({ projectId, teamName, contact })
+    setActiveAuth({ projectId, teamName, contact });
   }
 
   async function logout() {
     try {
-      await fetch('/auth/logout', { method: 'POST' })
+      await fetch("/auth/logout", { method: "POST" });
     } catch {}
-    setActiveAuth(null)
+    setActiveAuth(null);
   }
 
   return (
     <AuthContext.Provider value={{ activeAuth, login, logout }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export function useAuth() {
-  return useContext(AuthContext)
+  return useContext(AuthContext);
 }
 ```
 

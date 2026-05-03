@@ -1,4 +1,5 @@
 # Challenge Forms — Design Spec
+
 **Date:** 2026-04-30
 **Status:** Approved
 
@@ -41,12 +42,12 @@ challenge:
 
 **Supported field types:**
 
-| Type | Input rendered | Required `options`? |
-|---|---|---|
-| `string` | `<input type="text">` | No |
-| `number` | `<input type="number">` | No |
-| `boolean` | `<input type="checkbox">` | No |
-| `radio` | `<input type="radio">` group | Yes |
+| Type      | Input rendered               | Required `options`? |
+| --------- | ---------------------------- | ------------------- |
+| `string`  | `<input type="text">`        | No                  |
+| `number`  | `<input type="number">`      | No                  |
+| `boolean` | `<input type="checkbox">`    | No                  |
+| `radio`   | `<input type="radio">` group | Yes                 |
 
 All fields are implicitly required. The `options` key is only used by `radio` — ignored on all other types.
 
@@ -83,12 +84,12 @@ All fields (including submitter ID) are required. On submit attempt:
 
 ### Upload states
 
-| State | UI |
-|---|---|
-| `idle` | Submit button active |
-| `submitting` | Button disabled, "Submitting…" |
-| `success` | Button replaced by "✓ Answers submitted" (green) |
-| `error` | "Try again" button + error message below (network/server failure only) |
+| State        | UI                                                                     |
+| ------------ | ---------------------------------------------------------------------- |
+| `idle`       | Submit button active                                                   |
+| `submitting` | Button disabled, "Submitting…"                                         |
+| `success`    | Button replaced by "✓ Answers submitted" (green)                       |
+| `error`      | "Try again" button + error message below (network/server failure only) |
 
 ### Submission payload
 
@@ -121,6 +122,7 @@ Inline styles throughout, matching existing card aesthetic. Submitter ID field a
 **Route:** `POST /form-submit`
 
 **Processing:**
+
 1. Parse the JSON body
 2. Read `env.FORM_SCRIPT_URL` (Cloudflare Worker secret)
 3. Forward the payload as-is to the Apps Script URL via `fetch`
@@ -138,15 +140,16 @@ All other requests continue to fall through to `env.ASSETS.fetch(request)` as be
 A small script (~25 lines) deployed once manually to the Google account that owns the data. Lives outside the repo (in Google's Apps Script editor). The full script to copy-paste is included in `doc/setup.md`.
 
 **What it does:**
+
 1. Receives the POST from the Cloudflare Worker
 2. Parses the JSON body
 3. Appends one row to the active Sheet
 
 **Sheet row format:**
 
-| timestamp | locationId | submitterId | fields |
-|---|---|---|---|
-| 2026-04-30T14:23:00Z | 001_loc_binnenhof | Alice | `{"found_plaque":true,"motto_text":"Pro Rege","tree_count":7,"time_of_day":"Morning"}` |
+| timestamp            | locationId        | submitterId | fields                                                                                 |
+| -------------------- | ----------------- | ----------- | -------------------------------------------------------------------------------------- |
+| 2026-04-30T14:23:00Z | 001_loc_binnenhof | Alice       | `{"found_plaque":true,"motto_text":"Pro Rege","tree_count":7,"time_of_day":"Morning"}` |
 
 `fields` is stored as a JSON string in a single column — simple for a PoC, readable by organizers for scoring.
 
@@ -180,13 +183,13 @@ A step-by-step setup guide covering:
 
 ## Files Changed
 
-| File | Change |
-|---|---|
-| `src/components/ChallengeForm.jsx` | New component |
-| `src/components/ChallengeCard.jsx` | Conditional render of `ChallengeForm` |
-| `src/worker.js` | New `POST /form-submit` route |
+| File                                                                         | Change                                    |
+| ---------------------------------------------------------------------------- | ----------------------------------------- |
+| `src/components/ChallengeForm.jsx`                                           | New component                             |
+| `src/components/ChallengeCard.jsx`                                           | Conditional render of `ChallengeForm`     |
+| `src/worker.js`                                                              | New `POST /form-submit` route             |
 | `src/data/text/en/projects/democrats_abroad/den_haag/001_loc_binnenhof.yaml` | Example `form` array added to `challenge` |
-| `doc/setup.md` | New setup guide |
+| `doc/setup.md`                                                               | New setup guide                           |
 
 YAML for other locations: `form` is optional — existing locations require no changes.
 

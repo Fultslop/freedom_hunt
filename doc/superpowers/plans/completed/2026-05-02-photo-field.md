@@ -12,7 +12,7 @@
 
 ## Tasks
 
-| # | File | Description |
-|---|------|-------------|
-| 01 | [2026-05-02-photo-field-01-form-type.md](2026-05-02-photo-field-01-form-type.md) | Accept `photo` type in ChallengeForm without rendering UI |
-| 02 | [2026-05-02-photo-field-02-card-visibility.md](2026-05-02-photo-field-02-card-visibility.md) | Gate photo section in ChallengeCard on `photo` field presence |
+| #   | File                                                                                         | Description                                                   |
+| --- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 01  | [2026-05-02-photo-field-01-form-type.md](2026-05-02-photo-field-01-form-type.md)             | Accept `photo` type in ChallengeForm without rendering UI     |
+| 02  | [2026-05-02-photo-field-02-card-visibility.md](2026-05-02-photo-field-02-card-visibility.md) | Gate photo section in ChallengeCard on `photo` field presence |

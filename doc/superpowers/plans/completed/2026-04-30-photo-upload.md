@@ -16,8 +16,8 @@
 
 Execute in order — each task depends on the previous one.
 
-| # | Task | File(s) |
-|---|---|---|
-| 1 | [Configure wrangler.jsonc](2026-04-30-photo-upload-01-wrangler-config.md) | `wrangler.jsonc` |
-| 2 | [Create Worker script](2026-04-30-photo-upload-02-worker-script.md) | `src/worker.js`, `src/test/worker.test.js` |
-| 3 | [Add camera button to ChallengeCard](2026-04-30-photo-upload-03-camera-button.md) | `src/components/ChallengeCard.jsx`, `src/test/ChallengeCard.test.jsx` |
+| #   | Task                                                                              | File(s)                                                               |
+| --- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 1   | [Configure wrangler.jsonc](2026-04-30-photo-upload-01-wrangler-config.md)         | `wrangler.jsonc`                                                      |
+| 2   | [Create Worker script](2026-04-30-photo-upload-02-worker-script.md)               | `src/worker.js`, `src/test/worker.test.js`                            |
+| 3   | [Add camera button to ChallengeCard](2026-04-30-photo-upload-03-camera-button.md) | `src/components/ChallengeCard.jsx`, `src/test/ChallengeCard.test.jsx` |

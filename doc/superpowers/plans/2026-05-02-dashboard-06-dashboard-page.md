@@ -7,6 +7,7 @@
 **Photo-to-submission matching:** R2 keys use the format `{safeTeam}--{routeId}--{locationId}--{timestamp}.ext` (from Task 01). To find whether a submission row has a photo, build a lookup prefix `{safeTeam}--{routeId}--{locationId}--` and search the photo list. The `sanitizeName` helper used to build the R2 key is in the Worker and is not available on the client — redefine it inline in `DashboardPage.jsx` (it's a one-liner).
 
 **Files:**
+
 - Create: `src/pages/DashboardPage.jsx`
 - Create: `src/pages/DashboardPage.css`
 - Modify: `src/App.jsx` — import `AdminRoute` and `DashboardPage`, add `/admin` route
@@ -110,41 +111,43 @@
 - [ ] **Step 2: Create `src/pages/DashboardPage.jsx`**
 
 ```jsx
-import { useEffect, useState } from 'react'
-import { useTitleBar } from '../theme/TitleBarContext'
-import './DashboardPage.css'
+import { useEffect, useState } from "react";
+import { useTitleBar } from "../theme/TitleBarContext";
+import "./DashboardPage.css";
 
 function sanitizeName(str) {
-  return String(str).replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()
+  return String(str)
+    .replace(/[^a-zA-Z0-9]/g, "_")
+    .toLowerCase();
 }
 
 export default function DashboardPage() {
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useTitleBar({ title: 'Dashboard', progress: null, backPath: '/' })
+  useTitleBar({ title: "Dashboard", progress: null, backPath: "/" });
 
   useEffect(() => {
-    fetch('/admin/submissions')
-      .then(r => r.json())
-      .then(d => {
-        if (d.ok) setData(d)
-        else setError('Failed to load data')
+    fetch("/admin/submissions")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.ok) setData(d);
+        else setError("Failed to load data");
       })
-      .catch(() => setError('Failed to load submissions'))
-      .finally(() => setLoading(false))
-  }, [])
+      .catch(() => setError("Failed to load submissions"))
+      .finally(() => setLoading(false));
+  }, []);
 
-  if (loading) return <div className="dashboard__loading">Loading…</div>
-  if (error) return <div className="dashboard__error">{error}</div>
+  if (loading) return <div className="dashboard__loading">Loading…</div>;
+  if (error) return <div className="dashboard__error">{error}</div>;
 
-  const { submissions, photos } = data
-  const uniqueTeams = new Set(submissions.map(s => s.teamName)).size
+  const { submissions, photos } = data;
+  const uniqueTeams = new Set(submissions.map((s) => s.teamName)).size;
 
   function findPhoto(teamName, routeId, locationId) {
-    const prefix = `${sanitizeName(teamName)}--${routeId}--${locationId}--`
-    return photos.find(k => k.startsWith(prefix)) ?? null
+    const prefix = `${sanitizeName(teamName)}--${routeId}--${locationId}--`;
+    return photos.find((k) => k.startsWith(prefix)) ?? null;
   }
 
   return (
@@ -179,27 +182,40 @@ export default function DashboardPage() {
           </thead>
           <tbody>
             {submissions.map((row, i) => {
-              const photoKey = findPhoto(row.teamName, row.routeId, row.locationId)
+              const photoKey = findPhoto(
+                row.teamName,
+                row.routeId,
+                row.locationId,
+              );
               return (
                 <tr key={i}>
-                  <td>{row.teamName || '—'}</td>
-                  <td>{row.routeId || '—'}</td>
-                  <td>{row.locationId || '—'}</td>
-                  <td>{row.timestamp ? new Date(row.timestamp).toLocaleString() : '—'}</td>
+                  <td>{row.teamName || "—"}</td>
+                  <td>{row.routeId || "—"}</td>
+                  <td>{row.locationId || "—"}</td>
                   <td>
-                    {photoKey
-                      ? <img src={`/photo/${photoKey}`} alt="" className="dashboard__thumb" />
-                      : '—'
-                    }
+                    {row.timestamp
+                      ? new Date(row.timestamp).toLocaleString()
+                      : "—"}
+                  </td>
+                  <td>
+                    {photoKey ? (
+                      <img
+                        src={`/photo/${photoKey}`}
+                        alt=""
+                        className="dashboard__thumb"
+                      />
+                    ) : (
+                      "—"
+                    )}
                   </td>
                 </tr>
-              )
+              );
             })}
           </tbody>
         </table>
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -208,14 +224,21 @@ export default function DashboardPage() {
 Add the two imports after the existing page imports:
 
 ```jsx
-import AdminRoute from './auth/AdminRoute'
-import DashboardPage from './pages/DashboardPage'
+import AdminRoute from "./auth/AdminRoute";
+import DashboardPage from "./pages/DashboardPage";
 ```
 
 Add the route inside `<Routes>`, after the existing routes:
 
 ```jsx
-<Route path="/admin" element={<AdminRoute><DashboardPage /></AdminRoute>} />
+<Route
+  path="/admin"
+  element={
+    <AdminRoute>
+      <DashboardPage />
+    </AdminRoute>
+  }
+/>
 ```
 
 - [ ] **Step 4: Manually verify in the browser**

@@ -16,9 +16,9 @@
 
 Execute in order — each task depends on the previous one.
 
-| # | Task | File(s) |
-|---|---|---|
-| 1 | [Install leaflet + react-leaflet](2026-04-29-challenge-card-01-install-leaflet.md) | `package.json` |
-| 2 | [Add image field to Binnenhof YAML](2026-04-29-challenge-card-02-image-field.md) | `001_loc_binnenhof.yaml` |
-| 3 | [Rewrite ChallengeCard tests (failing)](2026-04-29-challenge-card-03-tests.md) | `src/test/ChallengeCard.test.jsx` |
-| 4 | [Implement redesigned ChallengeCard](2026-04-29-challenge-card-04-implement.md) | `src/components/ChallengeCard.jsx` |
+| #   | Task                                                                               | File(s)                            |
+| --- | ---------------------------------------------------------------------------------- | ---------------------------------- |
+| 1   | [Install leaflet + react-leaflet](2026-04-29-challenge-card-01-install-leaflet.md) | `package.json`                     |
+| 2   | [Add image field to Binnenhof YAML](2026-04-29-challenge-card-02-image-field.md)   | `001_loc_binnenhof.yaml`           |
+| 3   | [Rewrite ChallengeCard tests (failing)](2026-04-29-challenge-card-03-tests.md)     | `src/test/ChallengeCard.test.jsx`  |
+| 4   | [Implement redesigned ChallengeCard](2026-04-29-challenge-card-04-implement.md)    | `src/components/ChallengeCard.jsx` |

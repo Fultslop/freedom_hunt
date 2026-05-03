@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom/vitest'
+import "@testing-library/jest-dom/vitest";
 
 // Mock localStorage for all tests (ThemeContext, FontSizeContext, etc.)
 globalThis.localStorage = {
@@ -6,4 +6,4 @@ globalThis.localStorage = {
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
-}
+};

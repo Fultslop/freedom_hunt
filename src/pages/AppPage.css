@@ -23,7 +23,11 @@
   left: 0;
   right: 0;
   height: 50%;
-  background: linear-gradient(to bottom, rgba(255,255,255,0), var(--color-background));
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    var(--color-background)
+  );
 }
 
 .app-page__content {
@@ -69,12 +73,15 @@
   background: var(--color-surface);
   position: relative;
   overflow: hidden;
-  transition: border-color 150ms ease, box-shadow 150ms ease, transform 100ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 100ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .app-page__project-card::after {
-  content: '›';
+  content: "›";
   position: absolute;
   right: 16px;
   top: 50%;
@@ -108,7 +115,8 @@
   position: absolute;
   right: 40px;
   top: 50%;
-  transform: translateX(25%) translateY(-50%) perspective(300px) rotateY(-45deg) rotateX(40deg) scale(1.0);
+  transform: translateX(25%) translateY(-50%) perspective(300px) rotateY(-45deg)
+    rotateX(40deg) scale(1);
   height: 150px;
   width: auto;
   opacity: 0.3;

@@ -4,10 +4,12 @@
 **Next:** [Task 08 — AppPage](2026-05-01-styling-refactor-08-apppage.md)
 
 **Files:**
+
 - Create: `src/components/ChallengeCard.css`
 - Modify: `src/components/ChallengeCard.jsx`
 
 Hardcoded colours fixed:
+
 - `#2d7a2d` (photo success) → `var(--color-success)`
 - `#BF0A30` (upload error, breadcrumb border) → `var(--color-error)` / `var(--color-accent)`
 - `#002868` (location badge fallback) → `var(--color-accent)` (see note in Step 2)
@@ -62,7 +64,7 @@ The MapContainer must keep an inline `style` for `height` (react-leaflet require
 }
 
 .cc-title-card--shadow {
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .cc-badge {
@@ -194,65 +196,71 @@ The MapContainer must keep an inline `style` for `height` (react-leaflet require
 - [ ] **Step 2: Rewrite `src/components/ChallengeCard.jsx`**
 
 Remaining inline styles:
+
 - `cc-badge` background: `location.themeColor ?? theme.accent` — per-location data value, must stay inline
 - MapContainer `style`: height (required by react-leaflet) + border uses `var(--color-border)` inline
 - Photo button: upload state logic (idle/uploading/error) handled by modifier classes
 - `cc-title-card` shadow: conditional on `hasHero` — handled by modifier class
 
 ```jsx
-import { useState, useRef, useEffect } from 'react'
-import 'leaflet/dist/leaflet.css'
-import { useTheme } from '../theme/ThemeContext'
-import { MapContainer, TileLayer, Marker } from 'react-leaflet'
-import L from 'leaflet'
-import MarkdownText from './MarkdownText'
-import ChallengeForm from './ChallengeForm'
-import { BookOpen, MapPin, Crosshair, Compass, Camera } from 'lucide-react'
-import { fetchImage } from '../assets/AssetManager'
-import './ChallengeCard.css'
+import { useState, useRef, useEffect } from "react";
+import "leaflet/dist/leaflet.css";
+import { useTheme } from "../theme/ThemeContext";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import L from "leaflet";
+import MarkdownText from "./MarkdownText";
+import ChallengeForm from "./ChallengeForm";
+import { BookOpen, MapPin, Crosshair, Compass, Camera } from "lucide-react";
+import { fetchImage } from "../assets/AssetManager";
+import "./ChallengeCard.css";
 
 const pin = L.divIcon({
-  className: '',
+  className: "",
   html: '<div style="width:14px;height:14px;background:#BF0A30;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>',
   iconAnchor: [7, 7],
-})
+});
 
 export default function ChallengeCard({ location, isLast, index }) {
-  const { theme } = useTheme()
-  const [uploadState, setUploadState] = useState('idle')
-  const fileInputRef = useRef(null)
-  const [heroSrc, setHeroSrc] = useState(null)
+  const { theme } = useTheme();
+  const [uploadState, setUploadState] = useState("idle");
+  const fileInputRef = useRef(null);
+  const [heroSrc, setHeroSrc] = useState(null);
 
   useEffect(() => {
-    if (!location.image) { setHeroSrc(null); return }
-    let cancelled = false
-    fetchImage(location.image).then(url => {
-      if (!cancelled) setHeroSrc(url)
-    })
-    return () => { cancelled = true }
-  }, [location.image])
+    if (!location.image) {
+      setHeroSrc(null);
+      return;
+    }
+    let cancelled = false;
+    fetchImage(location.image).then((url) => {
+      if (!cancelled) setHeroSrc(url);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [location.image]);
 
-  const hasHero = !!heroSrc
-  const pos = [location.coordinates.latitude, location.coordinates.longitude]
+  const hasHero = !!heroSrc;
+  const pos = [location.coordinates.latitude, location.coordinates.longitude];
 
   async function handleFileChange(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    setUploadState('uploading')
-    const body = new FormData()
-    body.append('photo', file)
-    body.append('locationId', String(location.locationId))
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadState("uploading");
+    const body = new FormData();
+    body.append("photo", file);
+    body.append("locationId", String(location.locationId));
     try {
-      const res = await fetch('/upload', { method: 'POST', body })
-      const data = await res.json()
-      setUploadState(data.ok ? 'success' : 'error')
+      const res = await fetch("/upload", { method: "POST", body });
+      const data = await res.json();
+      setUploadState(data.ok ? "success" : "error");
     } catch {
-      setUploadState('error')
+      setUploadState("error");
     }
   }
 
   const titleCard = (
-    <div className={`cc-title-card${hasHero ? ' cc-title-card--shadow' : ''}`}>
+    <div className={`cc-title-card${hasHero ? " cc-title-card--shadow" : ""}`}>
       <div
         className="cc-badge"
         style={{ background: location.themeColor ?? theme.accent }}
@@ -270,7 +278,7 @@ export default function ChallengeCard({ location, isLast, index }) {
         )}
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="cc-root">
@@ -281,14 +289,10 @@ export default function ChallengeCard({ location, isLast, index }) {
             alt={location.name?.value || location.title}
             className="cc-hero-img"
           />
-          <div className="cc-hero-title-wrap">
-            {titleCard}
-          </div>
+          <div className="cc-hero-title-wrap">{titleCard}</div>
         </div>
       ) : (
-        <div className="cc-no-hero-wrap">
-          {titleCard}
-        </div>
+        <div className="cc-no-hero-wrap">{titleCard}</div>
       )}
 
       <div className="cc-section">
@@ -298,7 +302,12 @@ export default function ChallengeCard({ location, isLast, index }) {
         </div>
         <MarkdownText
           text={location.storyline}
-          style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: theme.text }}
+          style={{
+            margin: 0,
+            fontSize: 14,
+            lineHeight: 1.65,
+            color: theme.text,
+          }}
         />
       </div>
 
@@ -311,7 +320,11 @@ export default function ChallengeCard({ location, isLast, index }) {
           key={location.locationId}
           center={pos}
           zoom={16}
-          style={{ height: 180, borderRadius: 6, border: '1px solid var(--color-border)' }}
+          style={{
+            height: 180,
+            borderRadius: 6,
+            border: "1px solid var(--color-border)",
+          }}
           zoomControl={false}
           scrollWheelZoom={false}
         >
@@ -322,7 +335,8 @@ export default function ChallengeCard({ location, isLast, index }) {
           <Marker position={pos} icon={pin} />
         </MapContainer>
         <div className="cc-map-coords">
-          {location.coordinates.latitude}° N, {location.coordinates.longitude}° E
+          {location.coordinates.latitude}° N, {location.coordinates.longitude}°
+          E
         </div>
 
         <div className="cc-challenge-box">
@@ -332,12 +346,20 @@ export default function ChallengeCard({ location, isLast, index }) {
           </div>
           <MarkdownText
             text={location.challenge.description}
-            style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: theme.text }}
+            style={{
+              margin: 0,
+              fontSize: 13,
+              lineHeight: 1.6,
+              color: theme.text,
+            }}
           />
         </div>
 
         {location.challenge.form && location.challenge.form.length > 0 && (
-          <ChallengeForm form={location.challenge.form} locationId={location.locationId} />
+          <ChallengeForm
+            form={location.challenge.form}
+            locationId={location.locationId}
+          />
         )}
 
         <div className="cc-photo-wrap">
@@ -347,27 +369,44 @@ export default function ChallengeCard({ location, isLast, index }) {
             accept="image/*"
             capture="environment"
             onChange={handleFileChange}
-            style={{ display: 'none' }}
+            style={{ display: "none" }}
           />
-          {uploadState === 'success' ? (
+          {uploadState === "success" ? (
             <div className="cc-photo-success">✓ Photo submitted</div>
           ) : (
             <>
               <button
                 data-testid="submit-btn"
                 onClick={() => fileInputRef.current.click()}
-                disabled={uploadState === 'uploading'}
+                disabled={uploadState === "uploading"}
                 className={`cc-photo-btn cc-photo-btn--${uploadState}`}
               >
-                {uploadState === 'uploading'
-                  ? 'Uploading…'
-                  : uploadState === 'error'
-                    ? <><Camera size={14} aria-hidden style={{ verticalAlign: 'middle', marginRight: 4 }} /> Try again</>
-                    : <><Camera size={14} aria-hidden style={{ verticalAlign: 'middle', marginRight: 4 }} /> Submit photo proof</>
-                }
+                {uploadState === "uploading" ? (
+                  "Uploading…"
+                ) : uploadState === "error" ? (
+                  <>
+                    <Camera
+                      size={14}
+                      aria-hidden
+                      style={{ verticalAlign: "middle", marginRight: 4 }}
+                    />{" "}
+                    Try again
+                  </>
+                ) : (
+                  <>
+                    <Camera
+                      size={14}
+                      aria-hidden
+                      style={{ verticalAlign: "middle", marginRight: 4 }}
+                    />{" "}
+                    Submit photo proof
+                  </>
+                )}
               </button>
-              {uploadState === 'error' && (
-                <div className="cc-photo-error">Upload failed. Please try again.</div>
+              {uploadState === "error" && (
+                <div className="cc-photo-error">
+                  Upload failed. Please try again.
+                </div>
               )}
             </>
           )}
@@ -380,13 +419,11 @@ export default function ChallengeCard({ location, isLast, index }) {
             <Compass size={12} aria-hidden />
             Your clue to your next destination
           </div>
-          <p className="cc-breadcrumb">
-            {location.breadcrumb}
-          </p>
+          <p className="cc-breadcrumb">{location.breadcrumb}</p>
         </div>
       )}
     </div>
-  )
+  );
 }
 ```
 
@@ -401,6 +438,7 @@ Expected: all tests pass. ChallengeCard tests use `data-testid="location-badge"`
 - [ ] **Step 4: Visual smoke test**
 
 Open a route page and step through challenge cards. Verify:
+
 - Hero image layout correct (title card overlaps bottom of image)
 - Location badge uses per-location colour if set, otherwise theme accent
 - Map renders with correct border colour

@@ -7,6 +7,7 @@ Status: Completed
 **Goal:** Document the one-time manual steps an operator needs to use the location editor: creating a GitHub PAT, storing it as a Cloudflare Worker secret, setting the admin KV password, and verifying the setup.
 
 **Files:**
+
 - Modify: `doc/setup.md` — add Part 5 covering editor setup
 
 ---
@@ -35,10 +36,11 @@ The location editor at `/editor` lets organisers add, edit, and hide hunt locati
 7. Click **Generate token** and copy the value — you will not see it again
 
 ### Step 2: Store the PAT as a Cloudflare secret
+```
 
-```
 wrangler secret put GITHUB_PAT
-```
+
+````
 
 Paste the token when prompted. Confirm with `wrangler secret list` — `GITHUB_PAT` should appear.
 
@@ -52,7 +54,7 @@ Open `wrangler.jsonc` and confirm the `vars.GITHUB_REPO` value matches your repo
 "vars": {
   "GITHUB_REPO": "your-github-username/freedom_hunt"
 }
-```
+````
 
 If you forked or renamed the repo, update this value and redeploy.
 
@@ -91,11 +93,16 @@ wrangler kv key put --binding=AUTH_STORE "admin:democrats_abroad" "your-admin-pa
 - The PAT gives write access to the repo. Treat it like a password — never commit it or expose it in logs.
 - Admin sessions last 30 days (same as participant sessions). If the admin password is compromised, rotate it in KV immediately. Existing admin sessions will continue until they expire — to invalidate all sessions, rotate `AUTH_SECRET` via `wrangler secret put AUTH_SECRET`.
 - The editor routes (`/editor/locations`, `/editor/location`) are protected by admin auth in the Worker. The PAT never reaches the browser.
+
 ```
 
 - [ ] **Step 2: Commit**
 
 ```
+
 git add doc/setup.md
 git commit -m "docs: add location editor setup guide (GitHub PAT, admin KV password)"
+
+```
+
 ```
