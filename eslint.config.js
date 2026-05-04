@@ -40,10 +40,6 @@ export default defineConfig([
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "no-unused-vars": [
-        "error",
-        { varsIgnorePattern: "^[A-Z_]|^act$", argsIgnorePattern: "^_" },
-      ],
       "@typescript-eslint/no-unused-vars": [
         "error",
         { varsIgnorePattern: "^[A-Z_]|^act$", argsIgnorePattern: "^_" },
@@ -64,6 +60,9 @@ export default defineConfig([
         vi: "readonly",
         global: "readonly",
       },
+    },
+    rules: {
+      "@typescript-eslint/ban-ts-comment": "off",
     },
   },
   prettierConfig,
