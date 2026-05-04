@@ -51,9 +51,8 @@ export default function CityPage() {
 
   return (
     <div className="city-page">
-      {logoUrl && <img src={logoUrl} alt="" className="city-page__logo" />}
-      {cityText && (
-        <div className="city-page__intro">
+      {logoUrl ? <img src={logoUrl} alt="" className="city-page__logo" /> : null}
+      {cityText ? <div className="city-page__intro">
           <h1 className="city-page__title">{cityText["city.title"]}</h1>
           <MarkdownText
             text={cityText["city.description"]}
@@ -64,8 +63,7 @@ export default function CityPage() {
               lineHeight: 1.6,
             }}
           />
-        </div>
-      )}
+        </div> : null}
       <h2 className="city-page__subtitle">Choose a route</h2>
       {Object.entries(routesText).map(([routeId, route]) => (
         <RouteSelector

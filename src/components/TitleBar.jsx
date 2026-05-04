@@ -24,15 +24,13 @@ export default function TitleBar() {
     <div className="titlebar">
       <div className="titlebar__row">
         <div className="titlebar__left">
-          {backPath && (
-            <button
+          {backPath ? <button
               onClick={() => navigate(backPath)}
               aria-label="Back"
               className="titlebar__back-btn"
             >
               ←
-            </button>
-          )}
+            </button> : null}
           <span className="titlebar__title">{title}</span>
         </div>
 
@@ -45,10 +43,8 @@ export default function TitleBar() {
             ☰
           </button>
 
-          {menuView && (
-            <div className="titlebar__dropdown">
-              {menuView === "root" && (
-                <>
+          {menuView ? <div className="titlebar__dropdown">
+              {menuView === "root" ? <>
                   <button
                     onClick={() => setMenuView("profile")}
                     className="titlebar__menu-item"
@@ -70,11 +66,9 @@ export default function TitleBar() {
                     <span className="titlebar__menu-item-label">Text Size</span>
                     <span className="titlebar__menu-item-arrow">›</span>
                   </button>
-                </>
-              )}
+                </> : null}
 
-              {menuView === "profile" && (
-                <>
+              {menuView === "profile" ? <>
                   <button
                     onClick={() => setMenuView("root")}
                     aria-label="Back to menu"
@@ -109,11 +103,9 @@ export default function TitleBar() {
                       Sign out
                     </button>
                   </div>
-                </>
-              )}
+                </> : null}
 
-              {menuView === "themes" && (
-                <>
+              {menuView === "themes" ? <>
                   <button
                     onClick={() => setMenuView("root")}
                     aria-label="Back to menu"
@@ -138,15 +130,11 @@ export default function TitleBar() {
                       }}
                     >
                       <span>{name}</span>
-                      {name === themeName && (
-                        <span className="titlebar__theme-check">✓</span>
-                      )}
+                      {name === themeName ? <span className="titlebar__theme-check">✓</span> : null}
                     </button>
                   ))}
-                </>
-              )}
-              {menuView === "fontsize" && (
-                <>
+                </> : null}
+              {menuView === "fontsize" ? <>
                   <button
                     onClick={() => setMenuView("root")}
                     aria-label="Back to menu"
@@ -173,20 +161,15 @@ export default function TitleBar() {
                       <span style={{ textTransform: "capitalize" }}>
                         {size}
                       </span>
-                      {size === fontSize && (
-                        <span className="titlebar__theme-check">✓</span>
-                      )}
+                      {size === fontSize ? <span className="titlebar__theme-check">✓</span> : null}
                     </button>
                   ))}
-                </>
-              )}
-            </div>
-          )}
+                </> : null}
+            </div> : null}
         </div>
       </div>
 
-      {progress && (
-        <div
+      {progress ? <div
           data-testid="progress-bar"
           className="titlebar__progress-track"
           style={{ height: 6 }}
@@ -195,8 +178,7 @@ export default function TitleBar() {
             className="titlebar__progress-fill"
             style={{ width: `${(progress.current / progress.total) * 100}%` }}
           />
-        </div>
-      )}
+        </div> : null}
     </div>
   );
 }

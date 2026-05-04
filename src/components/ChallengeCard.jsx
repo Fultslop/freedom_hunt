@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import "leaflet/dist/leaflet.css";
 import { useTheme } from "../theme/ThemeContext";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
@@ -17,15 +18,10 @@ const pin = L.divIcon({
 
 export default function ChallengeCard({ location, isLast, index, routeId }) {
   const { theme } = useTheme();
-  const [heroSrc, setHeroSrc] = useState(() => (location.image ? null : null));
+  const [heroSrc, setHeroSrc] = useState(null);
 
   useEffect(() => {
-    if (!location.image) {
-      setHeroSrc(
-        null,
-      ); /* eslint-disable-line react-hooks/set-state-in-effect */
-      return;
-    }
+    if (!location.image) return;
     let cancelled = false;
     fetchImage(location.image).then((url) => {
       if (!cancelled) setHeroSrc(url);
@@ -49,12 +45,8 @@ export default function ChallengeCard({ location, isLast, index, routeId }) {
       </div>
       <div>
         <div className="cc-location-title">{location.title}</div>
-        {location.name?.value && (
-          <div className="cc-location-name">{location.name.value}</div>
-        )}
-        {location.address && (
-          <div className="cc-location-address">{location.address}</div>
-        )}
+        {location.name?.value ? <div className="cc-location-name">{location.name.value}</div> : null}
+        {location.address ? <div className="cc-location-address">{location.address}</div> : null}
       </div>
     </div>
   );
@@ -118,24 +110,44 @@ export default function ChallengeCard({ location, isLast, index, routeId }) {
           <MarkdownText text={location.challenge.description} />
         </div>
 
-        {location.challenge.form && location.challenge.form.length > 0 && (
-          <ChallengeForm
+        {location.challenge.form && location.challenge.form.length > 0 ? <ChallengeForm
             form={location.challenge.form}
             locationId={location.locationId}
             routeId={routeId}
-          />
-        )}
+          /> : null}
       </div>
 
-      {!isLast && (
-        <div className="cc-section--no-border">
+      {!isLast ? <div className="cc-section--no-border">
           <div className="cc-section-label">
             <Compass size={12} aria-hidden />
             Your clue to your next destination
           </div>
           <p className="cc-breadcrumb">{location.breadcrumb}</p>
-        </div>
-      )}
+        </div> : null}
     </div>
   );
 }
+
+ChallengeCard.propTypes = {
+  location: PropTypes.shape({
+    locationId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    title: PropTypes.string,
+    image: PropTypes.string,
+    name: PropTypes.shape({ label: PropTypes.string, value: PropTypes.string }),
+    address: PropTypes.string,
+    coordinates: PropTypes.shape({
+      latitude: PropTypes.number.isRequired,
+      longitude: PropTypes.number.isRequired,
+    }),
+    storyline: PropTypes.string,
+    themeColor: PropTypes.string,
+    breadcrumb: PropTypes.string,
+    challenge: PropTypes.shape({
+      description: PropTypes.string,
+      form: PropTypes.arrayOf(PropTypes.object),
+    }),
+  }).isRequired,
+  isLast: PropTypes.bool,
+  index: PropTypes.number,
+  routeId: PropTypes.string,
+};

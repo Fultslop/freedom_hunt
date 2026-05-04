@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import PropTypes from "prop-types";
 import { TitleBarProvider, useTitleBar } from "../theme/TitleBarContext";
 
 function Consumer({ config }) {
@@ -15,6 +16,10 @@ function Consumer({ config }) {
     </>
   );
 }
+
+Consumer.propTypes = {
+  config: PropTypes.object,
+};
 
 test("defaults to Freedom Hunt with no config", () => {
   render(

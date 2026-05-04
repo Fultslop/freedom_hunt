@@ -1,4 +1,5 @@
 import { createContext, useState } from "react";
+import PropTypes from "prop-types";
 
 export const LanguageContext = createContext({
   currentLang: "en",
@@ -13,3 +14,7 @@ export function LanguageProvider({ children }) {
     </LanguageContext.Provider>
   );
 }
+
+LanguageProvider.propTypes = {
+  children: PropTypes.node,
+};

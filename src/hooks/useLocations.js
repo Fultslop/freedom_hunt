@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, startTransition } from "react";
 import { LanguageContext } from "../i18n/LanguageContext";
 
 const modules = import.meta.glob("../data/text/**/*.yaml");
@@ -12,13 +12,18 @@ export function useLocations(paths) {
     !paths || paths.length === 0 ? false : true,
   );
 
+   
   useEffect(() => {
     if (!paths || paths.length === 0) {
-      setLocations([]);
-      setLoading(false);
+      startTransition(() => {
+        setLocations([]);
+        setLoading(false);
+      });
       return;
     }
-    setLoading(true);
+    startTransition(() => {
+      setLoading(true);
+    });
     Promise.all(
       paths.map((path) => {
         const key = `../data/text/${currentLang}/${path}.yaml`;

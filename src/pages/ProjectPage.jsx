@@ -54,7 +54,7 @@ export default function ProjectPage() {
 
   return (
     <div className="project-page">
-      {logoUrl && <img src={logoUrl} alt="" className="project-page__logo" />}
+      {logoUrl ? <img src={logoUrl} alt="" className="project-page__logo" /> : null}
       <h1 className="project-page__title">{citiesText["page.title"]}</h1>
       <MarkdownText text={citiesText["page.text"]} />
       <h2 className="project-page__select-city">

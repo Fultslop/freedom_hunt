@@ -323,16 +323,14 @@ export default function EditorLocationForm() {
           />
         </div>
 
-        {isEdit && fields.challenge.form?.length > 0 && (
-          <p className="loc-form__hint">
+        {isEdit && fields.challenge.form?.length > 0 ? <p className="loc-form__hint">
             This location has {fields.challenge.form.length} form field(s). Form
             fields are preserved but not editable here — edit them directly in
             the YAML file.
-          </p>
-        )}
+          </p> : null}
       </div>
 
-      {submitError && <div className="loc-form__error">✕ {submitError}</div>}
+      {submitError ? <div className="loc-form__error">✕ {submitError}</div> : null}
 
       <div className="loc-form__actions">
         <button

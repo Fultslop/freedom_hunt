@@ -1,3 +1,5 @@
+ 
+import PropTypes from "prop-types";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
@@ -17,17 +19,27 @@ function Wrapper({ children }) {
     <MemoryRouter>
       <ThemeProvider>
         <FontSizeProvider>
-          <TitleBarProvider>{children}</TitleBarProvider>
+          <TitleBarProvider>
+            {children}
+          </TitleBarProvider>
         </FontSizeProvider>
       </ThemeProvider>
     </MemoryRouter>
   );
 }
 
+Wrapper.propTypes = {
+  children: PropTypes.node,
+};
+
 function Setup({ config }) {
   useTitleBar(config);
   return <TitleBar />;
 }
+
+Setup.propTypes = {
+  config: PropTypes.object,
+};
 
 const base = { title: "Test", progress: null, backPath: null };
 

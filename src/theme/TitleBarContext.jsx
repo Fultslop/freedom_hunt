@@ -1,4 +1,5 @@
 import { createContext, useState, useContext, useEffect } from "react";
+import PropTypes from "prop-types";
 
 const DEFAULT_TITLE_BAR = {
   title: "Freedom Hunt",
@@ -24,3 +25,15 @@ export function useTitleBar(config) {
   }, [JSON.stringify(config)]); // eslint-disable-line react-hooks/exhaustive-deps
   return ctx;
 }
+
+TitleBarProvider.propTypes = {
+  children: PropTypes.node,
+};
+
+useTitleBar.propTypes = {
+  config: PropTypes.shape({
+    title: PropTypes.string,
+    progress: PropTypes.number,
+    backPath: PropTypes.string,
+  }),
+};

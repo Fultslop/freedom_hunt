@@ -69,7 +69,7 @@ export default function EditorLoginPage() {
             className={`editor-login__input${error ? " editor-login__input--error" : ""}`}
           />
         </div>
-        {error && <div className="editor-login__error">✕ {error}</div>}
+        {error ? <div className="editor-login__error">✕ {error}</div> : null}
         <button
           type="submit"
           disabled={loading}
