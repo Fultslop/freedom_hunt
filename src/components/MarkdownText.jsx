@@ -1,4 +1,5 @@
 import { marked } from "marked";
+import PropTypes from "prop-types";
 import "./MarkdownText.css";
 
 export default function MarkdownText({ text, style }) {
@@ -12,3 +13,8 @@ export default function MarkdownText({ text, style }) {
     />
   );
 }
+
+MarkdownText.propTypes = {
+  text: PropTypes.string,
+  style: PropTypes.object,
+};

@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import PropTypes from "prop-types";
 import { useAuth } from "../auth/AuthContext";
 import { Camera } from "lucide-react";
 import "./ChallengeForm.css";
@@ -171,17 +172,14 @@ export default function ChallengeForm({ form, locationId, routeId }) {
             <label htmlFor={field.id} className="cf-label">
               {field.label}
             </label>
-            {field.type === "string" && (
-              <input
+            {field.type === "string" ? <input
                 id={field.id}
                 type="text"
                 value={values[field.id] ?? ""}
                 onChange={(e) => setValue(field.id, e.target.value)}
                 className={`cf-input${errors[field.id] ? " cf-input--error" : ""}`}
-              />
-            )}
-            {field.type === "number" && (
-              <input
+              /> : null}
+            {field.type === "number" ? <input
                 id={field.id}
                 type="number"
                 value={values[field.id] ?? ""}
@@ -192,10 +190,8 @@ export default function ChallengeForm({ form, locationId, routeId }) {
                   )
                 }
                 className={`cf-input${errors[field.id] ? " cf-input--error" : ""}`}
-              />
-            )}
-            {field.type === "radio" && (
-              <div className="cf-radio-group">
+              /> : null}
+            {field.type === "radio" ? <div className="cf-radio-group">
                 {field.options.map((opt) => (
                   <label
                     key={opt}
@@ -213,10 +209,8 @@ export default function ChallengeForm({ form, locationId, routeId }) {
                     {opt}
                   </label>
                 ))}
-              </div>
-            )}
-            {field.type === "multiple" && (
-              <>
+              </div> : null}
+            {field.type === "multiple" ? <>
                 <span className="cf-multi-hint">
                   Select{" "}
                   {field.min === field.max
@@ -243,19 +237,14 @@ export default function ChallengeForm({ form, locationId, routeId }) {
                     </label>
                   ))}
                 </div>
-                {maxWarning === field.id && (
-                  <div className="cf-max-warning">
+                {maxWarning === field.id ? <div className="cf-max-warning">
                     Maximum of {field.max} option{field.max > 1 ? "s" : ""}{" "}
                     reached
-                  </div>
-                )}
-              </>
-            )}
+                  </div> : null}
+              </> : null}
           </>
         )}
-        {errors[field.id] && (
-          <div className="cf-error-msg">{errors[field.id]}</div>
-        )}
+        {errors[field.id] ? <div className="cf-error-msg">{errors[field.id]}</div> : null}
       </div>
     );
   }
@@ -268,8 +257,7 @@ export default function ChallengeForm({ form, locationId, routeId }) {
     <form onSubmit={handleSubmit} style={{ marginTop: 14 }}>
       {form.map(renderField)}
 
-      {hasPhotoField && (
-        <div className="cf-photo-wrap">
+      {hasPhotoField ? <div className="cf-photo-wrap">
           <input
             ref={fileInputRef}
             type="file"
@@ -312,15 +300,12 @@ export default function ChallengeForm({ form, locationId, routeId }) {
                   </>
                 )}
               </button>
-              {uploadState === "error" && (
-                <div className="cf-photo-error">
+              {uploadState === "error" ? <div className="cf-photo-error">
                   Upload failed. Please try again.
-                </div>
-              )}
+                </div> : null}
             </>
           )}
-        </div>
-      )}
+        </div> : null}
 
       <button
         type="submit"
@@ -333,11 +318,15 @@ export default function ChallengeForm({ form, locationId, routeId }) {
             ? "Try again"
             : "Submit answers"}
       </button>
-      {submitState === "error" && (
-        <div className="cf-submit-error">
+      {submitState === "error" ? <div className="cf-submit-error">
           Submission failed. Please try again.
-        </div>
-      )}
+        </div> : null}
     </form>
   );
 }
+
+ChallengeForm.propTypes = {
+  form: PropTypes.arrayOf(PropTypes.object).isRequired,
+  locationId: PropTypes.string.isRequired,
+  routeId: PropTypes.string.isRequired,
+};

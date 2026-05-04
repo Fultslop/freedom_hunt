@@ -67,8 +67,7 @@ export default function AppPage() {
 
   return (
     <div className="app-page">
-      {landingImageUrl && (
-        <div
+      {landingImageUrl ? <div
           className="app-page__hero-wrap"
           style={{ height: imgHeight ? imgHeight / 2 : "auto" }}
         >
@@ -79,19 +78,16 @@ export default function AppPage() {
             className="app-page__hero-img"
           />
           <div className="app-page__hero-gradient" />
-        </div>
-      )}
+        </div> : null}
 
       <div
         className="app-page__content"
         style={{ marginTop: contentMarginTop }}
       >
-        {appText && (
-          <div className="app-page__heading">
+        {appText ? <div className="app-page__heading">
             <h1 className="app-page__title">{appText["app.title"]}</h1>
             <p className="app-page__tagline">{appText["app.tagline"]}</p>
-          </div>
-        )}
+          </div> : null}
         <h2 className="app-page__subtitle">{projectsText["page.subtitle"]}</h2>
         {projectsText.items.map((project) => (
           <div
@@ -104,13 +100,11 @@ export default function AppPage() {
             }
             className="app-page__project-card"
           >
-            {projectImageUrls[project.id] && (
-              <img
+            {projectImageUrls[project.id] ? <img
                 src={projectImageUrls[project.id]}
                 alt=""
                 className="app-page__project-img"
-              />
-            )}
+              /> : null}
             <div className="app-page__project-body">
               <div className="app-page__project-name">{project.name}</div>
               <MarkdownText

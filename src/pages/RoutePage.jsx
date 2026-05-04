@@ -128,8 +128,7 @@ export default function RoutePage() {
 
       <div className="route-page__nav">
         <div className="route-page__nav-slot">
-          {currentIndex > 0 && (
-            <button
+          {currentIndex > 0 ? <button
               aria-label="Previous stop"
               onClick={() => {
                 setDirection("prev");
@@ -138,8 +137,7 @@ export default function RoutePage() {
               className="route-page__prev-btn"
             >
               <ChevronLeft size={16} aria-hidden /> Prev
-            </button>
-          )}
+            </button> : null}
         </div>
 
         <button
@@ -150,8 +148,7 @@ export default function RoutePage() {
         </button>
 
         <div className="route-page__nav-slot--right">
-          {currentIndex < locations.length - 1 && (
-            <button
+          {currentIndex < locations.length - 1 ? <button
               aria-label="Next stop"
               onClick={() => {
                 setDirection("next");
@@ -160,8 +157,7 @@ export default function RoutePage() {
               className="route-page__next-btn"
             >
               Next <ChevronRight size={16} aria-hidden />
-            </button>
-          )}
+            </button> : null}
         </div>
       </div>
     </div>

@@ -106,7 +106,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {error && <div className="login-page__error">✕ {error}</div>}
+        {error ? <div className="login-page__error">✕ {error}</div> : null}
 
         <button
           type="submit"

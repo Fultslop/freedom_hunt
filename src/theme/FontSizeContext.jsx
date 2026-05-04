@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import PropTypes from "prop-types";
 
+// useFontSize returns context value; no props accepted
 const SIZES = ["small", "medium", "large"];
 const LS_KEY = "fontSizePref";
 
@@ -25,3 +27,7 @@ export function FontSizeProvider({ children }) {
 export function useFontSize() {
   return useContext(FontSizeContext);
 }
+
+FontSizeProvider.propTypes = {
+  children: PropTypes.node,
+};

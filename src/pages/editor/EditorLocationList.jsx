@@ -65,8 +65,10 @@ export default function EditorLocationList() {
   }, [project, city]);
 
   useEffect(() => {
-    fetchLocations();
-    syncPending();
+    startTransition(() => {
+      fetchLocations();
+      syncPending();
+    });
   }, [fetchLocations, syncPending]);
 
   async function handleHide(loc, sha) {
@@ -184,26 +186,22 @@ export default function EditorLocationList() {
                 >
                   Hide
                 </button>
-                {isNewLocation(filename) && (
-                  <button
+                {isNewLocation(filename) ? <button
                     className="loc-list__btn loc-list__btn--danger"
                     onClick={() => handleDelete(filename)}
                   >
                     Delete
-                  </button>
-                )}
+                  </button> : null}
               </div>
             </div>
-            {pend && (
-              <a
+            {pend ? <a
                 href={pend.prUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="loc-list__pending"
               >
                 ⏳ Pending edit — view PR
-              </a>
-            )}
+              </a> : null}
           </div>
         );
       })}

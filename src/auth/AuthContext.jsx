@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, startTransition } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import PropTypes from "prop-types";
 
 const AuthContext = createContext(null);
 
@@ -14,7 +15,9 @@ export function AuthProvider({ children }) {
   // We can't reset it inside logout() because React 18 batches it with
   // setActiveAuth(null), which defeats the ProtectedRoute guard.
   useEffect(() => {
-    setIsLoggingOut(false);
+    startTransition(() => {
+      setIsLoggingOut(false);
+    });
   }, [location.pathname]);
 
   useEffect(() => {
@@ -42,7 +45,9 @@ export function AuthProvider({ children }) {
     setIsLoggingOut(true);
     try {
       await fetch("/auth/logout", { method: "POST" });
-    } catch {}
+    } catch {
+      /* ignore logout errors */
+    }
     // Clear auth first so ProtectedRoute doesn't redirect mid-flight.
     // Navigate after so the / route is already active when the page renders.
     setActiveAuth(null);
@@ -59,6 +64,10 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+
+AuthProvider.propTypes = {
+  children: PropTypes.node,
+};
 
 export function useAuth() {
   return useContext(AuthContext);

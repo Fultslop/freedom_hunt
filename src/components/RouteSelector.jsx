@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 import "./RouteSelector.css";
 
 export default function RouteSelector({ project, city, routeId, route }) {
@@ -20,3 +21,13 @@ export default function RouteSelector({ project, city, routeId, route }) {
     </div>
   );
 }
+
+RouteSelector.propTypes = {
+  project: PropTypes.string.isRequired,
+  city: PropTypes.string.isRequired,
+  routeId: PropTypes.string.isRequired,
+  route: PropTypes.shape({
+    description: PropTypes.string,
+    locations: PropTypes.arrayOf(PropTypes.string).isRequired,
+  }).isRequired,
+};

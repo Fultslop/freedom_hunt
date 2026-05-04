@@ -1,13 +1,16 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import PropTypes from "prop-types";
 import { vi } from "vitest";
 import { ThemeProvider } from "../theme/ThemeContext";
 import ChallengeCard from "../components/ChallengeCard";
 
+/* eslint-disable react/prop-types */
 vi.mock("react-leaflet", () => ({
   MapContainer: ({ children }) => <div data-testid="map">{children}</div>,
   TileLayer: () => null,
   Marker: () => null,
 }));
+/* eslint-enable react/prop-types */
 
 vi.mock("leaflet", () => ({
   default: { divIcon: () => ({}) },
@@ -29,17 +32,13 @@ const location = {
   themeColor: "#8B1A1A",
 };
 
-const locationWithPhoto = {
-  ...location,
-  challenge: {
-    ...location.challenge,
-    form: [{ id: "proof", type: "photo", label: "Photo proof" }],
-  },
-};
-
 function Wrapper({ children }) {
   return <ThemeProvider>{children}</ThemeProvider>;
 }
+
+Wrapper.propTypes = {
+  children: PropTypes.node,
+};
 
 test("renders locationId badge", () => {
   render(

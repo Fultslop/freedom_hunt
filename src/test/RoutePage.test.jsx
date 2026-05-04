@@ -1,3 +1,4 @@
+ 
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "../theme/ThemeContext";
@@ -66,6 +67,7 @@ vi.mock("../hooks/useLocations", () => ({
   useLocations: vi.fn(() => ({ locations: mockLocations, loading: false })),
 }));
 
+/* eslint-disable react/prop-types */
 vi.mock("react-leaflet", () => ({
   MapContainer: ({ children }) => <div data-testid="map">{children}</div>,
   TileLayer: () => null,
@@ -75,7 +77,9 @@ vi.mock("react-leaflet", () => ({
 vi.mock("leaflet", () => ({
   default: { divIcon: () => ({}) },
 }));
+/* eslint-enable react/prop-types */
 
+ 
 function Wrapper() {
   return (
     <MemoryRouter initialEntries={["/hunt/amsterdam/route_a"]}>
