@@ -5,12 +5,30 @@ import svelte from "eslint-plugin-svelte";
 import svelteParser from "svelte-eslint-parser";
 import { defineConfig, globalIgnores } from "eslint/config";
 import prettierConfig from "eslint-config-prettier";
+import unusedImports from "eslint-plugin-unused-imports";
+
+const sharedRules = {
+  "no-useless-return": "error",
+  "no-continue": "error",
+  "unused-imports/no-unused-imports": "error",
+};
+
+const sharedRestrictedSyntax = [
+  {
+    "selector": "ForOfStatement > BlockStatement > IfStatement[test.operator='!'] > ReturnStatement[argument.value=false]",
+    "message": "This manual guard loop can be replaced with .every() or .isSubsetOf().",
+  },
+  {
+    "selector": "ReturnStatement[argument=null]",
+    "message": "Early returns (naked returns) are disallowed.",
+  },
+];
 
 export default defineConfig([
   globalIgnores(["dist", "build", "node_modules", "src/test/worker*.test.ts"]),
   {
     files: ["**/*.{js,ts}"],
-    plugins: { "@typescript-eslint": tseslint.plugin },
+    plugins: { "@typescript-eslint": tseslint.plugin, "unused-imports": unusedImports },
     extends: [
       js.configs.recommended,
       ...tseslint.configs.recommended,
@@ -25,27 +43,17 @@ export default defineConfig([
       "curly": ["error", "all"],
       "brace-style": ["error", "1tbs", { "allowSingleLine": false }],
       "id-length": ["error", { "min": 3, "exceptions": ["id", "to", "ok", "fs", "js", "vi", "m", "r", "e", "k", "v", "i", "c", "ip", "b", "f", "pr", "a"] }],
-      "no-useless-return": "error",
+      ...sharedRules,
       "@typescript-eslint/no-unused-vars": [
         "error",
         { "varsIgnorePattern": "^[A-Z_]", "argsIgnorePattern": "^_" },
       ],
-      "no-restricted-syntax": [
-        "error",
-        {
-          "selector": "ForOfStatement > BlockStatement > IfStatement[test.operator='!'] > ReturnStatement[argument.value=false]",
-          "message": "This manual guard loop can be replaced with .every() or .isSubsetOf().",
-        },
-        {
-          "selector": "ReturnStatement[argument=null]",
-          "message": "Early returns (naked returns) are disallowed.",
-        },
-      ],
+      "no-restricted-syntax": ["error", ...sharedRestrictedSyntax],
     },
   },
   {
     files: ["**/*.svelte"],
-    plugins: { svelte, "@typescript-eslint": tseslint.plugin },
+    plugins: { svelte, "@typescript-eslint": tseslint.plugin, "unused-imports": unusedImports },
     languageOptions: {
       parser: svelteParser,
       parserOptions: {
@@ -63,22 +71,12 @@ export default defineConfig([
       "curly": ["error", "all"],
       "brace-style": ["error", "1tbs", { "allowSingleLine": false }],
       "id-length": ["error", { "min": 3, "exceptions": ["id", "to", "ok", "fs", "js", "vi", "m", "r", "e", "k", "v", "i", "c", "ip", "b", "f", "pr", "a", "p", "n"] }],
-      "no-useless-return": "error",
+      ...sharedRules,
       "@typescript-eslint/no-unused-vars": [
         "error",
         { "varsIgnorePattern": "^[A-Z_]", "argsIgnorePattern": "^_" },
       ],
-      "no-restricted-syntax": [
-        "error",
-        {
-          "selector": "ForOfStatement > BlockStatement > IfStatement[test.operator='!'] > ReturnStatement[argument.value=false]",
-          "message": "This manual guard loop can be replaced with .every() or .isSubsetOf().",
-        },
-        {
-          "selector": "ReturnStatement[argument=null]",
-          "message": "Early returns (naked returns) are disallowed.",
-        },
-      ],
+      "no-restricted-syntax": ["error", ...sharedRestrictedSyntax],
     },
   },
   {
@@ -100,4 +98,9 @@ export default defineConfig([
     },
   },
   prettierConfig,
+  {
+    rules: {
+      "curly": ["error", "all"],
+    },
+  },
 ]);

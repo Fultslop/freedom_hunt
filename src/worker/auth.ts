@@ -49,7 +49,9 @@ export async function verifyToken(
 ): Promise<TokenPayload | null> {
   try {
     const dot = token.lastIndexOf(".");
-    if (dot === -1) return null;
+    if (dot === -1) {
+      return null;
+    }
     const encoded = token.slice(0, dot);
     const sigB64 = token.slice(dot + 1);
     const enc = new TextEncoder();
@@ -69,9 +71,13 @@ export async function verifyToken(
       sigBytes,
       enc.encode(encoded),
     );
-    if (!valid) return null;
+    if (!valid) {
+      return null;
+    }
     const payload = JSON.parse(b64urlDecode(encoded)) as TokenPayload;
-    if (payload.exp < Math.floor(Date.now() / 1000)) return null;
+    if (payload.exp < Math.floor(Date.now() / 1000)) {
+      return null;
+    }
     return payload;
   } catch {
     return null;
@@ -108,6 +114,8 @@ export async function requireAuth(
 ): Promise<TokenPayload | null> {
   const cookie = request.headers.get("Cookie") ?? "";
   const match = cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]+)`));
-  if (!match) return null;
+  if (!match) {
+    return null;
+  }
   return verifyToken(match[1], env.AUTH_SECRET);
 }

@@ -5,7 +5,9 @@ export async function loadLocations(
   lang: string,
   paths: string[],
 ): Promise<Location[]> {
-  if (paths.length === 0) return [];
+  if (paths.length === 0) {
+    return [];
+  }
   const results = await Promise.all(
     paths.map((path) => loadText<Location>(lang, path)),
   );

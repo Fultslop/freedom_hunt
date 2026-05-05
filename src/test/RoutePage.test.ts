@@ -36,8 +36,12 @@ vi.mock("../utils/loadText", () => ({
         },
       };
     }
-    if (path.includes("/001")) return mockLocations[0];
-    if (path.includes("/002")) return mockLocations[1];
+    if (path.includes("/001")) {
+      return mockLocations[0];
+    }
+    if (path.includes("/002")) {
+      return mockLocations[1];
+    }
     return null;
   }),
 }));

@@ -32,8 +32,9 @@
   let maxWarningKeys = $state<Record<string, number>>({});
 
   function checkDefinition(field: FormField): string | null {
-    if (!VALID_TYPES.includes(field.type))
+    if (!VALID_TYPES.includes(field.type)) {
       return `unknown type "${field.type}"`;
+    }
     if (
       field.type === "radio" &&
       (!field.options || field.options.length === 0)
@@ -81,27 +82,32 @@
   function validateValues(): Record<string, string> {
     const errs: Record<string, string> = {};
     for (const field of form) {
-      if (field.type === "boolean" || field.type === "photo") continue;
-      if (field.type === "string") {
-        const v = values[field.id] as string | undefined;
-        if (!v || v.trim() === "") errs[field.id] = "Required";
-      } else if (field.type === "number") {
-        const v = values[field.id];
-        if (
-          v === undefined ||
-          v === null ||
-          (typeof v === "number" && isNaN(v))
-        ) {
-          errs[field.id] = "Required";
-        }
-      } else if (field.type === "radio") {
-        if (!values[field.id]) errs[field.id] = "Please select an option";
-      } else if (field.type === "multiple") {
-        const selected = (values[field.id] as string[]) ?? [];
-        const min = field.min ?? 1;
-        if (selected.length < min) {
-          errs[field.id] =
-            `Please select at least ${min} option${min > 1 ? "s" : ""}`;
+      if (field.type !== "boolean" && field.type !== "photo") {
+        if (field.type === "string") {
+          const v = values[field.id] as string | undefined;
+          if (!v || v.trim() === "") {
+            errs[field.id] = "Required";
+          }
+        } else if (field.type === "number") {
+          const v = values[field.id];
+          if (
+            v === undefined ||
+            v === null ||
+            (typeof v === "number" && isNaN(v))
+          ) {
+            errs[field.id] = "Required";
+          }
+        } else if (field.type === "radio") {
+          if (!values[field.id]) {
+            errs[field.id] = "Please select an option";
+          }
+        } else if (field.type === "multiple") {
+          const selected = (values[field.id] as string[]) ?? [];
+          const min = field.min ?? 1;
+          if (selected.length < min) {
+            errs[field.id] =
+              `Please select at least ${min} option${min > 1 ? "s" : ""}`;
+          }
         }
       }
     }
@@ -112,10 +118,14 @@
     const newErrors: Record<string, string> = {};
     for (const field of form) {
       const def = checkDefinition(field);
-      if (def) newErrors[field.id] = def;
+      if (def) {
+        newErrors[field.id] = def;
+      }
     }
     errors = { ...validateValues(), ...newErrors };
-    if (Object.keys(errors).length === 0) showConfirm = true;
+    if (Object.keys(errors).length === 0) {
+      showConfirm = true;
+    }
   }
 
   async function handleConfirm() {

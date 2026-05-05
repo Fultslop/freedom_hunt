@@ -6,8 +6,10 @@
   import { authStore } from "../stores/authStore";
   import { themes } from "../theme/themes";
   import type { ThemeName } from "../types/theme";
-  import type { FontSize } from "../stores/fontSizeStore";
   import "./TitleBar.css";
+
+  const FONT_WEIGHT_BOLD = 700;
+  const FONT_WEIGHT_NORMAL = 400;
 
   let menuView = $state<string | null>(null);
 
@@ -88,7 +90,7 @@
                   {$authStore.activeAuth?.teamName ?? "—"}
                 </div>
               </div>
-              <div class="titlebar__profile-field" style="margin-bottom: 16px">
+              <div class="titlebar__profile-field titlebar__profile-field--last">
                 <div class="titlebar__profile-label">Contact</div>
                 <div class="titlebar__profile-value--contact">
                   {$authStore.activeAuth?.contact ?? "—"}
@@ -128,8 +130,8 @@
                   ? $themeStore.theme.barText
                   : $themeStore.theme.text}; font-weight: {themeName ===
                 $themeStore.themeName
-                  ? 700
-                  : 400}"
+                  ? FONT_WEIGHT_BOLD
+                  : FONT_WEIGHT_NORMAL}"
               >
                 <span>{themeName}</span>
                 {#if themeName === $themeStore.themeName}
@@ -162,10 +164,10 @@
                   ? $themeStore.theme.barText
                   : $themeStore.theme.text}; font-weight: {fontSizeEntry ===
                 $fontSizeStore.fontSize
-                  ? 700
-                  : 400}"
+                  ? FONT_WEIGHT_BOLD
+                  : FONT_WEIGHT_NORMAL}"
               >
-                <span style="text-transform: capitalize">{fontSizeEntry}</span>
+                <span class="titlebar__fontsize-label">{fontSizeEntry}</span>
                 {#if fontSizeEntry === $fontSizeStore.fontSize}
                   <span class="titlebar__theme-check">✓</span>
                 {/if}
@@ -181,7 +183,6 @@
     <div
       data-testid="progress-bar"
       class="titlebar__progress-track"
-      style="height: 6px"
     >
       <div
         class="titlebar__progress-fill"

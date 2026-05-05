@@ -25,11 +25,14 @@ export async function handleEditorRoutes(
   if (request.method === "GET" && url.pathname === "/editor/locations") {
     const authPayload = await requireAuth(request, env);
     const denied = requireAdmin(authPayload);
-    if (denied) return denied;
+    if (denied) {
+      return denied;
+    }
     const project = url.searchParams.get("project");
     const city = url.searchParams.get("city");
-    if (!project || !city)
+    if (!project || !city) {
       return json({ ok: false, error: "Missing project or city" }, 400);
+    }
     try {
       const locations = await fetchLocations(project, city, env);
       return json({
@@ -46,12 +49,15 @@ export async function handleEditorRoutes(
   if (request.method === "GET" && url.pathname === "/editor/location") {
     const authPayload = await requireAuth(request, env);
     const denied = requireAdmin(authPayload);
-    if (denied) return denied;
+    if (denied) {
+      return denied;
+    }
     const project = url.searchParams.get("project");
     const city = url.searchParams.get("city");
     const file = url.searchParams.get("file");
-    if (!project || !city || !file)
+    if (!project || !city || !file) {
       return json({ ok: false, error: "Missing params" }, 400);
+    }
     try {
       const { filename, sha, location } = await fetchLocation(
         project,
@@ -72,11 +78,15 @@ export async function handleEditorRoutes(
   if (request.method === "GET" && url.pathname === "/editor/pr-status") {
     const authPayload = await requireAuth(request, env);
     const denied = requireAdmin(authPayload);
-    if (denied) return denied;
+    if (denied) {
+      return denied;
+    }
     const numbers = (url.searchParams.get("numbers") ?? "")
       .split(",")
       .filter(Boolean);
-    if (!numbers.length) return json({ ok: true, statuses: {} });
+    if (!numbers.length) {
+      return json({ ok: true, statuses: {} });
+    }
     try {
       const statuses = await fetchPRStatuses(numbers, env);
       return json({ ok: true, statuses });
@@ -88,7 +98,9 @@ export async function handleEditorRoutes(
   if (request.method === "POST" && url.pathname === "/editor/location") {
     const authPayload = await requireAuth(request, env);
     const denied = requireAdmin(authPayload);
-    if (denied) return denied;
+    if (denied) {
+      return denied;
+    }
     try {
       const { project, city, filename, existingSha, location } =
         (await request.json()) as {

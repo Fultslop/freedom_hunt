@@ -20,7 +20,9 @@
     }
     let cancelled = false;
     fetchImage(city.image).then((url) => {
-      if (!cancelled) imageSrc = url;
+      if (!cancelled) {
+        imageSrc = url;
+      }
     });
     return () => {
       cancelled = true;
