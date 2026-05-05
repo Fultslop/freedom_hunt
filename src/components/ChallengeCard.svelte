@@ -1,6 +1,6 @@
 <script lang="ts">
   import { BookOpen, MapPin, Crosshair, Compass } from "lucide-svelte";
-  import { fetchImage } from "../assets/AssetManager";
+  import { fetchImage, getCachedImageUrl } from "../assets/AssetManager";
   import { themeStore } from "../stores/themeStore";
   import { leafletMap } from "../actions/leafletMap";
   import MarkdownText from "./MarkdownText.svelte";
@@ -28,19 +28,19 @@
     location.coordinates.longitude,
   ]);
 
+  // Sync cache hit: runs before DOM commit, so heroSrc is correct on first paint.
+  $effect.pre(() => {
+    heroSrc = location.image ? (getCachedImageUrl(location.image) ?? null) : null;
+  });
+
+  // Async fetch for cold (uncached) images only.
   $effect(() => {
-    if (!location.image) {
-      return undefined;
-    }
+    if (!location.image || getCachedImageUrl(location.image)) return undefined;
     let cancelled = false;
     fetchImage(location.image).then((url) => {
-      if (!cancelled) {
-        heroSrc = url;
-      }
+      if (!cancelled) heroSrc = url;
     });
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   });
 </script>
 

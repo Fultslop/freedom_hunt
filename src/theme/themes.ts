@@ -20,6 +20,7 @@ export const themes: Record<ThemeName, Theme> = {
     progressFill: "#555555",
     clueBackground: "transparent",
     clueBorderColor: "transparent",
+    swipe: { mode: 'snap', hint: 0 },
   },
   app: {
     fontFamily: "'Comfortaa', sans-serif",
@@ -38,6 +39,7 @@ export const themes: Record<ThemeName, Theme> = {
     progressFill: "#f59e0b",
     clueBackground: "#1a2744",
     clueBorderColor: "transparent",
+    swipe: { mode: 'carousel', hint: 16 },
   },
   GWC: {
     fontFamily: "'Quicksand', sans-serif",
@@ -56,5 +58,6 @@ export const themes: Record<ThemeName, Theme> = {
     progressFill: "#BF0A30",
     clueBackground: "#f0f4ff",
     clueBorderColor: "#002868",
+    swipe: { mode: 'peek', hint: 12 },
   },
 };

@@ -1,76 +1,140 @@
+import { describe, test, expect, vi } from "vitest";
 import { swipe } from "../actions/swipe";
 
-function makeNode() {
-  return document.createElement("div");
+function touchStart(element: HTMLElement, clientX: number, clientY: number) {
+  element.dispatchEvent(
+    new TouchEvent("touchstart", {
+      touches: [{ clientX, clientY } as Touch],
+      changedTouches: [{ clientX, clientY } as Touch],
+      bubbles: true,
+      cancelable: true,
+    })
+  );
 }
 
-function touch(clientX: number): Touch {
-  return { clientX } as Touch;
+function touchMove(element: HTMLElement, clientX: number, clientY: number): TouchEvent {
+  const evt = new TouchEvent("touchmove", {
+    touches: [{ clientX, clientY } as Touch],
+    changedTouches: [{ clientX, clientY } as Touch],
+    bubbles: true,
+    cancelable: true,
+  });
+  element.dispatchEvent(evt);
+  return evt;
 }
 
-function makeTouchInit(touches: Touch[]): TouchEventInit {
-  return { touches } as unknown as TouchEventInit;
+function touchEnd(element: HTMLElement, clientX: number, clientY: number) {
+  element.dispatchEvent(
+    new TouchEvent("touchend", {
+      touches: [],
+      changedTouches: [{ clientX, clientY } as Touch],
+      bubbles: true,
+      cancelable: true,
+    })
+  );
 }
 
-function makeTouchInitEnd(changedTouches: Touch[]): TouchEventInit {
-  return { changedTouches } as unknown as TouchEventInit;
-}
+describe("swipe action — direction lock", () => {
+  test("predominantly vertical touchmove does not call onDragMove", () => {
+    const element = document.createElement("div");
+    const onDragMove = vi.fn();
+    swipe(element, { onDragMove, onDragEnd: vi.fn() });
 
-test("calls onSwipeLeft when delta exceeds threshold", () => {
-  const node = makeNode();
-  const onSwipeLeft = vi.fn();
-  const onSwipeRight = vi.fn();
-  swipe(node, { onSwipeLeft, onSwipeRight });
+    touchStart(element, 100, 100);
+    touchMove(element, 102, 130); // dy=30 > dx=2 → vertical
 
-  node.dispatchEvent(new TouchEvent("touchstart", makeTouchInit([touch(200)])));
-  node.dispatchEvent(
-    new TouchEvent("touchend", makeTouchInitEnd([touch(100)])),
-  );
+    expect(onDragMove).not.toHaveBeenCalled();
+  });
 
-  expect(onSwipeLeft).toHaveBeenCalledTimes(1);
-  expect(onSwipeRight).not.toHaveBeenCalled();
-});
+  test("predominantly horizontal touchmove calls onDragMove with delta", () => {
+    const element = document.createElement("div");
+    const onDragMove = vi.fn();
+    swipe(element, { onDragMove, onDragEnd: vi.fn() });
 
-test("calls onSwipeRight when delta exceeds threshold", () => {
-  const node = makeNode();
-  const onSwipeLeft = vi.fn();
-  const onSwipeRight = vi.fn();
-  swipe(node, { onSwipeLeft, onSwipeRight });
+    touchStart(element, 100, 100);
+    touchMove(element, 130, 102); // dx=30 > dy=2 → horizontal, delta=30
 
-  node.dispatchEvent(new TouchEvent("touchstart", makeTouchInit([touch(100)])));
-  node.dispatchEvent(
-    new TouchEvent("touchend", makeTouchInitEnd([touch(200)])),
-  );
+    expect(onDragMove).toHaveBeenCalledWith(30);
+  });
 
-  expect(onSwipeRight).toHaveBeenCalledTimes(1);
-  expect(onSwipeLeft).not.toHaveBeenCalled();
-});
+  test("direction lock persists for the touch even when motion turns vertical", () => {
+    const element = document.createElement("div");
+    const onDragMove = vi.fn();
+    swipe(element, { onDragMove, onDragEnd: vi.fn() });
 
-test("ignores swipes below threshold", () => {
-  const node = makeNode();
-  const onSwipeLeft = vi.fn();
-  const onSwipeRight = vi.fn();
-  swipe(node, { onSwipeLeft, onSwipeRight, threshold: 60 });
+    touchStart(element, 100, 100);
+    touchMove(element, 130, 102); // locks horizontal
+    touchMove(element, 131, 180); // very vertical, but still horizontal-locked
 
-  node.dispatchEvent(new TouchEvent("touchstart", makeTouchInit([touch(100)])));
-  node.dispatchEvent(
-    new TouchEvent("touchend", makeTouchInitEnd([touch(120)])),
-  );
+    expect(onDragMove).toHaveBeenCalledTimes(2);
+    expect(onDragMove).toHaveBeenLastCalledWith(31);
+  });
 
-  expect(onSwipeLeft).not.toHaveBeenCalled();
-  expect(onSwipeRight).not.toHaveBeenCalled();
-});
+  test("touchend calls onDragEnd with final delta after horizontal lock", () => {
+    const element = document.createElement("div");
+    const onDragEnd = vi.fn();
+    swipe(element, { onDragMove: vi.fn(), onDragEnd });
 
-test("destroy removes event listeners", () => {
-  const node = makeNode();
-  const onSwipeLeft = vi.fn();
-  const action = swipe(node, { onSwipeLeft, onSwipeRight: vi.fn() });
-  action.destroy();
+    touchStart(element, 100, 100);
+    touchMove(element, 130, 102);
+    touchEnd(element, 160, 105);
 
-  node.dispatchEvent(new TouchEvent("touchstart", makeTouchInit([touch(200)])));
-  node.dispatchEvent(
-    new TouchEvent("touchend", makeTouchInitEnd([touch(100)])),
-  );
+    expect(onDragEnd).toHaveBeenCalledWith(60); // 160 - 100
+  });
 
-  expect(onSwipeLeft).not.toHaveBeenCalled();
+  test("touchend does not call onDragEnd after vertical lock", () => {
+    const element = document.createElement("div");
+    const onDragEnd = vi.fn();
+    swipe(element, { onDragMove: vi.fn(), onDragEnd });
+
+    touchStart(element, 100, 100);
+    touchMove(element, 102, 130); // vertical lock
+    touchEnd(element, 104, 160);
+
+    expect(onDragEnd).not.toHaveBeenCalled();
+  });
+
+  test("direction resets between touches", () => {
+    const element = document.createElement("div");
+    const onDragMove = vi.fn();
+    swipe(element, { onDragMove, onDragEnd: vi.fn() });
+
+    // First touch — vertical
+    touchStart(element, 100, 100);
+    touchMove(element, 102, 130);
+    touchEnd(element, 102, 160);
+
+    // Second touch — horizontal
+    touchStart(element, 100, 100);
+    touchMove(element, 130, 102);
+
+    expect(onDragMove).toHaveBeenCalledTimes(1);
+    expect(onDragMove).toHaveBeenCalledWith(30);
+  });
+
+  test("destroy removes event listeners", () => {
+    const element = document.createElement("div");
+    const onDragMove = vi.fn();
+    const action = swipe(element, { onDragMove, onDragEnd: vi.fn() });
+    action.destroy();
+
+    touchStart(element, 100, 100);
+    touchMove(element, 150, 100);
+
+    expect(onDragMove).not.toHaveBeenCalled();
+  });
+
+  test("update replaces params", () => {
+    const element = document.createElement("div");
+    const first = vi.fn();
+    const second = vi.fn();
+    const action = swipe(element, { onDragMove: first, onDragEnd: vi.fn() });
+    action.update({ onDragMove: second, onDragEnd: vi.fn() });
+
+    touchStart(element, 100, 100);
+    touchMove(element, 130, 102);
+
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledWith(30);
+  });
 });

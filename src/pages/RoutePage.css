@@ -68,3 +68,30 @@
   font-size: var(--font-size-base);
   font-weight: 700;
 }
+
+/* --- Three-card strip (peek / carousel modes) --- */
+
+.route-page__strip {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.route-page__slot {
+  position: absolute;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  padding-bottom: 60px; /* clear the fixed nav bar */
+  box-sizing: border-box;
+}
+
+.route-page__slot--animating {
+  transition: transform 250ms ease-out;
+}
+
+.route-page__slot--empty {
+  /* geometry placeholder at first/last card — no content */
+  pointer-events: none;
+}
