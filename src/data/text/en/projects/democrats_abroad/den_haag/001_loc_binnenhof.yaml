@@ -16,6 +16,9 @@ challenge:
     Register to vote — or confirm your registration is current — before you leave this courtyard. Photograph the screen showing your completed registration as proof.
   notes: ""
   form:
+    - id: photo
+      type: photo
+      label: Take a photo of something
     - id: found_plaque
       type: boolean
       label: Did you find the plaque at the base of the William of Orange statue?
@@ -44,8 +47,5 @@ challenge:
         - American
         - German
         - UK
-    - id: photo
-      type: photo
-      label: Take a photo of something
 breadcrumb: |
   Find the inner courtyard where a statue of William of Orange keeps watch. What motto is engraved on the plaque at his feet?

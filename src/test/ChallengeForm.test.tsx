@@ -37,6 +37,60 @@ const radioField = {
   options: ["Morning", "Afternoon", "Evening"],
 };
 
+test("renders two ornamental dividers framing the field list", () => {
+  render(<ChallengeForm form={[stringField]} locationId={1} />);
+  const dividers = document.querySelectorAll(".cf-divider");
+  expect(dividers).toHaveLength(2);
+});
+
+describe("confirmation dialog", () => {
+  beforeEach(() => {
+    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({
+      activeAuth: { projectId: "test", teamName: "Alice", contact: "a@b.com" },
+    });
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  test("tapping Submit on a valid form shows confirmation dialog, not submission", () => {
+    globalThis.fetch = vi.fn();
+    render(<ChallengeForm form={[booleanField]} locationId={1} />);
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    expect(screen.getByText("Submit your answers?")).toBeInTheDocument();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  test("tapping Cancel dismisses the dialog without submitting", () => {
+    globalThis.fetch = vi.fn();
+    render(<ChallengeForm form={[booleanField]} locationId={1} />);
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByText("Submit your answers?")).not.toBeInTheDocument();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  test("tapping Confirm in dialog submits the form", async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue({
+      json: () => Promise.resolve({ ok: true }),
+    } as unknown as Response);
+    render(<ChallengeForm form={[booleanField]} locationId={1} />);
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await waitFor(() =>
+      expect(screen.getByText("✓ Answers submitted")).toBeInTheDocument(),
+    );
+  });
+
+  test("validation errors still show without opening dialog", () => {
+    globalThis.fetch = vi.fn();
+    render(<ChallengeForm form={[stringField]} locationId={1} />);
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    expect(screen.queryByText("Submit your answers?")).not.toBeInTheDocument();
+    expect(screen.getByText("This field is required")).toBeInTheDocument();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+});
+
 test("always renders submit button", () => {
   render(<ChallengeForm form={[stringField]} locationId={1} />);
   expect(
@@ -145,6 +199,7 @@ describe("submission validation", () => {
     });
     render(<ChallengeForm form={[booleanField]} locationId={1} />);
     fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     await waitFor(() =>
       expect(screen.getByText("✓ Answers submitted")).toBeInTheDocument(),
     );
@@ -180,6 +235,7 @@ describe("submission states", () => {
       target: { value: "Pro Rege" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
 
     await waitFor(() => expect(globalThis.fetch).toHaveBeenCalled());
     const [url, options] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -199,6 +255,7 @@ describe("submission states", () => {
     });
     render(<ChallengeForm form={[booleanField]} locationId={1} />);
     fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     await waitFor(() =>
       expect(screen.getByText("Submitting…")).toBeInTheDocument(),
     );
@@ -213,6 +270,7 @@ describe("submission states", () => {
     });
     render(<ChallengeForm form={[booleanField]} locationId={1} />);
     fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     await waitFor(() =>
       expect(screen.getByText("✓ Answers submitted")).toBeInTheDocument(),
     );
@@ -227,6 +285,7 @@ describe("submission states", () => {
     });
     render(<ChallengeForm form={[booleanField]} locationId={1} />);
     fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     await waitFor(() =>
       expect(screen.getByText("Try again")).toBeInTheDocument(),
     );
@@ -242,6 +301,7 @@ describe("submission states", () => {
     });
     render(<ChallengeForm form={[booleanField]} locationId={1} />);
     fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
     await waitFor(() =>
       expect(screen.getByText("Try again")).toBeInTheDocument(),
     );
@@ -266,6 +326,7 @@ test("photo field does not block submission of other fields", async () => {
   });
   render(<ChallengeForm form={[booleanField, photoField]} locationId={1} />);
   fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+  fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
   await waitFor(() =>
     expect(screen.getByText("✓ Answers submitted")).toBeInTheDocument(),
   );
@@ -282,6 +343,14 @@ describe("photo upload", () => {
     const submitBtn = screen.getByRole("button", { name: "Submit" });
     const photoBtn = screen.getByTestId("submit-btn");
     const pos = submitBtn.compareDocumentPosition(photoBtn);
+    expect(pos & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+  });
+
+  test("photo button renders at its field-order position, not always above submit", () => {
+    render(<ChallengeForm form={[photoField, stringField]} locationId={1} />);
+    const photoBtn = screen.getByTestId("submit-btn");
+    const textInput = screen.getByLabelText("What is the motto?");
+    const pos = textInput.compareDocumentPosition(photoBtn);
     expect(pos & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
   });
 

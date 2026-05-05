@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useAuth } from "../auth/AuthContext";
-import { Camera } from "lucide-react";
+import { Camera, Flag } from "lucide-react";
 import type { FormField, FormFieldType } from "../types/data";
 import "./ChallengeForm.css";
 
@@ -12,6 +12,14 @@ const VALID_TYPES: FormFieldType[] = [
   "multiple",
   "photo",
 ];
+
+const FormDivider = () => (
+  <div className="cf-divider" aria-hidden>
+    <span className="cf-divider__line" />
+    <Flag size={12} className="cf-divider__icon" />
+    <span className="cf-divider__line" />
+  </div>
+);
 
 function checkDefinition(field: FormField): string | null {
   if (!VALID_TYPES.includes(field.type)) return `unknown type "${field.type}"`;
@@ -57,8 +65,7 @@ export default function ChallengeForm({
   const maxWarningTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const hasPhotoField = form.some((f) => f.type === "photo");
+  const [showConfirm, setShowConfirm] = useState(false);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -133,13 +140,7 @@ export default function ChallengeForm({
     return newErrors;
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const newErrors = validate();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
+  async function submitAnswers() {
     setSubmitState("submitting");
     try {
       const res = await fetch("/form-submit", {
@@ -161,6 +162,21 @@ export default function ChallengeForm({
     }
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const newErrors = validate();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setShowConfirm(true);
+  }
+
+  async function handleConfirm() {
+    setShowConfirm(false);
+    await submitAnswers();
+  }
+
   function renderField(field: FormField) {
     const defError = checkDefinition(field);
     if (defError) {
@@ -171,7 +187,53 @@ export default function ChallengeForm({
       );
     }
 
-    if (field.type === "photo") return null;
+    if (field.type === "photo") {
+      return (
+        <div key={field.id} className="cf-photo-wrap">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+          />
+          {uploadState === "success" ? (
+            <div className="cf-photo-success">✓ Photo submitted</div>
+          ) : (
+            <button
+              data-testid="submit-btn"
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadState === "uploading"}
+              className={`cf-photo-btn cf-photo-btn--${uploadState}`}
+            >
+              {uploadState === "uploading" ? (
+                "Uploading…"
+              ) : uploadState === "error" ? (
+                <>
+                  <Camera
+                    size={14}
+                    aria-hidden
+                    style={{ verticalAlign: "middle", marginRight: 4 }}
+                  />{" "}
+                  Try again
+                </>
+              ) : (
+                <>
+                  <Camera
+                    size={14}
+                    aria-hidden
+                    style={{ verticalAlign: "middle", marginRight: 4 }}
+                  />{" "}
+                  {field.label ?? "Submit photo proof"}
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      );
+    }
 
     return (
       <div key={field.id} className="cf-field">
@@ -284,56 +346,9 @@ export default function ChallengeForm({
 
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: 14 }}>
+      <FormDivider />
       {form.map(renderField)}
-
-      {hasPhotoField ? (
-        <div className="cf-photo-wrap">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleFileChange}
-            style={{ display: "none" }}
-          />
-          {uploadState === "success" ? (
-            <div className="cf-photo-success">✓ Photo submitted</div>
-          ) : (
-            <>
-              <button
-                data-testid="submit-btn"
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadState === "uploading"}
-                className={`cf-photo-btn cf-photo-btn--${uploadState}`}
-              >
-                {uploadState === "uploading" ? (
-                  "Uploading…"
-                ) : uploadState === "error" ? (
-                  <>
-                    <Camera
-                      size={14}
-                      aria-hidden
-                      style={{ verticalAlign: "middle", marginRight: 4 }}
-                    />{" "}
-                    Try again
-                  </>
-                ) : (
-                  <>
-                    <Camera
-                      size={14}
-                      aria-hidden
-                      style={{ verticalAlign: "middle", marginRight: 4 }}
-                    />{" "}
-                    {form.find((f) => f.type === "photo")?.label ??
-                      "Submit photo proof"}
-                  </>
-                )}
-              </button>
-            </>
-          )}
-        </div>
-      ) : null}
+      <FormDivider />
 
       {submitState === "error" ? (
         <div className="cf-error-banner">
@@ -344,7 +359,7 @@ export default function ChallengeForm({
       <button
         type="submit"
         disabled={submitState === "submitting"}
-        className="cf-submit"
+        className="cf-submit-btn"
       >
         {submitState === "submitting"
           ? "Submitting…"
@@ -352,6 +367,30 @@ export default function ChallengeForm({
             ? "Try again"
             : "Submit"}
       </button>
+
+      {showConfirm ? (
+        <div className="cf-confirm-overlay">
+          <div className="cf-confirm-dialog">
+            <p className="cf-confirm-msg">Submit your answers?</p>
+            <div className="cf-confirm-actions">
+              <button
+                type="button"
+                className="cf-confirm-cancel"
+                onClick={() => setShowConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="cf-confirm-ok"
+                onClick={handleConfirm}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </form>
   );
 }
