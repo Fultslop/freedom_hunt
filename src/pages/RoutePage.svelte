@@ -16,6 +16,7 @@
     elasticOffset,
   } from "../utils/routeNav";
   import { swipe } from "../actions/swipe";
+  import { preloadImages } from "../assets/AssetManager";
   import ChallengeCard from "../components/ChallengeCard.svelte";
   import type { RoutesData, Location } from "../types/data";
   import { untrack } from "svelte";
@@ -46,6 +47,7 @@
   let dragOffset = $state(0);
   let isAnimating = $state(false);
   let pendingCommit = $state<"next" | "prev" | null>(null);
+  let currentSlotIndex = $state(1); // which of the 3 divs is the "current" slot
 
   $effect(() => {
     const lang = $languageStore.currentLang;
@@ -79,6 +81,12 @@
 
   $effect(() => {
     localStorage.setItem(storageKey, String(currentIndex));
+  });
+
+  $effect(() => {
+    if (locations.length === 0) return;
+    const images = locations.flatMap((l) => (l.image ? [l.image] : []));
+    preloadImages(images);
   });
 
   function handleDragMove(delta: number) {
@@ -134,18 +142,19 @@
   }
 
   function handleTransitionEnd(e: TransitionEvent) {
-    if (e.propertyName === "transform") {
-      isAnimating = false;
-      if (pendingCommit === "next") {
-        direction = "next";
-        currentIndex = clampedNext(currentIndex, locations.length);
-      } else if (pendingCommit === "prev") {
-        direction = "prev";
-        currentIndex = clampedPrev(currentIndex);
-      }
-      pendingCommit = null;
-      dragOffset = 0;
+    if (e.propertyName !== "transform") return;
+    isAnimating = false;
+    if (pendingCommit === "next") {
+      direction = "next";
+      currentIndex = clampedNext(currentIndex, locations.length);
+      currentSlotIndex = (currentSlotIndex + 1) % 3;
+    } else if (pendingCommit === "prev") {
+      direction = "prev";
+      currentIndex = clampedPrev(currentIndex);
+      currentSlotIndex = (currentSlotIndex + 2) % 3;
     }
+    pendingCommit = null;
+    dragOffset = 0;
   }
 
   let currentLocation = $derived(locations[currentIndex]);
@@ -161,17 +170,6 @@
   });
   let cardWidth = $derived(windowWidth - 2 * hint);
 
-  let prevLocation = $derived(
-    currentIndex > 0 ? locations[currentIndex - 1] : null,
-  );
-  let nextLocation = $derived(
-    currentIndex < locations.length - 1 ? locations[currentIndex + 1] : null,
-  );
-
-  // Resting left positions for each slot (px from left edge of strip)
-  let prevLeft = $derived(hint - cardWidth); // right edge at hint px
-  let currentLeft = $derived(hint);
-  let nextLeft = $derived(hint + cardWidth); // left edge at 100vw - hint px
 </script>
 
 <div
@@ -195,62 +193,33 @@
       </div>
     {:else}
       <div class="route-page__strip">
-        <!-- Prev slot -->
-        {#if prevLocation}
-          <div
-            class="route-page__slot"
-            class:route-page__slot--animating={isAnimating}
-            style="left: {prevLeft}px; width: {cardWidth}px; transform: translateX({dragOffset}px)"
-          >
-            <ChallengeCard
-              location={prevLocation}
-              isLast={currentIndex - 1 === locations.length - 1}
-              index={currentIndex}
-              routeId={params.route}
-            />
-          </div>
-        {:else}
-          <div
-            class="route-page__slot route-page__slot--empty"
-            style="left: {prevLeft}px; width: {cardWidth}px"
-          ></div>
-        {/if}
-
-        <!-- Current slot -->
-        <div
-          class="route-page__slot"
-          class:route-page__slot--animating={isAnimating}
-          style="left: {currentLeft}px; width: {cardWidth}px; transform: translateX({dragOffset}px)"
-          ontransitionend={handleTransitionEnd}
-        >
-          <ChallengeCard
-            location={currentLocation}
-            isLast={currentIndex === locations.length - 1}
-            index={currentIndex + 1}
-            routeId={params.route}
-          />
-        </div>
-
-        <!-- Next slot -->
-        {#if nextLocation}
-          <div
-            class="route-page__slot"
-            class:route-page__slot--animating={isAnimating}
-            style="left: {nextLeft}px; width: {cardWidth}px; transform: translateX({dragOffset}px)"
-          >
-            <ChallengeCard
-              location={nextLocation}
-              isLast={currentIndex + 1 === locations.length - 1}
-              index={currentIndex + 2}
-              routeId={params.route}
-            />
-          </div>
-        {:else}
-          <div
-            class="route-page__slot route-page__slot--empty"
-            style="left: {nextLeft}px; width: {cardWidth}px"
-          ></div>
-        {/if}
+        {#each [0, 1, 2] as slotIdx (slotIdx)}
+          {@const roleRaw = (slotIdx - currentSlotIndex + 3) % 3}
+          {@const role = roleRaw === 2 ? -1 : roleRaw}
+          {@const locIdx = currentIndex + role}
+          {@const slotLocation = locIdx >= 0 && locIdx < locations.length ? locations[locIdx] : null}
+          {@const translateX = hint + role * cardWidth + dragOffset}
+          {#if slotLocation}
+            <div
+              class="route-page__slot"
+              class:route-page__slot--animating={isAnimating}
+              style="width: {cardWidth}px; transform: translateX({translateX}px)"
+              ontransitionend={role === 0 ? handleTransitionEnd : undefined}
+            >
+              <ChallengeCard
+                location={slotLocation}
+                isLast={locIdx === locations.length - 1}
+                index={locIdx + 1}
+                routeId={params.route}
+              />
+            </div>
+          {:else}
+            <div
+              class="route-page__slot route-page__slot--empty"
+              style="width: {cardWidth}px; transform: translateX({hint + role * cardWidth}px)"
+            ></div>
+          {/if}
+        {/each}
       </div>
     {/if}
   {:else}
