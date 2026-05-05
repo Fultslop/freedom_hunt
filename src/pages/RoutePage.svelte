@@ -11,6 +11,7 @@
   import { clampedNext, clampedPrev } from "../utils/routeNav";
   import ChallengeCard from "../components/ChallengeCard.svelte";
   import type { RoutesData, Location } from "../types/data";
+  import { untrack } from "svelte";
   import "./RoutePage.css";
 
   let { params }: { params: { project: string; city: string; route: string } } = $props();
@@ -23,7 +24,9 @@
   );
   let locations = $state<Location[]>([]);
 
-  const _savedIndex = localStorage.getItem(storageKey);
+  // use localStorage to remember the last visited location index for this route
+  // we use untrack to avoid svelte warnings
+  const _savedIndex = localStorage.getItem(untrack(() => storageKey));
   const _parsedIndex = _savedIndex ? parseInt(_savedIndex, 10) : 0;
   let currentIndex = $state<number>(isNaN(_parsedIndex) ? 0 : _parsedIndex);
   let direction = $state<"next" | "prev">("next");

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import { push } from "svelte-spa-router";
   import { titleBarStore } from "../../stores/titleBarStore";
   import { addPending } from "./editorStorage";
@@ -7,7 +8,13 @@
 
   let {
     params,
-  }: { params: { project: string; city: string; filename?: string } } = $props();
+  }: { 
+    params: { 
+        project: string; 
+        city: string; 
+        filename?: string 
+    } 
+  } = $props();
 
   const isEdit = $derived(!!params.filename);
 
@@ -45,7 +52,7 @@
 
   let fields = $state<Fields>({ ...EMPTY });
   let existingSha = $state<string | null>(null);
-  let loading = $state(!!params.filename);
+  let loading = $state(untrack(() => Boolean(params.filename)));
   let submitState = $state<"idle" | "submitting" | "success" | "error">("idle");
   let prUrl = $state<string | null>(null);
   let submitError = $state<string | null>(null);
