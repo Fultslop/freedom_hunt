@@ -19,31 +19,46 @@ afterEach(() => {
 });
 
 test("renders form fields", () => {
-  render(ChallengeForm, { props: { form, locationId: 1, routeId: "short_loop" } });
+  render(ChallengeForm, {
+    props: { form, locationId: 1, routeId: "short_loop" },
+  });
   expect(screen.getByText("Did you find it?")).toBeInTheDocument();
   expect(screen.getByText("Your note")).toBeInTheDocument();
 });
 
 test("shows validation error when required field is empty", async () => {
-  render(ChallengeForm, { props: { form, locationId: 1, routeId: "short_loop" } });
+  render(ChallengeForm, {
+    props: { form, locationId: 1, routeId: "short_loop" },
+  });
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   expect(screen.getByText("Required")).toBeInTheDocument();
   expect(screen.queryByText(/submit your answers/i)).not.toBeInTheDocument();
 });
 
 test("shows confirmation dialog when all required fields are filled", async () => {
-  render(ChallengeForm, { props: { form, locationId: 1, routeId: "short_loop" } });
-  await fireEvent.input(screen.getByLabelText("Your note"), { target: { value: "some text" } });
+  render(ChallengeForm, {
+    props: { form, locationId: 1, routeId: "short_loop" },
+  });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "some text" },
+  });
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   expect(screen.getByText(/submit your answers/i)).toBeInTheDocument();
 });
 
 test("submits on confirm", async () => {
-  render(ChallengeForm, { props: { form, locationId: 1, routeId: "short_loop" } });
-  await fireEvent.input(screen.getByLabelText("Your note"), { target: { value: "some text" } });
+  render(ChallengeForm, {
+    props: { form, locationId: 1, routeId: "short_loop" },
+  });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "some text" },
+  });
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
-  expect(fetch).toHaveBeenCalledWith("/form-submit", expect.objectContaining({ method: "POST" }));
+  expect(fetch).toHaveBeenCalledWith(
+    "/form-submit",
+    expect.objectContaining({ method: "POST" }),
+  );
 });
 
 test("renders two ornamental dividers framing the field list", () => {
@@ -69,11 +84,17 @@ test("multiple field: blocks selection beyond max and shows warning", async () =
   await fireEvent.click(screen.getByLabelText("EU"));
   await fireEvent.click(screen.getByLabelText("American"));
   expect(screen.getByText(/you can only select 2/i)).toBeInTheDocument();
-  expect((screen.getByLabelText("American") as HTMLInputElement).checked).toBe(false);
+  expect((screen.getByLabelText("American") as HTMLInputElement).checked).toBe(
+    false,
+  );
 });
 
 test("photo field uses label as button text", () => {
-  const photoForm = [{ id: "pic", type: "photo" as const, label: "Take a photo" }];
+  const photoForm = [
+    { id: "pic", type: "photo" as const, label: "Take a photo" },
+  ];
   render(ChallengeForm, { props: { form: photoForm, locationId: 1 } });
-  expect(screen.getByRole("button", { name: /take a photo/i })).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: /take a photo/i }),
+  ).toBeInTheDocument();
 });

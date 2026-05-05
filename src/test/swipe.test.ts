@@ -22,9 +22,7 @@ test("calls onSwipeLeft when delta exceeds threshold", () => {
   const onSwipeRight = vi.fn();
   swipe(node, { onSwipeLeft, onSwipeRight });
 
-  node.dispatchEvent(
-    new TouchEvent("touchstart", makeTouchInit([touch(200)])),
-  );
+  node.dispatchEvent(new TouchEvent("touchstart", makeTouchInit([touch(200)])));
   node.dispatchEvent(
     new TouchEvent("touchend", makeTouchInitEnd([touch(100)])),
   );
@@ -39,9 +37,7 @@ test("calls onSwipeRight when delta exceeds threshold", () => {
   const onSwipeRight = vi.fn();
   swipe(node, { onSwipeLeft, onSwipeRight });
 
-  node.dispatchEvent(
-    new TouchEvent("touchstart", makeTouchInit([touch(100)])),
-  );
+  node.dispatchEvent(new TouchEvent("touchstart", makeTouchInit([touch(100)])));
   node.dispatchEvent(
     new TouchEvent("touchend", makeTouchInitEnd([touch(200)])),
   );
@@ -56,9 +52,7 @@ test("ignores swipes below threshold", () => {
   const onSwipeRight = vi.fn();
   swipe(node, { onSwipeLeft, onSwipeRight, threshold: 60 });
 
-  node.dispatchEvent(
-    new TouchEvent("touchstart", makeTouchInit([touch(100)])),
-  );
+  node.dispatchEvent(new TouchEvent("touchstart", makeTouchInit([touch(100)])));
   node.dispatchEvent(
     new TouchEvent("touchend", makeTouchInitEnd([touch(120)])),
   );
@@ -73,9 +67,7 @@ test("destroy removes event listeners", () => {
   const action = swipe(node, { onSwipeLeft, onSwipeRight: vi.fn() });
   action.destroy();
 
-  node.dispatchEvent(
-    new TouchEvent("touchstart", makeTouchInit([touch(200)])),
-  );
+  node.dispatchEvent(new TouchEvent("touchstart", makeTouchInit([touch(200)])));
   node.dispatchEvent(
     new TouchEvent("touchend", makeTouchInitEnd([touch(100)])),
   );

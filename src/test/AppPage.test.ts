@@ -5,7 +5,12 @@ import { titleBarStore } from "../stores/titleBarStore";
 vi.mock("../utils/loadText", () => ({
   loadText: vi.fn().mockResolvedValue({
     items: [
-      { id: "democrats_abroad", name: "Democrats Abroad", description: "DA desc", image: null },
+      {
+        id: "democrats_abroad",
+        name: "Democrats Abroad",
+        description: "DA desc",
+        image: null,
+      },
     ],
   }),
 }));

@@ -19,23 +19,36 @@
   let projectImageUrls = $state<Record<string, string>>({});
 
   $effect(() => {
-    loadText<ApplicationText>($languageStore.currentLang, "application").then((data) => {
-      appText = data;
-      if (data) titleBarStore.set({ title: data["app.title"] ?? "Freedom Hunt", progress: null, backPath: null });
-    });
-    loadText<ProjectsText>($languageStore.currentLang, "projects/projects").then((data) => {
+    loadText<ApplicationText>($languageStore.currentLang, "application").then(
+      (data) => {
+        appText = data;
+        if (data)
+          titleBarStore.set({
+            title: data["app.title"] ?? "Freedom Hunt",
+            progress: null,
+            backPath: null,
+          });
+      },
+    );
+    loadText<ProjectsText>(
+      $languageStore.currentLang,
+      "projects/projects",
+    ).then((data) => {
       projectsText = data;
       if (data?.items) {
         data.items.forEach((project) => {
           if (project.image) {
             fetchImage(project.image).then((url) => {
-              if (url) projectImageUrls = { ...projectImageUrls, [project.id]: url };
+              if (url)
+                projectImageUrls = { ...projectImageUrls, [project.id]: url };
             });
           }
         });
       }
     });
-    fetchImage("landing-page.jpg").then((url) => { landingImageUrl = url; });
+    fetchImage("landing-page.jpg").then((url) => {
+      landingImageUrl = url;
+    });
   });
 
   let contentMarginTop = $derived(
@@ -49,11 +62,15 @@
 
 <div class="app-page">
   {#if landingImageUrl}
-    <div class="app-page__hero-wrap" style={`height: ${imgHeight ? imgHeight / 2 + "px" : "auto"}`}>
+    <div
+      class="app-page__hero-wrap"
+      style={`height: ${imgHeight ? imgHeight / 2 + "px" : "auto"}`}
+    >
       <img
         src={landingImageUrl}
         alt=""
-        onload={(e) => imgHeight = (e.target as HTMLImageElement).offsetHeight}
+        onload={(e) =>
+          (imgHeight = (e.target as HTMLImageElement).offsetHeight)}
         class="app-page__hero-img"
       />
       <div class="app-page__hero-gradient"></div>
@@ -76,10 +93,15 @@
           tabindex="0"
           class="app-page__project-card"
           onclick={() => push(`/${project.id}`)}
-          onkeydown={(e) => (e.key === "Enter" || e.key === " ") && push(`/${project.id}`)}
+          onkeydown={(e) =>
+            (e.key === "Enter" || e.key === " ") && push(`/${project.id}`)}
         >
           {#if projectImageUrls[project.id]}
-            <img src={projectImageUrls[project.id]} alt="" class="app-page__project-img" />
+            <img
+              src={projectImageUrls[project.id]}
+              alt=""
+              class="app-page__project-img"
+            />
           {/if}
           <div class="app-page__project-body">
             <div class="app-page__project-name">{project.name}</div>

@@ -9,7 +9,11 @@ interface AuthStoreState {
 }
 
 function createAuthStore() {
-  const { subscribe, set, update: upd } = writable<AuthStoreState>({
+  const {
+    subscribe,
+    set,
+    update: upd,
+  } = writable<AuthStoreState>({
     activeAuth: null,
     authLoading: true,
     isLoggingOut: false,

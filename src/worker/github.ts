@@ -116,11 +116,9 @@ export async function createLocationPR(
   const branch = `editor/${Date.now()}`;
   const path = locationFilePath(project, city, filename);
 
-  const { object } = (await githubRequest(
-    `/git/ref/heads/main`,
-    {},
-    env,
-  )) as { object: { sha: string } };
+  const { object } = (await githubRequest(`/git/ref/heads/main`, {}, env)) as {
+    object: { sha: string };
+  };
 
   await githubRequest(
     `/git/refs`,

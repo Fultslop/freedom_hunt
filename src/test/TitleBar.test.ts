@@ -27,7 +27,11 @@ test("hides back button when backPath is null", () => {
 });
 
 test("renders progress bar when progress is set", () => {
-  titleBarStore.set({ title: "Test", progress: { current: 2, total: 3 }, backPath: null });
+  titleBarStore.set({
+    title: "Test",
+    progress: { current: 2, total: 3 },
+    backPath: null,
+  });
   render(TitleBar);
   expect(screen.getByTestId("progress-bar")).toBeInTheDocument();
 });

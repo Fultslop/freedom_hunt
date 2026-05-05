@@ -39,7 +39,7 @@
 
     <div class="titlebar__menu-wrap">
       <button
-        onclick={() => menuView = menuView ? null : "root"}
+        onclick={() => (menuView = menuView ? null : "root")}
         aria-label="Menu"
         class="titlebar__menu-btn"
       >
@@ -50,21 +50,21 @@
         <div class="titlebar__dropdown">
           {#if menuView === "root"}
             <button
-              onclick={() => menuView = "profile"}
+              onclick={() => (menuView = "profile")}
               class="titlebar__menu-item"
             >
               <span class="titlebar__menu-item-label">Profile</span>
               <span class="titlebar__menu-item-arrow">›</span>
             </button>
             <button
-              onclick={() => menuView = "themes"}
+              onclick={() => (menuView = "themes")}
               class="titlebar__menu-item"
             >
               <span class="titlebar__menu-item-label">Themes</span>
               <span class="titlebar__menu-item-arrow">›</span>
             </button>
             <button
-              onclick={() => menuView = "fontsize"}
+              onclick={() => (menuView = "fontsize")}
               class="titlebar__menu-item"
             >
               <span class="titlebar__menu-item-label">Text Size</span>
@@ -74,7 +74,7 @@
 
           {#if menuView === "profile"}
             <button
-              onclick={() => menuView = "root"}
+              onclick={() => (menuView = "root")}
               aria-label="Back to menu"
               class="titlebar__submenu-header"
             >
@@ -108,7 +108,7 @@
 
           {#if menuView === "themes"}
             <button
-              onclick={() => menuView = "root"}
+              onclick={() => (menuView = "root")}
               aria-label="Back to menu"
               class="titlebar__submenu-header"
             >
@@ -122,7 +122,14 @@
                   closeMenu();
                 }}
                 class="titlebar__theme-btn"
-                style="background: {themeName === $themeStore.themeName ? $themeStore.theme.accent : "transparent"}; color: {themeName === $themeStore.themeName ? $themeStore.theme.barText : $themeStore.theme.text}; font-weight: {themeName === $themeStore.themeName ? 700 : 400}"
+                style="background: {themeName === $themeStore.themeName
+                  ? $themeStore.theme.accent
+                  : 'transparent'}; color: {themeName === $themeStore.themeName
+                  ? $themeStore.theme.barText
+                  : $themeStore.theme.text}; font-weight: {themeName ===
+                $themeStore.themeName
+                  ? 700
+                  : 400}"
               >
                 <span>{themeName}</span>
                 {#if themeName === $themeStore.themeName}
@@ -134,7 +141,7 @@
 
           {#if menuView === "fontsize"}
             <button
-              onclick={() => menuView = "root"}
+              onclick={() => (menuView = "root")}
               aria-label="Back to menu"
               class="titlebar__submenu-header"
             >
@@ -148,7 +155,15 @@
                   closeMenu();
                 }}
                 class="titlebar__theme-btn"
-                style="background: {fontSizeEntry === $fontSizeStore.fontSize ? $themeStore.theme.accent : "transparent"}; color: {fontSizeEntry === $fontSizeStore.fontSize ? $themeStore.theme.barText : $themeStore.theme.text}; font-weight: {fontSizeEntry === $fontSizeStore.fontSize ? 700 : 400}"
+                style="background: {fontSizeEntry === $fontSizeStore.fontSize
+                  ? $themeStore.theme.accent
+                  : 'transparent'}; color: {fontSizeEntry ===
+                $fontSizeStore.fontSize
+                  ? $themeStore.theme.barText
+                  : $themeStore.theme.text}; font-weight: {fontSizeEntry ===
+                $fontSizeStore.fontSize
+                  ? 700
+                  : 400}"
               >
                 <span style="text-transform: capitalize">{fontSizeEntry}</span>
                 {#if fontSizeEntry === $fontSizeStore.fontSize}
@@ -170,7 +185,9 @@
     >
       <div
         class="titlebar__progress-fill"
-        style="width: {($titleBarStore.progress.current / $titleBarStore.progress.total) * 100}%"
+        style="width: {($titleBarStore.progress.current /
+          $titleBarStore.progress.total) *
+          100}%"
       ></div>
     </div>
   {/if}

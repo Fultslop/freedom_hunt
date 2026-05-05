@@ -2,7 +2,9 @@ import { get } from "svelte/store";
 import { replace } from "svelte-spa-router";
 import { authStore } from "../stores/authStore";
 
-export function requireAuth(detail: { params?: Record<string, string> | null }): boolean {
+export function requireAuth(detail: {
+  params?: Record<string, string> | null;
+}): boolean {
   const { activeAuth, authLoading, isLoggingOut } = get(authStore);
   if (authLoading || isLoggingOut) return true;
   if (!activeAuth) {

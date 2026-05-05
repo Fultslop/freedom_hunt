@@ -13,7 +13,9 @@ beforeEach(() => {
 
 test("renders organiser tools heading", () => {
   render(EditorPage);
-  expect(screen.getByRole("heading", { name: /organiser tools/i })).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", { name: /organiser tools/i }),
+  ).toBeInTheDocument();
 });
 
 test("renders locations tile link", () => {

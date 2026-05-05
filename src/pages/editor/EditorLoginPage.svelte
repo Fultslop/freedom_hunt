@@ -21,7 +21,11 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ project, teamName: "", contact: "", password }),
       });
-      const data = (await res.json()) as { ok: boolean; isAdmin?: boolean; error?: string };
+      const data = (await res.json()) as {
+        ok: boolean;
+        isAdmin?: boolean;
+        error?: string;
+      };
       if (data.ok && data.isAdmin) {
         authStore.login(project, "", "", true);
         push("/editor");
@@ -54,7 +58,11 @@
         class="editor-login__input"
       />
     </div>
-    <div class={error ? "editor-login__field--last-error" : "editor-login__field--last"}>
+    <div
+      class={error
+        ? "editor-login__field--last-error"
+        : "editor-login__field--last"}
+    >
       <label class="editor-login__label" for="password">Admin password</label>
       <input
         id="password"

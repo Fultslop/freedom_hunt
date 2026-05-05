@@ -8,14 +8,24 @@ const routeData = {
 
 test("renders route description", () => {
   render(RouteSelector, {
-    props: { project: "da", city: "den_haag", routeId: "short_loop", route: routeData },
+    props: {
+      project: "da",
+      city: "den_haag",
+      routeId: "short_loop",
+      route: routeData,
+    },
   });
   expect(screen.getByText("A 2.5–3 hour route")).toBeInTheDocument();
 });
 
 test("shows stop count", () => {
   render(RouteSelector, {
-    props: { project: "da", city: "den_haag", routeId: "short_loop", route: routeData },
+    props: {
+      project: "da",
+      city: "den_haag",
+      routeId: "short_loop",
+      route: routeData,
+    },
   });
   expect(screen.getByText("2 stops")).toBeInTheDocument();
 });

@@ -13,5 +13,7 @@ beforeEach(() => {
 
 test("renders login form", () => {
   render(LoginPage, { props: { params: { project: "democrats_abroad" } } });
-  expect(screen.getByRole("button", { name: /join the hunt/i })).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: /join the hunt/i }),
+  ).toBeInTheDocument();
 });

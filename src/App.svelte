@@ -30,11 +30,23 @@
   const routes = {
     "/": asRoute(AppPage),
     "/login/:project": asRoute(LoginPage),
-    "/:project": wrap({ component: asRoute(ProjectPage), conditions: [requireAuth] }),
-    "/:project/:city": wrap({ component: asRoute(CityPage), conditions: [requireAuth] }),
-    "/:project/:city/:route": wrap({ component: asRoute(RoutePage), conditions: [requireAuth] }),
+    "/:project": wrap({
+      component: asRoute(ProjectPage),
+      conditions: [requireAuth],
+    }),
+    "/:project/:city": wrap({
+      component: asRoute(CityPage),
+      conditions: [requireAuth],
+    }),
+    "/:project/:city/:route": wrap({
+      component: asRoute(RoutePage),
+      conditions: [requireAuth],
+    }),
     "/editor/login": asRoute(EditorLoginPage),
-    "/editor": wrap({ component: asRoute(EditorPage), conditions: [requireAdmin] }),
+    "/editor": wrap({
+      component: asRoute(EditorPage),
+      conditions: [requireAdmin],
+    }),
     "/editor/locations/:project/:city": wrap({
       component: asRoute(EditorLocationList),
       conditions: [requireAdmin],
@@ -71,10 +83,7 @@
     root.style.setProperty("--color-progress-track", theme.progressTrack);
     root.style.setProperty("--color-progress-fill", theme.progressFill);
     root.style.setProperty("--color-clue-background", theme.clueBackground);
-    root.style.setProperty(
-      "--color-clue-border-color",
-      theme.clueBorderColor,
-    );
+    root.style.setProperty("--color-clue-border-color", theme.clueBorderColor);
     document.body.style.background = theme.background;
   });
 

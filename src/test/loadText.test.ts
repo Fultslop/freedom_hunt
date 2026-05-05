@@ -21,7 +21,9 @@ describe("loadLocations", () => {
   it("returns loaded locations in order", async () => {
     const loc = { locationId: 1, title: "Binnenhof" } as Location;
     vi.mocked(loadText).mockResolvedValueOnce(loc);
-    const result = await loadLocations("en", ["projects/x/y/001_loc_binnenhof"]);
+    const result = await loadLocations("en", [
+      "projects/x/y/001_loc_binnenhof",
+    ]);
     expect(result).toHaveLength(1);
     expect(result[0].title).toBe("Binnenhof");
   });

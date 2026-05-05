@@ -14,13 +14,18 @@
   import { untrack } from "svelte";
   import "./RoutePage.css";
 
-  let { params }: { params: { project: string; city: string; route: string } } = $props();
+  let { params }: { params: { project: string; city: string; route: string } } =
+    $props();
 
   let storageKey = $derived(`${params.project}/${params.city}/${params.route}`);
   let routesText = $state<RoutesData | null>(null);
   let routeData = $derived(routesText?.[params.route] ?? null);
   let locationPaths = $derived(
-    routeData ? routeData.locations.map((id: string) => `projects/${params.project}/${params.city}/${id}`) : []
+    routeData
+      ? routeData.locations.map(
+          (id: string) => `projects/${params.project}/${params.city}/${id}`,
+        )
+      : [],
   );
   let locations = $state<Location[]>([]);
 
@@ -34,7 +39,10 @@
 
   $effect(() => {
     const lang = $languageStore.currentLang;
-    loadText<RoutesData>(lang, `projects/${params.project}/${params.city}/routes`).then((data) => {
+    loadText<RoutesData>(
+      lang,
+      `projects/${params.project}/${params.city}/routes`,
+    ).then((data) => {
       routesText = data;
     });
   });
@@ -51,7 +59,10 @@
   $effect(() => {
     titleBarStore.set({
       title: params.route.replace(/_/g, " "),
-      progress: locations.length > 0 ? { current: currentIndex + 1, total: locations.length } : null,
+      progress:
+        locations.length > 0
+          ? { current: currentIndex + 1, total: locations.length }
+          : null,
       backPath: `/${params.project}/${params.city}`,
     });
   });
@@ -89,7 +100,10 @@
   ontouchend={handleTouchEnd}
 >
   {#if locations.length > 0 && currentLocation}
-    <div class="route-page__cards" style={`animation: ${direction === "next" ? "slideInFromRight" : "slideInFromLeft"} 250ms ease-out`}>
+    <div
+      class="route-page__cards"
+      style={`animation: ${direction === "next" ? "slideInFromRight" : "slideInFromLeft"} 250ms ease-out`}
+    >
       <ChallengeCard
         location={currentLocation}
         isLast={currentIndex === locations.length - 1}
@@ -106,17 +120,33 @@
       {#if currentIndex > 0}
         <button
           aria-label="Previous stop"
-          onclick={() => { direction = "prev"; currentIndex = clampedPrev(currentIndex); }}
+          onclick={() => {
+            direction = "prev";
+            currentIndex = clampedPrev(currentIndex);
+          }}
           class="route-page__prev-btn"
         >
           <!-- ChevronLeft -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg
+          >
           Prev
         </button>
       {/if}
     </div>
 
-    <button onclick={() => push(`/${params.project}/${params.city}`)} class="route-page__exit-btn">
+    <button
+      onclick={() => push(`/${params.project}/${params.city}`)}
+      class="route-page__exit-btn"
+    >
       Exit
     </button>
 
@@ -124,12 +154,25 @@
       {#if currentIndex < locations.length - 1}
         <button
           aria-label="Next stop"
-          onclick={() => { direction = "next"; currentIndex = clampedNext(currentIndex, locations.length); }}
+          onclick={() => {
+            direction = "next";
+            currentIndex = clampedNext(currentIndex, locations.length);
+          }}
           class="route-page__next-btn"
         >
           Next
           <!-- ChevronRight -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg
+          >
         </button>
       {/if}
     </div>

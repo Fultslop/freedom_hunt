@@ -1,7 +1,12 @@
 <script lang="ts">
   import { push } from "svelte-spa-router";
   import { titleBarStore } from "../../stores/titleBarStore";
-  import { getPending, addPending, removePending, type PendingEntry as BasePendingEntry } from "./editorStorage";
+  import {
+    getPending,
+    addPending,
+    removePending,
+    type PendingEntry as BasePendingEntry,
+  } from "./editorStorage";
   import type { Location } from "../../types/data";
   import "./EditorLocationList.css";
 
@@ -25,17 +30,27 @@
   let error = $state<string | null>(null);
   let pending = $state<PendingEntry[]>([]);
 
-  titleBarStore.set({ title: "Locations", progress: null, backPath: "/editor" });
+  titleBarStore.set({
+    title: "Locations",
+    progress: null,
+    backPath: "/editor",
+  });
 
   async function fetchLocations() {
     loading = true;
     error = null;
     try {
-      const res = await fetch(`/editor/locations?project=${params.project}&city=${params.city}`);
-      const data = (await res.json()) as { ok: boolean; locations?: LocationEntry[]; error?: string };
+      const res = await fetch(
+        `/editor/locations?project=${params.project}&city=${params.city}`,
+      );
+      const data = (await res.json()) as {
+        ok: boolean;
+        locations?: LocationEntry[];
+        error?: string;
+      };
       if (data.ok && data.locations) {
         locations = data.locations.sort(
-          (a, b) => (a.location.locationId ?? 0) - (b.location.locationId ?? 0)
+          (a, b) => (a.location.locationId ?? 0) - (b.location.locationId ?? 0),
         );
       } else {
         error = data.error ?? "Failed to load locations";
@@ -52,17 +67,24 @@
     pending = items;
     if (items.length > 0) {
       const numbers = items
-        .map((p) => (p.prUrl as string | undefined)?.match(/\/pull\/(\d+)/)?.[1])
+        .map(
+          (p) => (p.prUrl as string | undefined)?.match(/\/pull\/(\d+)/)?.[1],
+        )
         .filter(Boolean);
       if (numbers.length > 0) {
         fetch(`/editor/pr-status?numbers=${numbers.join(",")}`)
           .then((r) => r.json())
           .then((data) => {
-            const typed = data as { ok?: boolean; statuses?: Record<string, string> };
+            const typed = data as {
+              ok?: boolean;
+              statuses?: Record<string, string>;
+            };
             if (typed.ok && typed.statuses) {
               let changed = false;
               items.forEach((p) => {
-                const n = (p.prUrl as string | undefined)?.match(/\/pull\/(\d+)/)?.[1];
+                const n = (p.prUrl as string | undefined)?.match(
+                  /\/pull\/(\d+)/,
+                )?.[1];
                 if (n && typed.statuses![n] === "closed") {
                   removePending(params.project, params.city, p.filename);
                   changed = true;
@@ -83,8 +105,15 @@
     syncPending();
   });
 
-  async function handleHide(loc: Location & { _filename?: string }, sha: string) {
-    if (window.confirm(`Hide "${loc.title}"? This will open a PR setting hidden: true.`)) {
+  async function handleHide(
+    loc: Location & { _filename?: string },
+    sha: string,
+  ) {
+    if (
+      window.confirm(
+        `Hide "${loc.title}"? This will open a PR setting hidden: true.`,
+      )
+    ) {
       const { _filename, ...cleanLoc } = loc;
       try {
         const res = await fetch("/editor/location", {
@@ -98,7 +127,11 @@
             location: { ...cleanLoc, hidden: true },
           }),
         });
-        const data = (await res.json()) as { ok?: boolean; prUrl?: string; error?: string };
+        const data = (await res.json()) as {
+          ok?: boolean;
+          prUrl?: string;
+          error?: string;
+        };
         if (data.ok) {
           addPending(params.project, params.city, {
             filename: _filename!,
@@ -123,7 +156,7 @@
 
   function isNewLocation(filename: string): boolean {
     return pending.some(
-      (p) => p.filename === filename && p.prTitle?.startsWith("Add location:")
+      (p) => p.filename === filename && p.prTitle?.startsWith("Add location:"),
     );
   }
 
@@ -131,7 +164,7 @@
     const pend = pendingFor(filename);
     if (
       window.confirm(
-        `Remove this new location? You will need to close the PR on GitHub manually.\n\n${pend?.prUrl ?? ""}`
+        `Remove this new location? You will need to close the PR on GitHub manually.\n\n${pend?.prUrl ?? ""}`,
       )
     ) {
       removePending(params.project, params.city, filename);
@@ -149,13 +182,17 @@
     <div class="loc-list__toolbar">
       <button
         class="loc-list__add-btn"
-        onclick={() => push(`/editor/locations/${params.project}/${params.city}/new`)}
+        onclick={() =>
+          push(`/editor/locations/${params.project}/${params.city}/new`)}
       >
         + Add location
       </button>
       <button
         class="loc-list__refresh-btn"
-        onclick={() => { fetchLocations(); syncPending(); }}
+        onclick={() => {
+          fetchLocations();
+          syncPending();
+        }}
       >
         Refresh
       </button>
@@ -167,18 +204,24 @@
         <div class="loc-list__item-header">
           <div>
             <div class="loc-list__item-title">{location.title || filename}</div>
-            <div class="loc-list__item-meta">{location.address || `ID: ${location.locationId}`}</div>
+            <div class="loc-list__item-meta">
+              {location.address || `ID: ${location.locationId}`}
+            </div>
           </div>
           <div class="loc-list__item-actions">
             <button
               class="loc-list__btn"
-              onclick={() => push(`/editor/locations/${params.project}/${params.city}/edit/${filename}`)}
+              onclick={() =>
+                push(
+                  `/editor/locations/${params.project}/${params.city}/edit/${filename}`,
+                )}
             >
               Edit
             </button>
             <button
               class="loc-list__btn loc-list__btn--danger"
-              onclick={() => handleHide({ ...location, _filename: filename }, sha)}
+              onclick={() =>
+                handleHide({ ...location, _filename: filename }, sha)}
             >
               Hide
             </button>

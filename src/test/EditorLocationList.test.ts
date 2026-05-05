@@ -41,5 +41,7 @@ test("renders Add location button", async () => {
   render(EditorLocationList, {
     props: { params: { project: "democrats_abroad", city: "den_haag" } },
   });
-  expect(await screen.findByRole("button", { name: /add location/i })).toBeInTheDocument();
+  expect(
+    await screen.findByRole("button", { name: /add location/i }),
+  ).toBeInTheDocument();
 });

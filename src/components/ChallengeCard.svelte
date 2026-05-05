@@ -44,12 +44,17 @@
 <div class="cc-root">
   {#if hasHero}
     <div class="cc-hero-wrap">
-      <img src={heroSrc!} alt={location.name?.value || location.title} class="cc-hero-img" />
+      <img
+        src={heroSrc!}
+        alt={location.name?.value || location.title}
+        class="cc-hero-img"
+      />
       <div class="cc-hero-title-wrap">
         <div class="cc-title-card cc-title-card--shadow">
           <div
             class="cc-badge"
-            style="background: {location.themeColor ?? $themeStore.theme.accent}"
+            style="background: {location.themeColor ??
+              $themeStore.theme.accent}"
             data-testid="location-badge"
           >
             {index}

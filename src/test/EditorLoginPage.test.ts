@@ -1,4 +1,9 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/svelte/svelte5";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "@testing-library/svelte/svelte5";
 import EditorLoginPage from "../pages/editor/EditorLoginPage.svelte";
 
 vi.mock("svelte-spa-router", () => ({

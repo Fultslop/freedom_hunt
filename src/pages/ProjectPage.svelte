@@ -16,22 +16,29 @@
 
   $effect(() => {
     const lang = $languageStore.currentLang;
-    loadText<ProjectMeta>(lang, `projects/${params.project}/${params.project}`).then((data) => {
+    loadText<ProjectMeta>(
+      lang,
+      `projects/${params.project}/${params.project}`,
+    ).then((data) => {
       if (data && "style" in data && data.style) {
         themeStore.setThemeName(data.style as any);
       }
       if (data && "project.image" in data && data["project.image"]) {
-        fetchImage(data["project.image"] as string).then((url) => { logoUrl = url; });
+        fetchImage(data["project.image"] as string).then((url) => {
+          logoUrl = url;
+        });
       }
     });
-    loadText<CitiesText>(lang, `projects/${params.project}/cities`).then((data) => {
-      citiesText = data;
-      titleBarStore.set({
-        title: (data?.["page.title"] as string) ?? params.project,
-        progress: null,
-        backPath: "/",
-      });
-    });
+    loadText<CitiesText>(lang, `projects/${params.project}/cities`).then(
+      (data) => {
+        citiesText = data;
+        titleBarStore.set({
+          title: (data?.["page.title"] as string) ?? params.project,
+          progress: null,
+          backPath: "/",
+        });
+      },
+    );
   });
 </script>
 

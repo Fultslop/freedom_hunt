@@ -1,8 +1,6 @@
 type YamlModules = Record<string, () => Promise<{ default: unknown }>>;
 
-const modules = import.meta.glob(
-  "../data/text/**/*.yaml",
-) as YamlModules;
+const modules = import.meta.glob("../data/text/**/*.yaml") as YamlModules;
 
 export async function loadText<T = Record<string, unknown>>(
   lang: string,

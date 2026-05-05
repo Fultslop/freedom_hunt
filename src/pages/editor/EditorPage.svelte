@@ -6,7 +6,9 @@
 
   titleBarStore.set({ title: "Editor", progress: null, backPath: null });
 
-  let project = $derived($authStore.activeAuth?.projectId ?? "democrats_abroad");
+  let project = $derived(
+    $authStore.activeAuth?.projectId ?? "democrats_abroad",
+  );
 </script>
 
 <div class="editor-page">
@@ -22,7 +24,9 @@
 
     <div class="editor-page__tile editor-page__tile--disabled">
       <div class="editor-page__tile-name">Routes</div>
-      <div class="editor-page__tile-desc">Define which locations belong to each route</div>
+      <div class="editor-page__tile-desc">
+        Define which locations belong to each route
+      </div>
       <span class="editor-page__tile-tag">Coming soon</span>
     </div>
 
@@ -31,7 +35,9 @@
       onclick={() => push(`/editor/locations/${project}/den_haag`)}
     >
       <div class="editor-page__tile-name">Locations</div>
-      <div class="editor-page__tile-desc">Add, edit, or hide individual hunt locations</div>
+      <div class="editor-page__tile-desc">
+        Add, edit, or hide individual hunt locations
+      </div>
     </button>
   </div>
 </div>

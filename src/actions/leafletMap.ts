@@ -16,14 +16,18 @@ export function leafletMap(node: HTMLElement, params: LeafletMapParams) {
   const map = leaflet.map(node, { zoomControl: false, scrollWheelZoom: false });
   map.setView(params.center, params.zoom);
 
-  leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution:
-      '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map);
+  leaflet
+    .tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    })
+    .addTo(map);
 
-  const marker = leaflet.marker(params.center, {
-    icon: PIN as unknown as leaflet.Icon,
-  }).addTo(map);
+  const marker = leaflet
+    .marker(params.center, {
+      icon: PIN as unknown as leaflet.Icon,
+    })
+    .addTo(map);
 
   return {
     update(newParams: LeafletMapParams) {

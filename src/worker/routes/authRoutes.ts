@@ -26,12 +26,13 @@ export async function handleAuthRoutes(
           429,
         );
       }
-      const { project, teamName, contact, password } = await request.json() as {
-        project: string;
-        teamName?: string;
-        contact?: string;
-        password: string;
-      };
+      const { project, teamName, contact, password } =
+        (await request.json()) as {
+          project: string;
+          teamName?: string;
+          contact?: string;
+          password: string;
+        };
       if (!project || !password)
         return json({ ok: false, error: "Missing required fields" }, 400);
 

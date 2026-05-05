@@ -32,11 +32,18 @@
   let maxWarningKeys = $state<Record<string, number>>({});
 
   function checkDefinition(field: FormField): string | null {
-    if (!VALID_TYPES.includes(field.type)) return `unknown type "${field.type}"`;
-    if (field.type === "radio" && (!field.options || field.options.length === 0)) {
+    if (!VALID_TYPES.includes(field.type))
+      return `unknown type "${field.type}"`;
+    if (
+      field.type === "radio" &&
+      (!field.options || field.options.length === 0)
+    ) {
       return "radio field missing options";
     }
-    if (field.type === "multiple" && (!field.options || field.options.length === 0)) {
+    if (
+      field.type === "multiple" &&
+      (!field.options || field.options.length === 0)
+    ) {
       return "multiple field missing options";
     }
     if (field.type === "multiple" && (field.min == null || field.max == null)) {
@@ -80,7 +87,11 @@
         if (!v || v.trim() === "") errs[field.id] = "Required";
       } else if (field.type === "number") {
         const v = values[field.id];
-        if (v === undefined || v === null || (typeof v === "number" && isNaN(v))) {
+        if (
+          v === undefined ||
+          v === null ||
+          (typeof v === "number" && isNaN(v))
+        ) {
           errs[field.id] = "Required";
         }
       } else if (field.type === "radio") {
@@ -89,7 +100,8 @@
         const selected = (values[field.id] as string[]) ?? [];
         const min = field.min ?? 1;
         if (selected.length < min) {
-          errs[field.id] = `Please select at least ${min} option${min > 1 ? "s" : ""}`;
+          errs[field.id] =
+            `Please select at least ${min} option${min > 1 ? "s" : ""}`;
         }
       }
     }
@@ -128,7 +140,6 @@
       submitState = "error";
     }
   }
-
 </script>
 
 <div class="challenge-form">
@@ -152,7 +163,11 @@
               disabled={uploadState === "uploading"}
             >
               <Camera size={16} aria-hidden="true" />
-              {uploadState === "success" ? "Photo uploaded ✓" : uploadState === "uploading" ? "Uploading…" : field.label}
+              {uploadState === "success"
+                ? "Photo uploaded ✓"
+                : uploadState === "uploading"
+                  ? "Uploading…"
+                  : field.label}
             </button>
             <input
               id={field.id}
@@ -199,8 +214,8 @@
               class:cf-input--error={err}
               bind:value={values[field.id] as number}
               oninput={(e) => {
-                const t = e.target as HTMLInputElement;
-                t.value = t.value.replace(/[^0-9]/g, "");
+                const target = e.target as HTMLInputElement;
+                target.value = target.value.replace(/[^0-9]/g, "");
               }}
             />
           {:else if field.type === "radio"}
@@ -229,13 +244,22 @@
                   <input
                     type="checkbox"
                     value={opt}
-                    checked={(values[field.id] as string[] ?? []).includes(opt)}
+                    checked={((values[field.id] as string[]) ?? []).includes(
+                      opt,
+                    )}
                     onchange={(evt) => {
                       const target = evt.target as HTMLInputElement;
                       const cur = (values[field.id] as string[]) ?? [];
-                      if (target.checked && field.max !== undefined && cur.length >= field.max) {
+                      if (
+                        target.checked &&
+                        field.max !== undefined &&
+                        cur.length >= field.max
+                      ) {
                         target.checked = false;
-                        maxWarningKeys = { ...maxWarningKeys, [field.id]: (maxWarningKeys[field.id] ?? 0) + 1 };
+                        maxWarningKeys = {
+                          ...maxWarningKeys,
+                          [field.id]: (maxWarningKeys[field.id] ?? 0) + 1,
+                        };
                       } else {
                         values[field.id] = target.checked
                           ? [...cur, opt]
@@ -263,10 +287,15 @@
         <div class="cf-confirm-dialog">
           <p class="cf-confirm-msg">Submit your answers?</p>
           <div class="cf-confirm-actions">
-            <button class="cf-confirm-cancel" onclick={() => (showConfirm = false)}>
+            <button
+              class="cf-confirm-cancel"
+              onclick={() => (showConfirm = false)}
+            >
               Cancel
             </button>
-            <button class="cf-confirm-ok" onclick={handleConfirm}>Confirm</button>
+            <button class="cf-confirm-ok" onclick={handleConfirm}
+              >Confirm</button
+            >
           </div>
         </div>
       </div>
@@ -277,7 +306,11 @@
         onclick={handleSubmit}
         disabled={submitState === "submitting"}
       >
-        {submitState === "submitting" ? "Submitting…" : submitState === "error" ? "Try again" : "Submit"}
+        {submitState === "submitting"
+          ? "Submitting…"
+          : submitState === "error"
+            ? "Try again"
+            : "Submit"}
       </button>
     {/if}
   {/if}

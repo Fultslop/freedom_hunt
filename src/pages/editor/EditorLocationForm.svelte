@@ -8,12 +8,12 @@
 
   let {
     params,
-  }: { 
-    params: { 
-        project: string; 
-        city: string; 
-        filename?: string 
-    } 
+  }: {
+    params: {
+      project: string;
+      city: string;
+      filename?: string;
+    };
   } = $props();
 
   const isEdit = $derived(!!params.filename);
@@ -26,7 +26,12 @@
     address: string;
     coordinates: { latitude: string; longitude: string };
     storyline: string;
-    challenge: { name: string; description: string; notes: string; form: FormField[] };
+    challenge: {
+      name: string;
+      description: string;
+      notes: string;
+      form: FormField[];
+    };
     breadcrumb: string;
   }
 
@@ -68,15 +73,24 @@
   $effect(() => {
     if (isEdit && params.filename) {
       loading = true;
-      fetch(`/editor/location?project=${params.project}&city=${params.city}&file=${params.filename}`)
+      fetch(
+        `/editor/location?project=${params.project}&city=${params.city}&file=${params.filename}`,
+      )
         .then((r) => r.json())
         .then((data) => {
-          const typed = data as { ok?: boolean; sha?: string; location?: Record<string, unknown> };
+          const typed = data as {
+            ok?: boolean;
+            sha?: string;
+            location?: Record<string, unknown>;
+          };
           if (typed.ok && typed.location) {
             fields = {
               ...EMPTY,
               ...(typed.location ?? {}),
-              name: { ...EMPTY.name, ...((typed.location.name as object) ?? {}) },
+              name: {
+                ...EMPTY.name,
+                ...((typed.location.name as object) ?? {}),
+              },
               coordinates: {
                 ...EMPTY.coordinates,
                 ...((typed.location.coordinates as object) ?? {}),
@@ -90,14 +104,18 @@
           }
         })
         .catch(() => {})
-        .finally(() => { loading = false; });
+        .finally(() => {
+          loading = false;
+        });
     }
   });
 
   function setField(path: string, value: unknown) {
     if (path.includes(".")) {
       const [parent, child] = path.split(".");
-      const parentVal = (fields as unknown as Record<string, unknown>)[parent] as Record<string, unknown>;
+      const parentVal = (fields as unknown as Record<string, unknown>)[
+        parent
+      ] as Record<string, unknown>;
       fields = {
         ...fields,
         [parent]: { ...parentVal, [child]: value },
@@ -137,7 +155,11 @@
           location,
         }),
       });
-      const data = (await res.json()) as { ok?: boolean; prUrl?: string; error?: string };
+      const data = (await res.json()) as {
+        ok?: boolean;
+        prUrl?: string;
+        error?: string;
+      };
       if (data.ok) {
         addPending(params.project, params.city, {
           filename: resolvedFilename!,
@@ -166,7 +188,12 @@
     <div class="loc-form__success">
       ✓ Changes submitted for review.
       {#if prUrl}
-        <a href={prUrl} target="_blank" rel="noopener noreferrer" class="loc-form__pr-link">
+        <a
+          href={prUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="loc-form__pr-link"
+        >
           View pull request →
         </a>
       {/if}
@@ -174,7 +201,8 @@
     <div class="loc-form__actions" style="margin-top: 20px">
       <button
         class="loc-form__cancel"
-        onclick={() => push(`/editor/locations/${params.project}/${params.city}`)}
+        onclick={() =>
+          push(`/editor/locations/${params.project}/${params.city}`)}
       >
         Back to list
       </button>
@@ -187,13 +215,16 @@
 
       <div class="loc-form__field">
         <label class="loc-form__label" for="locationId">
-          Location ID <span class="loc-form__label--muted">(number, must be unique)</span>
+          Location ID <span class="loc-form__label--muted"
+            >(number, must be unique)</span
+          >
         </label>
         <input
           id="locationId"
           type="number"
           value={fields.locationId}
-          oninput={(e) => setField("locationId", (e.target as HTMLInputElement).value)}
+          oninput={(e) =>
+            setField("locationId", (e.target as HTMLInputElement).value)}
           required
           readonly={isEdit}
           class={`loc-form__input${isEdit ? " loc-form__input--readonly" : ""}`}
@@ -206,7 +237,8 @@
           id="title"
           type="text"
           value={fields.title}
-          oninput={(e) => setField("title", (e.target as HTMLInputElement).value)}
+          oninput={(e) =>
+            setField("title", (e.target as HTMLInputElement).value)}
           required
           class="loc-form__input"
         />
@@ -214,13 +246,16 @@
 
       <div class="loc-form__field">
         <label class="loc-form__label" for="image">
-          Image filename <span class="loc-form__label--muted">(e.g. my-photo.jpg — upload separately)</span>
+          Image filename <span class="loc-form__label--muted"
+            >(e.g. my-photo.jpg — upload separately)</span
+          >
         </label>
         <input
           id="image"
           type="text"
           value={fields.image}
-          oninput={(e) => setField("image", (e.target as HTMLInputElement).value)}
+          oninput={(e) =>
+            setField("image", (e.target as HTMLInputElement).value)}
           class="loc-form__input"
         />
       </div>
@@ -232,7 +267,8 @@
             id="nameLabel"
             type="text"
             value={fields.name.label}
-            oninput={(e) => setField("name.label", (e.target as HTMLInputElement).value)}
+            oninput={(e) =>
+              setField("name.label", (e.target as HTMLInputElement).value)}
             class="loc-form__input"
           />
         </div>
@@ -242,7 +278,8 @@
             id="nameValue"
             type="text"
             value={fields.name.value}
-            oninput={(e) => setField("name.value", (e.target as HTMLInputElement).value)}
+            oninput={(e) =>
+              setField("name.value", (e.target as HTMLInputElement).value)}
             class="loc-form__input"
           />
         </div>
@@ -254,7 +291,8 @@
           id="address"
           type="text"
           value={fields.address}
-          oninput={(e) => setField("address", (e.target as HTMLInputElement).value)}
+          oninput={(e) =>
+            setField("address", (e.target as HTMLInputElement).value)}
           class="loc-form__input"
         />
       </div>
@@ -267,7 +305,11 @@
             type="number"
             step="any"
             value={fields.coordinates.latitude}
-            oninput={(e) => setField("coordinates.latitude", (e.target as HTMLInputElement).value)}
+            oninput={(e) =>
+              setField(
+                "coordinates.latitude",
+                (e.target as HTMLInputElement).value,
+              )}
             class="loc-form__input"
           />
         </div>
@@ -278,7 +320,11 @@
             type="number"
             step="any"
             value={fields.coordinates.longitude}
-            oninput={(e) => setField("coordinates.longitude", (e.target as HTMLInputElement).value)}
+            oninput={(e) =>
+              setField(
+                "coordinates.longitude",
+                (e.target as HTMLInputElement).value,
+              )}
             class="loc-form__input"
           />
         </div>
@@ -293,7 +339,8 @@
         <textarea
           id="storyline"
           value={fields.storyline}
-          oninput={(e) => setField("storyline", (e.target as HTMLTextAreaElement).value)}
+          oninput={(e) =>
+            setField("storyline", (e.target as HTMLTextAreaElement).value)}
           class="loc-form__textarea"
           style="min-height: 120px"
         ></textarea>
@@ -304,7 +351,8 @@
         <textarea
           id="breadcrumb"
           value={fields.breadcrumb}
-          oninput={(e) => setField("breadcrumb", (e.target as HTMLTextAreaElement).value)}
+          oninput={(e) =>
+            setField("breadcrumb", (e.target as HTMLTextAreaElement).value)}
           class="loc-form__textarea"
         ></textarea>
       </div>
@@ -314,22 +362,30 @@
       <div class="loc-form__section-title">Challenge</div>
 
       <div class="loc-form__field">
-        <label class="loc-form__label" for="challengeName">Challenge name</label>
+        <label class="loc-form__label" for="challengeName">Challenge name</label
+        >
         <input
           id="challengeName"
           type="text"
           value={fields.challenge.name}
-          oninput={(e) => setField("challenge.name", (e.target as HTMLInputElement).value)}
+          oninput={(e) =>
+            setField("challenge.name", (e.target as HTMLInputElement).value)}
           class="loc-form__input"
         />
       </div>
 
       <div class="loc-form__field">
-        <label class="loc-form__label" for="challengeDescription">Challenge description</label>
+        <label class="loc-form__label" for="challengeDescription"
+          >Challenge description</label
+        >
         <textarea
           id="challengeDescription"
           value={fields.challenge.description}
-          oninput={(e) => setField("challenge.description", (e.target as HTMLTextAreaElement).value)}
+          oninput={(e) =>
+            setField(
+              "challenge.description",
+              (e.target as HTMLTextAreaElement).value,
+            )}
           class="loc-form__textarea"
           style="min-height: 100px"
         ></textarea>
@@ -337,19 +393,26 @@
 
       <div class="loc-form__field">
         <label class="loc-form__label" for="challengeNotes">
-          Notes <span class="loc-form__label--muted">(internal, not shown to participants)</span>
+          Notes <span class="loc-form__label--muted"
+            >(internal, not shown to participants)</span
+          >
         </label>
         <textarea
           id="challengeNotes"
           value={fields.challenge.notes}
-          oninput={(e) => setField("challenge.notes", (e.target as HTMLTextAreaElement).value)}
+          oninput={(e) =>
+            setField(
+              "challenge.notes",
+              (e.target as HTMLTextAreaElement).value,
+            )}
           class="loc-form__textarea"
         ></textarea>
       </div>
 
       {#if isEdit && fields.challenge.form?.length > 0}
         <p class="loc-form__hint">
-          This location has {fields.challenge.form.length} form field(s). Form fields are preserved but not editable here — edit them directly in the YAML file.
+          This location has {fields.challenge.form.length} form field(s). Form fields
+          are preserved but not editable here — edit them directly in the YAML file.
         </p>
       {/if}
     </div>
@@ -362,7 +425,8 @@
       <button
         type="button"
         class="loc-form__cancel"
-        onclick={() => push(`/editor/locations/${params.project}/${params.city}`)}
+        onclick={() =>
+          push(`/editor/locations/${params.project}/${params.city}`)}
       >
         Cancel
       </button>

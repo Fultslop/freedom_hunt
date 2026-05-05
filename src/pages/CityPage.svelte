@@ -17,12 +17,20 @@
 
   $effect(() => {
     const lang = $languageStore.currentLang;
-    loadText<ProjectMeta>(lang, `projects/${params.project}/${params.project}`).then((data) => {
+    loadText<ProjectMeta>(
+      lang,
+      `projects/${params.project}/${params.project}`,
+    ).then((data) => {
       if (data && "project.image" in data && data["project.image"]) {
-        fetchImage(data["project.image"] as string).then((url) => { logoUrl = url; });
+        fetchImage(data["project.image"] as string).then((url) => {
+          logoUrl = url;
+        });
       }
     });
-    loadText<CityText>(lang, `projects/${params.project}/${params.city}/${params.city}`).then((data) => {
+    loadText<CityText>(
+      lang,
+      `projects/${params.project}/${params.city}/${params.city}`,
+    ).then((data) => {
       cityText = data;
       titleBarStore.set({
         title: (cityText?.["city.title"] as string) ?? params.city,
@@ -30,7 +38,10 @@
         backPath: `/${params.project}`,
       });
     });
-    loadText<RoutesData>(lang, `projects/${params.project}/${params.city}/routes`).then((data) => {
+    loadText<RoutesData>(
+      lang,
+      `projects/${params.project}/${params.city}/routes`,
+    ).then((data) => {
       routesText = data;
     });
   });
@@ -62,7 +73,7 @@
       <RouteSelector
         project={params.project}
         city={params.city}
-        routeId={routeId}
+        {routeId}
         {route}
       />
     {/each}

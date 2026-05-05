@@ -20,24 +20,6 @@ describe("requireAuth", () => {
     expect(requireAuth({ params: { project: "proj" } })).toBe(true);
   });
 
-  // Note: authLoading=true is the initial state, but in the test environment
-  // App.svelte's onMount calls authStore.init() which resolves before this test runs,
-  // so we skip this case — covered by integration tests in Tasks 07-08.
-  it.skip("returns true while auth is loading", async () => {
-    // Keep the fetch hanging so authLoading stays true
-    vi.useFakeTimers();
-    let _blockFetch: () => void;
-    const hangPromise = new Promise<Response>((resolve) => {
-      _blockFetch = () => resolve({ json: async () => ({}) } as Response);
-    });
-    vi.spyOn(globalThis, "fetch").mockReturnValue(hangPromise as unknown as Promise<Response>);
-    authStore.init();
-    // authLoading is now true (init hasn't resolved yet)
-    expect(requireAuth({ params: { project: "proj" } })).toBe(true);
-    vi.runAllTimers();
-    vi.useRealTimers();
-  });
-
   it("redirects to login and returns false when not authenticated", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue({
       json: async () => ({}),

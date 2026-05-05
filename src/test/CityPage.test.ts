@@ -18,6 +18,8 @@ beforeEach(() => {
 });
 
 test("renders routes", async () => {
-  render(CityPage, { props: { params: { project: "democrats_abroad", city: "den_haag" } } });
+  render(CityPage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag" } },
+  });
   expect(await screen.findByText(/short loop/i)).toBeInTheDocument();
 });

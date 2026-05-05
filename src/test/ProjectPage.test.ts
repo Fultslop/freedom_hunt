@@ -4,7 +4,15 @@ import { titleBarStore } from "../stores/titleBarStore";
 
 vi.mock("../utils/loadText", () => ({
   loadText: vi.fn().mockResolvedValue({
-    items: [{ id: "den_haag", name: "Den Haag", country: "Netherlands", description: "desc", image: null }],
+    items: [
+      {
+        id: "den_haag",
+        name: "Den Haag",
+        country: "Netherlands",
+        description: "desc",
+        image: null,
+      },
+    ],
   }),
 }));
 
