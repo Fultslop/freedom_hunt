@@ -7,10 +7,14 @@ export async function handleFormSubmitRoute(
   url: URL,
   env: Env,
 ): Promise<Response | null> {
-  if (request.method !== "POST" || url.pathname !== "/form-submit") return null;
+  if (request.method !== "POST" || url.pathname !== "/form-submit") {
+    return null;
+  }
 
   const authPayload = await requireAuth(request, env);
-  if (!authPayload) return json({ ok: false, error: "Unauthorized" }, 401);
+  if (!authPayload) {
+    return json({ ok: false, error: "Unauthorized" }, 401);
+  }
 
   try {
     const body = await request.text();

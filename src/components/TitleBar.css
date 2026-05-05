@@ -126,6 +126,10 @@
   margin-bottom: 12px;
 }
 
+.titlebar__profile-field--last {
+  margin-bottom: 16px;
+}
+
 .titlebar__profile-label {
   font-size: 10px;
   font-weight: 700;
@@ -172,6 +176,10 @@
 
 .titlebar__theme-check {
   font-size: 11px;
+}
+
+.titlebar__fontsize-label {
+  text-transform: capitalize;
 }
 
 .titlebar__progress-track {

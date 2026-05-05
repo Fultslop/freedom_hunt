@@ -14,6 +14,7 @@
     index = undefined,
     routeId = undefined,
   }: {
+    // TODO: move this to a separate type file, don't inline
     location: Location;
     isLast?: boolean;
     index?: number;
@@ -33,7 +34,9 @@
     }
     let cancelled = false;
     fetchImage(location.image).then((url) => {
-      if (!cancelled) heroSrc = url;
+      if (!cancelled) {
+        heroSrc = url;
+      }
     });
     return () => {
       cancelled = true;

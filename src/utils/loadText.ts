@@ -8,7 +8,9 @@ export async function loadText<T = Record<string, unknown>>(
 ): Promise<T | null> {
   const key = `../data/text/${lang}/${path}.yaml`;
   const loader = modules[key];
-  if (!loader) return null;
+  if (!loader) {
+    return null;
+  }
   try {
     const mod = await loader();
     return mod.default as T;

@@ -22,12 +22,13 @@
     loadText<ApplicationText>($languageStore.currentLang, "application").then(
       (data) => {
         appText = data;
-        if (data)
+        if (data) {
           titleBarStore.set({
             title: data["app.title"] ?? "Freedom Hunt",
             progress: null,
             backPath: null,
           });
+        }
       },
     );
     loadText<ProjectsText>(
@@ -39,8 +40,9 @@
         data.items.forEach((project) => {
           if (project.image) {
             fetchImage(project.image).then((url) => {
-              if (url)
+              if (url) {
                 projectImageUrls = { ...projectImageUrls, [project.id]: url };
+              }
             });
           }
         });

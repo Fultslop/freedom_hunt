@@ -33,8 +33,9 @@ export async function handleAuthRoutes(
           contact?: string;
           password: string;
         };
-      if (!project || !password)
+      if (!project || !password) {
         return json({ ok: false, error: "Missing required fields" }, 400);
+      }
 
       const adminPw = await env.AUTH_STORE.get(`${KV_PREFIX_ADMIN}${project}`);
       const participantPw = await env.AUTH_STORE.get(
@@ -78,7 +79,9 @@ export async function handleAuthRoutes(
 
   if (request.method === "GET" && url.pathname === "/auth/me") {
     const payload = await requireAuth(request, env);
-    if (!payload) return json({ ok: false, error: "Not authenticated" }, 401);
+    if (!payload) {
+      return json({ ok: false, error: "Not authenticated" }, 401);
+    }
     return json({
       ok: true,
       project: payload.project,

@@ -18,15 +18,21 @@ export async function handleUploadRoute(
   url: URL,
   env: Env,
 ): Promise<Response | null> {
-  if (request.method !== "POST" || url.pathname !== "/upload") return null;
+  if (request.method !== "POST" || url.pathname !== "/upload") {
+    return null;
+  }
 
   const authPayload = await requireAuth(request, env);
-  if (!authPayload) return json({ ok: false, error: "Unauthorized" }, 401);
+  if (!authPayload) {
+    return json({ ok: false, error: "Unauthorized" }, 401);
+  }
 
   try {
     const formData = await request.formData();
     const photo = formData.get("photo") as File | null;
-    if (!photo) return json({ ok: false, error: "No photo provided" }, 400);
+    if (!photo) {
+      return json({ ok: false, error: "No photo provided" }, 400);
+    }
     const locationId = (formData.get("locationId") as string) || "unknown";
     const key = buildR2Key(locationId, photo.type, Date.now());
     await env.PHOTOS.put(key, photo.stream(), {
