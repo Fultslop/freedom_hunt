@@ -19,9 +19,9 @@ Participants visit historically significant sites, complete challenges at each l
 | Styling      | Co-located `.css` files + CSS custom properties (no CSS modules, no Tailwind) |
 | Data         | Static YAML files in `src/data/text/`                                         |
 | YAML loading | `@modyfi/vite-plugin-yaml` (bundled at build time)                            |
-| Maps         | Leaflet + react-leaflet                                                       |
+| Maps         | Leaflet (via `use:leafletMap` Svelte action)                                  |
 | Markdown     | marked                                                                        |
-| Icons        | lucide-react                                                                  |
+| Icons        | lucide-svelte                                                                 |
 | Deployment   | Cloudflare Workers via `@cloudflare/vite-plugin` + wrangler                   |
 | Testing      | Vitest + @testing-library/svelte                                              |
 

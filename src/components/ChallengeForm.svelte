@@ -29,6 +29,7 @@
   let uploadState = $state<UploadState>("idle");
   let showConfirm = $state(false);
   let fileInput: HTMLInputElement | undefined = $state();
+  let maxWarningKeys = $state<Record<string, number>>({});
 
   function checkDefinition(field: FormField): string | null {
     if (!VALID_TYPES.includes(field.type)) return `unknown type "${field.type}"`;
@@ -70,14 +71,39 @@
     }
   }
 
+  function validateValues(): Record<string, string> {
+    const errs: Record<string, string> = {};
+    for (const field of form) {
+      if (field.type === "boolean" || field.type === "photo") continue;
+      if (field.type === "string") {
+        const v = values[field.id] as string | undefined;
+        if (!v || v.trim() === "") errs[field.id] = "Required";
+      } else if (field.type === "number") {
+        const v = values[field.id];
+        if (v === undefined || v === null || (typeof v === "number" && isNaN(v))) {
+          errs[field.id] = "Required";
+        }
+      } else if (field.type === "radio") {
+        if (!values[field.id]) errs[field.id] = "Please select an option";
+      } else if (field.type === "multiple") {
+        const selected = (values[field.id] as string[]) ?? [];
+        const min = field.min ?? 1;
+        if (selected.length < min) {
+          errs[field.id] = `Please select at least ${min} option${min > 1 ? "s" : ""}`;
+        }
+      }
+    }
+    return errs;
+  }
+
   function handleSubmit() {
     const newErrors: Record<string, string> = {};
     for (const field of form) {
       const def = checkDefinition(field);
       if (def) newErrors[field.id] = def;
     }
-    errors = newErrors;
-    if (Object.keys(newErrors).length === 0) showConfirm = true;
+    errors = { ...validateValues(), ...newErrors };
+    if (Object.keys(errors).length === 0) showConfirm = true;
   }
 
   async function handleConfirm() {
@@ -103,39 +129,12 @@
     }
   }
 
-  function hasPhotoField(): boolean {
-    return form.some((fld) => fld.type === "photo");
-  }
 </script>
 
 <div class="challenge-form">
   {#if submitState === "success"}
     <p class="cf-success">Submitted! ✓</p>
   {:else}
-    {#if hasPhotoField()}
-      <div class="cf-photo-wrap">
-        <button
-          class="cf-photo-btn"
-          onclick={() => fileInput?.click()}
-          disabled={uploadState === "uploading"}
-        >
-          <Camera size={16} aria-hidden="true" />
-          {uploadState === "success" ? "Photo uploaded ✓" : uploadState === "uploading" ? "Uploading…" : "Add photo"}
-        </button>
-        <input
-          type="file"
-          accept="image/*"
-          capture="environment"
-          class="cf-photo-input"
-          bind:this={fileInput}
-          onchange={handleFileChange}
-        />
-        {#if uploadState === "error"}
-          <p class="cf-upload-error">Upload failed. Try again.</p>
-        {/if}
-      </div>
-    {/if}
-
     <div class="cf-divider" aria-hidden="true">
       <span class="cf-divider__line"></span>
       <Flag size={12} aria-hidden="true" />
@@ -143,10 +142,44 @@
     </div>
 
     {#each form as field (field.id)}
-      {#if field.type !== "photo"}
-        {@const err = errors[field.id]}
-        <div class="cf-field">
+      {@const err = errors[field.id]}
+      <div class="cf-field">
+        {#if field.type === "photo"}
+          <div class="cf-photo-wrap">
+            <button
+              class="cf-photo-btn"
+              onclick={() => fileInput?.click()}
+              disabled={uploadState === "uploading"}
+            >
+              <Camera size={16} aria-hidden="true" />
+              {uploadState === "success" ? "Photo uploaded ✓" : uploadState === "uploading" ? "Uploading…" : field.label}
+            </button>
+            <input
+              id={field.id}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              class="cf-photo-input"
+              bind:this={fileInput}
+              onchange={handleFileChange}
+            />
+            {#if uploadState === "error"}
+              <p class="cf-photo-error">Upload failed. Try again.</p>
+            {/if}
+          </div>
+        {:else if field.type === "boolean"}
+          <label class="cf-label--checkbox">
+            {field.label}
+            <input
+              id={field.id}
+              type="checkbox"
+              class="cf-checkbox"
+              bind:checked={values[field.id] as boolean}
+            />
+          </label>
+        {:else}
           <label class="cf-label" for={field.id}>{field.label}</label>
+          {#if err}<p class="cf-error-msg">{err}</p>{/if}
           {#if field.type === "string"}
             <input
               id={field.id}
@@ -159,53 +192,64 @@
             <input
               id={field.id}
               type="number"
+              inputmode="numeric"
+              min="0"
+              step="1"
               class="cf-input"
               class:cf-input--error={err}
               bind:value={values[field.id] as number}
-            />
-          {:else if field.type === "boolean"}
-            <input
-              id={field.id}
-              type="checkbox"
-              class="cf-checkbox"
-              bind:checked={values[field.id] as boolean}
+              oninput={(e) => {
+                const t = e.target as HTMLInputElement;
+                t.value = t.value.replace(/[^0-9]/g, "");
+              }}
             />
           {:else if field.type === "radio"}
-            {#each field.options ?? [] as opt (opt)}
-              <label class="cf-radio-label">
-                <input
-                  type="radio"
-                  name={field.id}
-                  value={opt}
-                  bind:group={values[field.id] as string}
-                />
-                {opt}
-              </label>
-            {/each}
+            <div class="cf-radio-group">
+              {#each field.options ?? [] as opt (opt)}
+                <label class="cf-label--radio">
+                  <input
+                    type="radio"
+                    name={field.id}
+                    value={opt}
+                    bind:group={values[field.id] as string}
+                  />
+                  {opt}
+                </label>
+              {/each}
+            </div>
           {:else if field.type === "multiple"}
-            {#each field.options ?? [] as opt (opt)}
-              <label class="cf-checkbox-label">
-                <input
-                  type="checkbox"
-                  value={opt}
-                  checked={(values[field.id] as string[] ?? []).includes(opt)}
-                  onchange={(evt) => {
-                    const checked = (evt.target as HTMLInputElement).checked;
-                    const cur = (values[field.id] as string[]) ?? [];
-                    values[field.id] = checked
-                      ? [...cur, opt]
-                      : cur.filter((val) => val !== opt);
-                  }}
-                />
-                {opt}
-              </label>
-            {/each}
+            {#if maxWarningKeys[field.id]}
+              {#key maxWarningKeys[field.id]}
+                <p class="cf-max-warning">You can only select {field.max}</p>
+              {/key}
+            {/if}
+            <div class="cf-radio-group">
+              {#each field.options ?? [] as opt (opt)}
+                <label class="cf-label--radio">
+                  <input
+                    type="checkbox"
+                    value={opt}
+                    checked={(values[field.id] as string[] ?? []).includes(opt)}
+                    onchange={(evt) => {
+                      const target = evt.target as HTMLInputElement;
+                      const cur = (values[field.id] as string[]) ?? [];
+                      if (target.checked && field.max !== undefined && cur.length >= field.max) {
+                        target.checked = false;
+                        maxWarningKeys = { ...maxWarningKeys, [field.id]: (maxWarningKeys[field.id] ?? 0) + 1 };
+                      } else {
+                        values[field.id] = target.checked
+                          ? [...cur, opt]
+                          : cur.filter((val) => val !== opt);
+                      }
+                    }}
+                  />
+                  {opt}
+                </label>
+              {/each}
+            </div>
           {/if}
-          {#if err}
-            <p class="cf-error-msg">{err}</p>
-          {/if}
-        </div>
-      {/if}
+        {/if}
+      </div>
     {/each}
 
     <div class="cf-divider" aria-hidden="true">
@@ -216,12 +260,14 @@
 
     {#if showConfirm}
       <div class="cf-confirm-overlay">
-        <p class="cf-confirm-msg">Submit your answers?</p>
-        <div class="cf-confirm-btns">
-          <button class="cf-cancel-btn" onclick={() => (showConfirm = false)}>
-            Cancel
-          </button>
-          <button class="cf-confirm-btn" onclick={handleConfirm}>Confirm</button>
+        <div class="cf-confirm-dialog">
+          <p class="cf-confirm-msg">Submit your answers?</p>
+          <div class="cf-confirm-actions">
+            <button class="cf-confirm-cancel" onclick={() => (showConfirm = false)}>
+              Cancel
+            </button>
+            <button class="cf-confirm-ok" onclick={handleConfirm}>Confirm</button>
+          </div>
         </div>
       </div>
     {:else}

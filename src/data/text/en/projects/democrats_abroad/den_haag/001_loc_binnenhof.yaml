@@ -33,7 +33,7 @@ challenge:
       label: What time of day did you arrive at the Binnenhof?
       options:
         - Morning (before 12:00)
-        - Afternoon (12:00–17:00)
+        - Afternoon (12:00 - 17:00)
         - Evening (after 17:00)
     - id: flags
       label: What flags can you see flying in the courtyard right now?
