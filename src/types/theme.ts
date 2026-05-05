@@ -1,3 +1,8 @@
+export interface SwipeConfig {
+  mode: 'peek' | 'carousel' | 'snap';
+  hint: number; // px of adjacent card visible at rest; always 0 for snap
+}
+
 export interface Theme {
   fontFamily: string;
   background: string;
@@ -15,6 +20,7 @@ export interface Theme {
   progressFill: string;
   clueBackground: string;
   clueBorderColor: string;
+  swipe: SwipeConfig;
 }
 
 export type ThemeName = "wireframe" | "app" | "GWC";

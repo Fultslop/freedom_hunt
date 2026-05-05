@@ -1,5 +1,7 @@
 # Task 7: Nav buttons + snap mode cleanup
 
+Status: Completed
+
 **Previous:** [Task 6 — Drag state + commit/spring-back](task-06-drag-wiring.md)  
 **Next:** —
 

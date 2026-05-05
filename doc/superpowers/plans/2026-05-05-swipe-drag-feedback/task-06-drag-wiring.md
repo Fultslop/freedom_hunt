@@ -1,5 +1,7 @@
 # Task 6: RoutePage — drag state + commit/spring-back
 
+Status: Completed
+
 **Previous:** [Task 5 — Static strip render](task-05-strip-render.md)  
 **Next:** [Task 7 — Nav buttons + snap mode](task-07-nav-snap.md)
 

@@ -1,5 +1,7 @@
 # Task 3: Commit/elastic helpers (TDD)
 
+Status: Completed
+
 **Previous:** [Task 2 — Swipe action rewrite](task-02-swipe-action.md)  
 **Next:** [Task 4 — RoutePage CSS](task-04-css.md)
 

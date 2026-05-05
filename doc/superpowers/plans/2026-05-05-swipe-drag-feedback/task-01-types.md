@@ -1,5 +1,7 @@
 # Task 1: SwipeConfig type + theme wiring
 
+Status: Completed
+
 **Previous:** —  
 **Next:** [Task 2 — Swipe action rewrite](task-02-swipe-action.md)
 

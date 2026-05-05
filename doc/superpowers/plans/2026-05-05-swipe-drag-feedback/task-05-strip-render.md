@@ -1,5 +1,7 @@
 # Task 5: RoutePage — static three-card strip
 
+Status: Completed
+
 **Previous:** [Task 4 — CSS](task-04-css.md)  
 **Next:** [Task 6 — Drag state + commit/spring-back](task-06-drag-wiring.md)
 

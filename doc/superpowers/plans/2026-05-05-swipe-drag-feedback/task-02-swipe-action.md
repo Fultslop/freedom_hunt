@@ -1,5 +1,7 @@
 # Task 2: Swipe action rewrite (TDD)
 
+Status: Completed
+
 **Previous:** [Task 1 — Types](task-01-types.md)  
 **Next:** [Task 3 — Commit/elastic helpers](task-03-helpers.md)
 

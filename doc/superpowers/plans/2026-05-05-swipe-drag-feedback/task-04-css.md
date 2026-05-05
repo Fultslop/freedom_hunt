@@ -1,5 +1,7 @@
 # Task 4: RoutePage CSS strip layout
 
+Status: Completed
+
 **Previous:** [Task 3 — Commit/elastic helpers](task-03-helpers.md)  
 **Next:** [Task 5 — Static three-card strip](task-05-strip-render.md)
 

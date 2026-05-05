@@ -1,5 +1,7 @@
 # Swipe Drag Feedback — Implementation Plan
 
+Status: Completed
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Give mobile users real-time drag feedback when swiping between challenge cards, with adjacent cards peeking in from the edges, configurable per theme.
