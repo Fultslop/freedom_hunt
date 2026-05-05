@@ -1,68 +1,102 @@
 import js from "@eslint/js";
 import globals from "globals";
-import reactHooks from "eslint-plugin-react-hooks";
-import reactRefresh from "eslint-plugin-react-refresh";
-import react from "eslint-plugin-react";
 import tseslint from "typescript-eslint";
+import svelte from "eslint-plugin-svelte";
+import svelteParser from "svelte-eslint-parser";
 import { defineConfig, globalIgnores } from "eslint/config";
 import prettierConfig from "eslint-config-prettier";
 
 export default defineConfig([
-  globalIgnores(["dist", "build", "node_modules"]),
+  globalIgnores(["dist", "build", "node_modules", "src/test/worker*.test.ts"]),
   {
-    files: ["**/*.{js,jsx,ts,tsx}"],
-    plugins: {
-      "react-hooks": reactHooks,
-      "react-refresh": reactRefresh,
-      react,
-    },
+    files: ["**/*.{js,ts}"],
+    plugins: { "@typescript-eslint": tseslint.plugin },
     extends: [
       js.configs.recommended,
       ...tseslint.configs.recommended,
-      react.configs.flat.recommended,
-      react.configs.flat["jsx-runtime"],
     ],
     languageOptions: {
       ecmaVersion: "latest",
-      globals: {
-        ...globals.browser,
-        ...globals.es2020,
-        ...globals.node,
-        startTransition: "readonly",
-      },
-      parserOptions: {
-        ecmaFeatures: { jsx: true },
-        sourceType: "module",
-      },
-    },
-    settings: {
-      react: { version: "detect" },
+      globals: { ...globals.browser, ...globals.es2020, ...globals.node },
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
+      "complexity": ["error", 10],
+      "max-len": ["error", { "code": 100 }],
+      "curly": ["error", "all"],
+      "brace-style": ["error", "1tbs", { "allowSingleLine": false }],
+      "id-length": ["error", { "min": 3, "exceptions": ["id", "to", "ok", "fs", "js", "vi", "m", "r", "e", "k", "v", "i", "c", "ip", "b", "f", "pr", "a"] }],
+      "no-useless-return": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
-        { varsIgnorePattern: "^[A-Z_]|^act$", argsIgnorePattern: "^_" },
+        { "varsIgnorePattern": "^[A-Z_]", "argsIgnorePattern": "^_" },
       ],
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true },
+      "no-restricted-syntax": [
+        "error",
+        {
+          "selector": "ForOfStatement > BlockStatement > IfStatement[test.operator='!'] > ReturnStatement[argument.value=false]",
+          "message": "This manual guard loop can be replaced with .every() or .isSubsetOf().",
+        },
+        {
+          "selector": "ReturnStatement[argument=null]",
+          "message": "Early returns (naked returns) are disallowed.",
+        },
       ],
-      "react/jsx-no-leaked-render": ["error", { validStrategies: ["ternary"] }],
-      "react/no-array-index-key": "warn",
     },
   },
   {
-    files: ["src/test/**/*.{js,jsx,ts,tsx}", "**/*.test.{js,jsx,ts,tsx}"],
+    files: ["**/*.svelte"],
+    plugins: { svelte, "@typescript-eslint": tseslint.plugin },
     languageOptions: {
-      globals: {
-        ...globals.vitest,
-        vi: "readonly",
-        global: "readonly",
+      parser: svelteParser,
+      parserOptions: {
+        parser: tseslint.parser,
       },
+      globals: { ...globals.browser },
+    },
+    rules: {
+      ...svelte.configs.recommended.rules,
+      "svelte/require-each-key": "error",
+      "svelte/no-at-html-tags": "error",
+      "svelte/no-unused-svelte-ignore": "error",
+      "svelte/no-reactive-reassign": "error",
+      "max-len": ["error", { "code": 100, "ignorePattern": "^\\s*<" }],
+      "curly": ["error", "all"],
+      "brace-style": ["error", "1tbs", { "allowSingleLine": false }],
+      "id-length": ["error", { "min": 3, "exceptions": ["id", "to", "ok", "fs", "js", "vi", "m", "r", "e", "k", "v", "i", "c", "ip", "b", "f", "pr", "a", "p", "n"] }],
+      "no-useless-return": "error",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { "varsIgnorePattern": "^[A-Z_]", "argsIgnorePattern": "^_" },
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          "selector": "ForOfStatement > BlockStatement > IfStatement[test.operator='!'] > ReturnStatement[argument.value=false]",
+          "message": "This manual guard loop can be replaced with .every() or .isSubsetOf().",
+        },
+        {
+          "selector": "ReturnStatement[argument=null]",
+          "message": "Early returns (naked returns) are disallowed.",
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/test/**/*.{ts}", "**/*.test.{ts}"],
+    languageOptions: {
+      globals: { ...globals.vitest, vi: "readonly", global: "readonly" },
     },
     rules: {
       "@typescript-eslint/ban-ts-comment": "off",
+      "complexity": "off",
+      "no-useless-return": "off",
+    },
+  },
+  {
+    files: ["src/worker/**/*.ts"],
+    rules: {
+      "complexity": "off",
+      "no-useless-return": "off",
     },
   },
   prettierConfig,

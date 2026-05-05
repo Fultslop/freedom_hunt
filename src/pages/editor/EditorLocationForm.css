@@ -139,3 +139,7 @@
   font-size: var(--font-size-sm);
   color: var(--color-accent);
 }
+
+.loc-form__loading {
+  padding: 24px;
+}

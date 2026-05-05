@@ -8,27 +8,51 @@ const now = () => Math.floor(Date.now() / 1000);
 
 describe("createToken / verifyToken", () => {
   it("round-trips a payload", async () => {
-    const payload: TokenPayload = { project: "p", teamName: "t", contact: "c", isAdmin: false, exp: now() + 3600 };
+    const payload: TokenPayload = {
+      project: "p",
+      teamName: "t",
+      contact: "c",
+      isAdmin: false,
+      exp: now() + 3600,
+    };
     const token = await createToken(payload, SECRET);
     const result = await verifyToken(token, SECRET);
     expect(result?.project).toBe("p");
   });
 
   it("returns null for an expired token", async () => {
-    const payload: TokenPayload = { project: "p", teamName: "t", contact: "c", isAdmin: false, exp: now() - 1 };
+    const payload: TokenPayload = {
+      project: "p",
+      teamName: "t",
+      contact: "c",
+      isAdmin: false,
+      exp: now() - 1,
+    };
     const token = await createToken(payload, SECRET);
     expect(await verifyToken(token, SECRET)).toBeNull();
   });
 
   it("returns null for a tampered token", async () => {
-    const payload: TokenPayload = { project: "p", teamName: "t", contact: "c", isAdmin: false, exp: now() + 3600 };
+    const payload: TokenPayload = {
+      project: "p",
+      teamName: "t",
+      contact: "c",
+      isAdmin: false,
+      exp: now() + 3600,
+    };
     const token = await createToken(payload, SECRET);
     const tampered = token.slice(0, -4) + "xxxx";
     expect(await verifyToken(tampered, SECRET)).toBeNull();
   });
 
   it("returns null when signed with the wrong secret", async () => {
-    const payload: TokenPayload = { project: "p", teamName: "t", contact: "c", isAdmin: false, exp: now() + 3600 };
+    const payload: TokenPayload = {
+      project: "p",
+      teamName: "t",
+      contact: "c",
+      isAdmin: false,
+      exp: now() + 3600,
+    };
     const token = await createToken(payload, SECRET);
     expect(await verifyToken(token, "wrong-secret")).toBeNull();
   });

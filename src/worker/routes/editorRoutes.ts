@@ -91,13 +91,13 @@ export async function handleEditorRoutes(
     if (denied) return denied;
     try {
       const { project, city, filename, existingSha, location } =
-        await request.json() as {
-        project: string;
-        city: string;
-        filename: string;
-        existingSha?: string;
-        location: Record<string, unknown>;
-      };
+        (await request.json()) as {
+          project: string;
+          city: string;
+          filename: string;
+          existingSha?: string;
+          location: Record<string, unknown>;
+        };
       if (!project || !city || !filename || !location) {
         return json({ ok: false, error: "Missing fields" }, 400);
       }

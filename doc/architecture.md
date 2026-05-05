@@ -12,43 +12,54 @@ Participants visit historically significant sites, complete challenges at each l
 
 | Layer        | Choice                                                                        |
 | ------------ | ----------------------------------------------------------------------------- |
-| Framework    | React 19                                                                      |
+| Framework    | Svelte 5                                                                      |
 | Build tool   | Vite 8                                                                        |
-| Routing      | React Router v7                                                               |
-| Language     | JSX (no TypeScript)                                                           |
+| Routing      | svelte-spa-router (hash-based)                                                |
+| Language     | TypeScript (`.ts` + `.svelte`)                                                |
 | Styling      | Co-located `.css` files + CSS custom properties (no CSS modules, no Tailwind) |
 | Data         | Static YAML files in `src/data/text/`                                         |
 | YAML loading | `@modyfi/vite-plugin-yaml` (bundled at build time)                            |
-| Maps         | Leaflet + react-leaflet                                                       |
+| Maps         | Leaflet (via `use:leafletMap` Svelte action)                                  |
 | Markdown     | marked                                                                        |
-| Icons        | lucide-react                                                                  |
+| Icons        | lucide-svelte                                                                 |
 | Deployment   | Cloudflare Workers via `@cloudflare/vite-plugin` + wrangler                   |
-| Testing      | Vitest + @testing-library/react                                               |
+| Testing      | Vitest + @testing-library/svelte                                              |
 
 ## File Structure
 
 ```
 src/
   pages/
-    AppPage.jsx         — Home: lists available projects
-    ProjectPage.jsx     — City picker for a chosen project
-    CityPage.jsx        — Route picker for a chosen city
-    RoutePage.jsx       — Swipe-based challenge flow
+    AppPage.svelte      — Home: lists available projects
+    ProjectPage.svelte  — City picker for a chosen project
+    CityPage.svelte     — Route picker for a chosen city
+    RoutePage.svelte    — Swipe-based challenge flow
+    editor/             — Editor pages (admin)
   components/
-    TitleBar.jsx        — Persistent top bar (back, title, progress, theme switcher)
-    ChallengeCard.jsx   — Card for one location (storyline, breadcrumb, challenge)
-    ChallengeForm.jsx   — Inline form embedded inside a ChallengeCard
-    CitySelector.jsx    — City card used in ProjectPage
-    RouteSelector.jsx   — Route card used in CityPage
-    MarkdownText.jsx    — Renders markdown via marked
+    TitleBar.svelte     — Persistent top bar (back, title, progress, theme switcher)
+    ChallengeCard.svelte — Card for one location (storyline, breadcrumb, challenge)
+    ChallengeForm.svelte — Inline form embedded inside a ChallengeCard
+    CitySelector.svelte — City card used in ProjectPage
+    RouteSelector.svelte — Route card used in CityPage
+    MarkdownText.svelte — Renders markdown via marked
+  stores/
+    themeStore.ts       — Active theme; syncs CSS custom properties to <html>
+    titleBarStore.ts    — Title bar state (title, progress, back path)
+    languageStore.ts    — Language selection (currently English only)
+    authStore.ts        — Authentication state
+    fontSizeStore.ts    — Font size preference
   theme/
-    ThemeContext.jsx    — Provides active theme token object to the tree
-    TitleBarContext.jsx — Provides title bar state (title, progress, back path)
-    themes.js           — wireframe / app / GWC theme presets
-  i18n/
-    LanguageContext.jsx — Language selection context (currently English only)
+    themes.ts           — wireframe / app / GWC theme presets
+  utils/
+    loadText.ts         — Loads YAML data files at runtime
+    loadLocations.ts    — Resolves and loads location YAML files for a route
+    authGuards.ts       — Route pre-condition functions for svelte-spa-router
+    routeNav.ts         — Navigation helpers (clampedNext, clampedPrev)
+  actions/
+    swipe.ts            — Svelte action for touch swipe events
+    leafletMap.ts       — Svelte action for Leaflet map integration
   assets/
-    AssetManager.js     — fetchImage(filename) fetches /assets/img/ at runtime,
+    AssetManager.ts     — fetchImage(filename) fetches /assets/img/ at runtime,
                           caches as blob URLs; preloadImages() for early warming
   data/
     img/                — Location images (served at /assets/img/ in dev + prod)
@@ -65,9 +76,9 @@ src/
               routes.yaml             — Route definitions (name → location ID list)
               <locationId>.yaml       — Location challenge data
   test/
-    *.test.jsx          — Vitest + testing-library tests
-  main.jsx              — App entry point
-  App.jsx               — Route definitions + context providers
+    *.test.ts           — Vitest + @testing-library/svelte tests
+  main.ts               — App entry point
+  App.svelte            — Route definitions + store initialization
 doc/
   architecture.md       — This file
   devlog/
@@ -184,10 +195,11 @@ Reference: `src/data/text/en/projects/democrats_abroad/den_haag/001_loc_binnenho
 
 ## Theme System
 
-Three theme presets defined in `themes.js`: `wireframe`, `app`, `GWC` (Democrats Abroad branding — DA navy `#002868` / flag red `#BF0A30`).
+Three theme presets defined in `themes.ts`: `wireframe`, `app`, `GWC` (Democrats Abroad branding — DA navy `#002868` / flag red `#BF0A30`).
 
-- **ThemeContext** provides the active token object (`background`, `surface`, `border`, `text`, `accent`, bar/progress/clue sub-tokens) to all components via `useTheme()`.
-- **TitleBarContext** provides `{ title, progress, backPath }` to the persistent `TitleBar` component.
+- **themeStore** holds the active token object (`background`, `surface`, `border`, `text`, `accent`, bar/progress/clue sub-tokens); components subscribe via `$themeStore`.
+- **titleBarStore** holds `{ title, progress, backPath }` for the persistent `TitleBar` component.
+- `App.svelte` syncs the active theme's tokens to CSS custom properties on `<html>` via a `$effect` on every theme change.
 - The `TitleBar` includes a style-switcher (☰) to toggle between themes at runtime.
 
 ## Image Handling
@@ -197,7 +209,7 @@ Images are not bundled — they are served as static files at `/assets/img/<file
 - **Dev:** a Vite plugin serves `src/data/img/` at `/assets/img/`.
 - **Prod:** a Vite plugin copies `src/data/img/` → `dist/client/assets/img/` at build time.
 
-`AssetManager.fetchImage(filename)` fetches the URL, converts it to a blob URL, and caches it in memory. Components call this via `useEffect` and store the result in state.
+`AssetManager.fetchImage(filename)` fetches the URL, converts it to a blob URL, and caches it in memory. Components call this inside `$effect` blocks and store the result in `$state`.
 
 ## Key Design Decisions
 
@@ -205,8 +217,8 @@ Images are not bundled — they are served as static files at `/assets/img/<file
 
 **Multi-project, multi-city, multi-route.** The URL structure (`/:project/:city/:route`) and data hierarchy support running the same app for multiple organisations, cities, and named routes simultaneously.
 
-**CSS custom properties for theming.** No CSS modules, no Tailwind. Each component and page has a co-located `.css` file. Colours are expressed as `var(--color-*)` CSS custom properties. The token set is defined in `src/styles/tokens.css` and synced at runtime by `src/hooks/useCssVars.js`, which writes the active JS theme object onto `<html>` as CSS custom properties on every theme change. Global resets and `@keyframes` live in `src/styles/global.css`. Inline styles are reserved for values that are unavoidably dynamic (computed pixel offsets, runtime-state-driven widths, per-record colour values from data).
+**CSS custom properties for theming.** No CSS modules, no Tailwind. Each component and page has a co-located `.css` file. Colours are expressed as `var(--color-*)` CSS custom properties. The token set is defined in `src/styles/tokens.css`; `App.svelte` syncs the active JS theme object onto `<html>` as CSS custom properties on every theme change via a `$effect`. Global resets and `@keyframes` live in `src/styles/global.css`. Inline styles are reserved for values that are unavoidably dynamic (computed pixel offsets, runtime-state-driven widths, per-record colour values from data).
 
 **Cloudflare Workers deployment.** The app runs as a Cloudflare Worker serving static assets. `npm run preview` builds and runs locally via `wrangler dev`. `npm run deploy` pushes to Cloudflare.
 
-**Data loading hooks.** `useText(path)` loads `src/data/text/en/{path}.yaml`. `useLocations(project, city, route)` resolves the location ID list from `routes.yaml` and loads each location YAML in parallel.
+**Data loading utilities.** `loadText(lang, path)` loads `src/data/text/{lang}/{path}.yaml`. `loadLocations(lang, locationPaths)` loads each location YAML in parallel. Components call these inside `$effect` blocks and write results into `$state` variables.

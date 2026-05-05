@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   font-size: var(--font-size-base);
   font-weight: 400;
   cursor: pointer;
@@ -128,7 +128,6 @@
 }
 
 .cf-photo-wrap {
-  margin-top: 12px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -147,6 +146,10 @@
   font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
+}
+
+.cf-photo-input {
+  display: none;
 }
 
 .cf-photo-btn--uploading {
