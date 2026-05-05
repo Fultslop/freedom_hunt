@@ -81,3 +81,9 @@ export interface CitiesText {
   items: City[];
   [key: string]: string | City[] | undefined;
 }
+
+/** Free-form project metadata from <projectId>.yaml */
+export type ProjectMeta = Record<string, unknown>;
+
+/** Free-form city metadata from <cityId>.yaml */
+export type CityText = Record<string, unknown>;
