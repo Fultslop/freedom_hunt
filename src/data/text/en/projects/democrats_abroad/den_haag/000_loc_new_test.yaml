@@ -1,0 +1,16 @@
+title: new test
+image: ''
+name:
+  label: new label
+  value: value
+address: 'yes'
+coordinates:
+  latitude: 221
+  longitude: 232
+storyline: story
+challenge:
+  name: challenge!!!
+  description: description !!!
+  notes: ''
+  form: []
+breadcrumb: clue
