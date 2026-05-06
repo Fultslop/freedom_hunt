@@ -7,6 +7,6 @@ test("renders markdown as HTML", () => {
 });
 
 test("renders nothing for null text", () => {
-  const { container } = render(MarkdownText, { props: { text: null } });
+  const { container } = render(MarkdownText, { props: { text: undefined } });
   expect(container.querySelector(".markdown-text")).toBeNull();
 });

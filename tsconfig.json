@@ -12,5 +12,5 @@
     "types": ["vitest/globals"]
   },
   "include": ["src/**/*.ts", "src/**/*.svelte"],
-  "exclude": ["node_modules", "dist", "src/test"]
+  "exclude": ["node_modules", "dist"]
 }

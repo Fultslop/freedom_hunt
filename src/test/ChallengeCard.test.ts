@@ -4,6 +4,7 @@ import ChallengeCard from "../components/ChallengeCard.svelte";
 
 vi.mock("../assets/AssetManager", () => ({
   fetchImage: vi.fn().mockResolvedValue("blob:test"),
+  getCachedImageUrl: vi.fn().mockReturnValue("blob:test"),
 }));
 
 vi.mock("../actions/leafletMap", () => ({
@@ -11,7 +12,6 @@ vi.mock("../actions/leafletMap", () => ({
 }));
 
 const location = {
-  locationId: 1,
   title: "The Binnenhof",
   image: "binnenhof.jpg",
   name: { label: "", value: "Binnenhof" },

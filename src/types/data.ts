@@ -33,7 +33,7 @@ export interface Coordinates {
 }
 
 export interface Location {
-  locationId: number;
+  //locationId: number;
   title: string;
   image?: string;
   name: LocationName;

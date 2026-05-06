@@ -19,7 +19,7 @@ describe("loadLocations", () => {
   });
 
   it("returns loaded locations in order", async () => {
-    const loc = { locationId: 1, title: "Binnenhof" } as Location;
+    const loc = { title: "Binnenhof" } as unknown as Location;
     vi.mocked(loadText).mockResolvedValueOnce(loc);
     const result = await loadLocations("en", [
       "projects/x/y/001_loc_binnenhof",

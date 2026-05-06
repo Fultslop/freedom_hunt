@@ -1,5 +1,6 @@
 import { defineConfig } from "vitest/config";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { svelteTesting } from "@testing-library/svelte/vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import yaml from "@modyfi/vite-plugin-yaml";
 import {
@@ -62,7 +63,7 @@ function copyImagesPlugin() {
   };
 }
 
-const plugins = [svelte(), yaml()];
+const plugins = [svelte(), yaml(), svelteTesting()];
 if (!process.env["VITEST"]) {
   plugins.push(cloudflare());
   plugins.push(devImageServer());

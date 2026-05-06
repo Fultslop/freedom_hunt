@@ -5,7 +5,6 @@
 <script lang="ts">
   import Router from "svelte-spa-router";
   import { wrap } from "svelte-spa-router/wrap";
-  import type { ComponentType } from "svelte";
   import { onMount } from "svelte";
   import { themeStore } from "./stores/themeStore";
   import { fontSizeStore } from "./stores/fontSizeStore";
@@ -22,14 +21,30 @@
   import EditorLocationList from "./pages/editor/EditorLocationList.svelte";
   import EditorLocationForm from "./pages/editor/EditorLocationForm.svelte";
 
-  // svelte-spa-router uses Svelte 4 ComponentType; Svelte 5 components need a cast
-  function asRoute(comp: unknown): ComponentType {
-    return comp as ComponentType;
+  function asRoute(comp: unknown): any {
+    return comp;
   }
 
   const routes = {
     "/": asRoute(AppPage),
     "/login/:project": asRoute(LoginPage),
+    "/editor/login": asRoute(EditorLoginPage),
+    "/editor": wrap({
+      component: asRoute(EditorPage),
+      conditions: [requireAdmin],
+    }),
+    "/editor/locations/:project/:city": wrap({
+      component: asRoute(EditorLocationList),
+      conditions: [requireAdmin],
+    }),
+    "/editor/locations/:project/:city/new/:newId": wrap({
+      component: asRoute(EditorLocationForm),
+      conditions: [requireAdmin],
+    }),
+    "/editor/locations/:project/:city/edit/:filename": wrap({
+      component: asRoute(EditorLocationForm),
+      conditions: [requireAdmin],
+    }),
     "/:project": wrap({
       component: asRoute(ProjectPage),
       conditions: [requireAuth],
@@ -41,23 +56,6 @@
     "/:project/:city/:route": wrap({
       component: asRoute(RoutePage),
       conditions: [requireAuth],
-    }),
-    "/editor/login": asRoute(EditorLoginPage),
-    "/editor": wrap({
-      component: asRoute(EditorPage),
-      conditions: [requireAdmin],
-    }),
-    "/editor/locations/:project/:city": wrap({
-      component: asRoute(EditorLocationList),
-      conditions: [requireAdmin],
-    }),
-    "/editor/locations/:project/:city/new": wrap({
-      component: asRoute(EditorLocationForm),
-      conditions: [requireAdmin],
-    }),
-    "/editor/locations/:project/:city/edit/:filename": wrap({
-      component: asRoute(EditorLocationForm),
-      conditions: [requireAdmin],
     }),
   };
 

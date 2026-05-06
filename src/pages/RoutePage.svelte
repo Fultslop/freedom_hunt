@@ -84,9 +84,10 @@
   });
 
   $effect(() => {
-    if (locations.length === 0) return;
-    const images = locations.flatMap((l) => (l.image ? [l.image] : []));
-    preloadImages(images);
+    if (locations.length > 0) {
+      const images = locations.flatMap((location) => (location.image ? [location.image] : []));
+      preloadImages(images);
+    }
   });
 
   function handleDragMove(delta: number) {
@@ -142,19 +143,20 @@
   }
 
   function handleTransitionEnd(e: TransitionEvent) {
-    if (e.propertyName !== "transform") return;
-    isAnimating = false;
-    if (pendingCommit === "next") {
-      direction = "next";
-      currentIndex = clampedNext(currentIndex, locations.length);
-      currentSlotIndex = (currentSlotIndex + 1) % 3;
-    } else if (pendingCommit === "prev") {
-      direction = "prev";
-      currentIndex = clampedPrev(currentIndex);
-      currentSlotIndex = (currentSlotIndex + 2) % 3;
+    if (e.propertyName === "transform") {
+      isAnimating = false;
+      if (pendingCommit === "next") {
+        direction = "next";
+        currentIndex = clampedNext(currentIndex, locations.length);
+        currentSlotIndex = (currentSlotIndex + 1) % 3;
+      } else if (pendingCommit === "prev") {
+        direction = "prev";
+        currentIndex = clampedPrev(currentIndex);
+        currentSlotIndex = (currentSlotIndex + 2) % 3;
+      }
+      pendingCommit = null;
+      dragOffset = 0;
     }
-    pendingCommit = null;
-    dragOffset = 0;
   }
 
   let currentLocation = $derived(locations[currentIndex]);

@@ -37,9 +37,7 @@ export async function handleEditorRoutes(
       const locations = await fetchLocations(project, city, env);
       return json({
         ok: true,
-        locations: locations.sort(
-          (a, b) => (a.location.locationId ?? 0) - (b.location.locationId ?? 0),
-        ),
+        locations: locations.sort((a, b) => a.filename.localeCompare(b.filename)),
       });
     } catch (err) {
       return json({ ok: false, error: (err as Error).message }, 502);
