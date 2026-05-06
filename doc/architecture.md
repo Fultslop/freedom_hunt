@@ -13,7 +13,7 @@ Participants visit historically significant sites, complete challenges at each l
 | Layer        | Choice                                                                        |
 | ------------ | ----------------------------------------------------------------------------- |
 | Framework    | Svelte 5                                                                      |
-| Build tool   | Vite 8                                                                        |
+| Build tool   | Vite 6                                                                      |
 | Routing      | svelte-spa-router (hash-based)                                                |
 | Language     | TypeScript (`.ts` + `.svelte`)                                                |
 | Styling      | Co-located `.css` files + CSS custom properties (no CSS modules, no Tailwind) |
