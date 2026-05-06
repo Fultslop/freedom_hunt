@@ -22,7 +22,9 @@ beforeEach(() => {
 
 test("renders form in new-location mode", () => {
   render(EditorLocationForm, {
-    props: { params: { project: "democrats_abroad", city: "den_haag" } },
+    props: {
+      params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
+    },
   });
   expect(
     screen.getByRole("button", { name: /submit for review/i }),
@@ -31,20 +33,21 @@ test("renders form in new-location mode", () => {
 
 test("renders identity section", () => {
   render(EditorLocationForm, {
-    props: { params: { project: "democrats_abroad", city: "den_haag" } },
+    props: {
+      params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
+    },
   });
   expect(screen.getByText(/identity/i)).toBeInTheDocument();
 });
 
 test("submits form and shows success state", async () => {
   render(EditorLocationForm, {
-    props: { params: { project: "democrats_abroad", city: "den_haag" } },
+    props: {
+      params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
+    },
   });
   await fireEvent.input(screen.getByLabelText(/^title/i), {
     target: { value: "Binnenhof" },
-  });
-  await fireEvent.input(screen.getByLabelText(/location id/i), {
-    target: { value: "1" },
   });
   await fireEvent.click(
     screen.getByRole("button", { name: /submit for review/i }),

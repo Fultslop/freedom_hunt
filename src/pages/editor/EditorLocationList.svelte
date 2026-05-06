@@ -50,7 +50,7 @@
       };
       if (data.ok && data.locations) {
         locations = data.locations.sort(
-          (a, b) => (a.location.locationId ?? 0) - (b.location.locationId ?? 0),
+          (a, b) => a.filename.localeCompare(b.filename),
         );
       } else {
         error = data.error ?? "Failed to load locations";
@@ -182,8 +182,10 @@
     <div class="loc-list__toolbar">
       <button
         class="loc-list__add-btn"
-        onclick={() =>
-          push(`/editor/locations/${params.project}/${params.city}/new`)}
+        onclick={() => {
+          const newId = 0;
+          push(`/editor/locations/${params.project}/${params.city}/new/${newId}`);
+        }}
       >
         + Add location
       </button>
@@ -205,7 +207,7 @@
           <div>
             <div class="loc-list__item-title">{location.title || filename}</div>
             <div class="loc-list__item-meta">
-              {location.address || `ID: ${location.locationId}`}
+              {location.address || `ID: ${filename}`}
             </div>
           </div>
           <div class="loc-list__item-actions">

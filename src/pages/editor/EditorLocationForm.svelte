@@ -13,13 +13,13 @@
       project: string;
       city: string;
       filename?: string;
+      newId: number;
     };
   } = $props();
 
   const isEdit = $derived(!!params.filename);
 
   interface Fields {
-    locationId: string;
     title: string;
     image: string;
     name: { label: string; value: string };
@@ -36,7 +36,6 @@
   }
 
   const EMPTY: Fields = {
-    locationId: "",
     title: "",
     image: "",
     name: { label: "", value: "" },
@@ -132,11 +131,10 @@
 
     const resolvedFilename = isEdit
       ? params.filename
-      : buildFilename(fields.locationId, fields.title);
+      : buildFilename(params.newId ?? 0, fields.title);
 
     const location = {
       ...fields,
-      locationId: Number(fields.locationId) || fields.locationId,
       coordinates: {
         latitude: parseFloat(fields.coordinates.latitude) || 0,
         longitude: parseFloat(fields.coordinates.longitude) || 0,
@@ -212,24 +210,6 @@
   <form class="loc-form" onsubmit={handleSubmit}>
     <div class="loc-form__section">
       <div class="loc-form__section-title">Identity</div>
-
-      <div class="loc-form__field">
-        <label class="loc-form__label" for="locationId">
-          Location ID <span class="loc-form__label--muted"
-            >(number, must be unique)</span
-          >
-        </label>
-        <input
-          id="locationId"
-          type="number"
-          value={fields.locationId}
-          oninput={(e) =>
-            setField("locationId", (e.target as HTMLInputElement).value)}
-          required
-          readonly={isEdit}
-          class={`loc-form__input${isEdit ? " loc-form__input--readonly" : ""}`}
-        />
-      </div>
 
       <div class="loc-form__field">
         <label class="loc-form__label" for="title">Title</label>

@@ -6,7 +6,7 @@ const city = {
   name: "Den Haag",
   country: "Netherlands",
   description: "A great city",
-  image: null,
+  image: undefined,
 };
 
 test("renders city name", () => {

@@ -83,4 +83,18 @@
       {submitting ? "Signing in…" : "Sign in"}
     </button>
   </form>
+
+  {#if import.meta.env.DEV}
+    <div class="editor-login__dev-hint">
+      <div class="editor-login__dev-hint-title">Local dev setup</div>
+      <p>The editor requires an admin entry in the local KV store. Run this once:</p>
+      <pre class="editor-login__dev-hint-code">npx wrangler kv key put "admin:democrats_abroad" "devpassword" \
+  --binding AUTH_STORE --local</pre>
+      <p>Then sign in with:</p>
+      <ul>
+        <li><strong>Project:</strong> democrats_abroad</li>
+        <li><strong>Password:</strong> devpassword</li>
+      </ul>
+    </div>
+  {/if}
 </div>

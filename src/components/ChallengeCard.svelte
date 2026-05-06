@@ -35,10 +35,14 @@
 
   // Async fetch for cold (uncached) images only.
   $effect(() => {
-    if (!location.image || getCachedImageUrl(location.image)) return undefined;
+    if (!location.image || getCachedImageUrl(location.image)) {
+      return undefined;
+    }
     let cancelled = false;
     fetchImage(location.image).then((url) => {
-      if (!cancelled) heroSrc = url;
+      if (!cancelled) {
+        heroSrc = url;
+      }
     });
     return () => { cancelled = true; };
   });
@@ -129,7 +133,7 @@
     {#if location.challenge.form && location.challenge.form.length > 0}
       <ChallengeForm
         form={location.challenge.form}
-        locationId={location.locationId}
+        locationId={index ?? -1}
         {routeId}
       />
     {/if}
