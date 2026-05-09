@@ -1,0 +1,43 @@
+title: "The King Who Said No"
+image: oslo-royal-palace.jpg
+name:
+  label: ""
+  value: "Det Kongelige Slott"
+address: "Slottsplassen 1, 0010 Oslo"
+coordinates:
+  latitude: 59.9169
+  longitude: 10.7274
+storyline: |
+  In April 1940, German forces demanded King Haakon VII legitimise the Nazi occupation by appointing
+  Vidkun Quisling as prime minister. He refused — a refusal that forced Germany to occupy Norway by
+  military force rather than by consent, and that gave the Norwegian resistance its moral anchor for
+  five years of occupation.
+breadcrumb: |
+  In the plaza in front of the palace, find the equestrian statue of King Karl Johan. Look at the
+  pedestal. What year is inscribed, and who is the figure facing?
+challenge:
+  name: ""
+  description: |
+    Observe the palace guard at the main gate. Note two visible details that distinguish the guard's
+    uniform from a standard soldier's. Then discuss in your group: what does a head of state who
+    refuses a collaborationist deal mean for a democracy — and does it matter that this was a king,
+    not an elected official?
+  notes: ""
+  form:
+    - id: photo
+      type: photo
+      label: Take a photo of the statue or the palace gate
+    - id: pedestal_year
+      type: string
+      label: What year is inscribed on the Karl Johan pedestal?
+    - id: guards_visible
+      type: radio
+      label: How many guards are currently visible at the main gate?
+      options:
+        - "0"
+        - "1"
+        - "2"
+        - More than 2
+    - id: royal_standard
+      type: boolean
+      label: Is the royal standard (flag) flying above the palace today?

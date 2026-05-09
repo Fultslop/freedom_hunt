@@ -1,0 +1,45 @@
+title: "Ordinary People, Impossible Choices"
+image: oslo-resistance-museum.jpg
+name:
+  label: ""
+  value: "Norges Hjemmefrontmuseum"
+address: "Akershus festning, 0150 Oslo"
+coordinates:
+  latitude: 59.9089
+  longitude: 10.7352
+storyline: |
+  The Norges Hjemmefrontmuseum sits on the Akershus grounds, in a building used by German
+  authorities during the occupation. It documents the full spectrum of Norwegian responses to
+  occupation: collaboration, silence, and resistance. The resistance — Milorg — organised more than
+  40,000 people by the end of the war. Most of them were ordinary people who decided that some
+  things were worth risking their lives for.
+breadcrumb: |
+  At the museum entrance, look for the date that marks Norway's liberation. What is it?
+challenge:
+  name: ""
+  description: |
+    Walk through the museum and find one object, document, or story that you think every democracy
+    should know about. Note what it is — and explain in your own words, not the museum's, why it
+    matters.
+  notes: ""
+  form:
+    - id: photo
+      type: photo
+      label: Take a photo of the object or display you chose
+    - id: entered_museum
+      type: boolean
+      label: Did you enter the museum?
+    - id: liberation_date
+      type: string
+      label: What liberation date did you find at the entrance?
+    - id: found_object
+      type: string
+      label: What did you find inside, and why does it matter?
+    - id: biggest_surprise
+      type: radio
+      label: What surprised you most?
+      options:
+        - The scale of organised resistance
+        - The extent of collaboration
+        - Individual acts of courage
+        - The role of women in the resistance
