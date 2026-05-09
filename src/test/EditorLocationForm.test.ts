@@ -37,7 +37,7 @@ test("renders identity section", () => {
       params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
     },
   });
-  expect(screen.getByText(/identity/i)).toBeInTheDocument();
+  expect(screen.getByText(/Id/i)).toBeInTheDocument();
 });
 
 test("submits form and shows success state", async () => {
@@ -45,6 +45,9 @@ test("submits form and shows success state", async () => {
     props: {
       params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
     },
+  });
+  await fireEvent.input(screen.getByLabelText(/^id/i), {
+    target: { value: "filename" },
   });
   await fireEvent.input(screen.getByLabelText(/^title/i), {
     target: { value: "Binnenhof" },
