@@ -4,6 +4,7 @@
   import { titleBarStore } from "../../stores/titleBarStore";
   import { addPending } from "./editorStorage";
   import type { FormField } from "../../types/data";
+  import { createLocationFilename, locationFilenameToString, tryParseLocationName } from "./editorUtils";
   import "./EditorLocationForm.css";
 
   let {
@@ -20,6 +21,7 @@
   const isEdit = $derived(!!params.filename);
 
   interface Fields {
+    identity: string;
     title: string;
     image: string;
     name: { label: string; value: string };
@@ -36,6 +38,7 @@
   }
 
   const EMPTY: Fields = {
+    identity: "",
     title: "",
     image: "",
     name: { label: "", value: "" },
@@ -45,14 +48,6 @@
     challenge: { name: "", description: "", notes: "", form: [] },
     breadcrumb: "",
   };
-
-  function buildFilename(locationId: string | number, title: string): string {
-    const slug = String(title)
-      .toLowerCase()
-      .replace(/\s+/g, "_")
-      .replace(/[^a-z0-9_]/g, "");
-    return `${String(locationId).padStart(3, "0")}_loc_${slug}.yaml`;
-  }
 
   let fields = $state<Fields>({ ...EMPTY });
   let existingSha = $state<string | null>(null);
@@ -86,6 +81,7 @@
             fields = {
               ...EMPTY,
               ...(typed.location ?? {}),
+              identity: tryParseLocationName(params.filename)?.id || "undefined",
               name: {
                 ...EMPTY.name,
                 ...((typed.location.name as object) ?? {}),
@@ -129,9 +125,12 @@
     submitState = "submitting";
     submitError = null;
 
-    const resolvedFilename = isEdit
-      ? params.filename
-      : buildFilename(params.newId ?? 0, fields.title);
+    const resolvedFilename = locationFilenameToString(
+                                createLocationFilename(
+                                  params.newId ?? 0, 
+                                  fields.identity
+                                )
+                              );
 
     const location = {
       ...fields,
@@ -209,7 +208,18 @@
 {:else}
   <form class="loc-form" onsubmit={handleSubmit}>
     <div class="loc-form__section">
-      <div class="loc-form__section-title">Identity</div>
+      <div class="loc-form__section-title">
+        <label class="loc-form__label" for="identity">Id</label>
+        <input
+          id="identity"
+          type="text"
+          value={fields.identity}
+          oninput={(e) =>
+            setField("identity", (e.target as HTMLInputElement).value)}
+          required
+          class="loc-form__input"
+        />
+      </div>
 
       <div class="loc-form__field">
         <label class="loc-form__label" for="title">Title</label>

@@ -9,6 +9,7 @@
   } from "./editorStorage";
   import type { Location } from "../../types/data";
   import "./EditorLocationList.css";
+  import { getNextLocationId } from "./editorUtils";
 
   let { params }: { params: { project: string; city: string } } = $props();
 
@@ -171,6 +172,9 @@
       pending = getPending(params.project, params.city);
     }
   }
+
+  
+
 </script>
 
 {#if loading}
@@ -183,7 +187,7 @@
       <button
         class="loc-list__add-btn"
         onclick={() => {
-          const newId = 0;
+          const newId = getNextLocationId(locations.map((loc) => loc.filename));
           push(`/editor/locations/${params.project}/${params.city}/new/${newId}`);
         }}
       >
@@ -207,7 +211,7 @@
           <div>
             <div class="loc-list__item-title">{location.title || filename}</div>
             <div class="loc-list__item-meta">
-              {location.address || `ID: ${filename}`}
+              {`${filename}`}
             </div>
           </div>
           <div class="loc-list__item-actions">
