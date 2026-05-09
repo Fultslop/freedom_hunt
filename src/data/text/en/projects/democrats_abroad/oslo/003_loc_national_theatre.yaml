@@ -1,0 +1,42 @@
+title: "What We Dare to Say Aloud"
+image: oslo-national-theatre.jpg
+name:
+  label: ""
+  value: "Nationaltheatret"
+address: "Johanne Dybwads plass 1, 0161 Oslo"
+coordinates:
+  latitude: 59.9126
+  longitude: 10.7326
+storyline: |
+  Henrik Ibsen's plays were political acts in domestic clothing. A Doll's House (1879) argued that
+  women are full human beings. An Enemy of the People (1882) argued that a single honest person can
+  be right when the crowd is wrong. Peer Gynt asked what it means to be yourself. The National
+  Theatre, opened in 1899, was built for exactly this kind of truth-telling: art that names what
+  power would prefer to leave unspoken.
+breadcrumb: |
+  Two bronze statues stand in front of the theatre. One wrote A Doll's House. The other wrote
+  Peer Gynt — a different play, a different man. Find both statues before continuing.
+challenge:
+  name: ""
+  description: |
+    Read the inscription on one of the two statue pedestals. Then discuss in your group: which of
+    Ibsen's recurring themes feels most alive in the world right now? Pick one and commit to it.
+  notes: ""
+  form:
+    - id: photo
+      type: photo
+      label: Take a photo of one of the statues
+    - id: found_both
+      type: boolean
+      label: Did you find both statues?
+    - id: pedestal_inscription
+      type: string
+      label: Copy the inscription from one of the pedestals
+    - id: ibsen_theme
+      type: radio
+      label: Which Ibsen theme did your group choose?
+      options:
+        - Individual freedom against social pressure
+        - Institutional corruption
+        - Tyranny of majority opinion
+        - We couldn't agree

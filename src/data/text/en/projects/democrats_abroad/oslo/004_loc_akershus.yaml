@@ -1,0 +1,47 @@
+title: "The Fortress That Fell, Then Remembered"
+image: oslo-akershus.jpg
+name:
+  label: ""
+  value: "Akershus Festning"
+address: "Akershus festning, 0150 Oslo"
+coordinates:
+  latitude: 59.9083
+  longitude: 10.7368
+storyline: |
+  Akershus Fortress fell to German forces on 9 April 1940 without a battle — caught in the chaos
+  of the invasion. Over the following five years it became a Gestapo prison, a place of torture,
+  and an execution ground. Norwegian resistance fighters were shot in its courtyard. In 1945, it was
+  here that Vidkun Quisling — the man whose name became a synonym for traitor — was tried by a
+  Norwegian court and executed by firing squad.
+breadcrumb: |
+  Inside the fortress grounds, find the memorial to the Norwegians who were executed here during
+  the occupation. Look for a plaque or stone marker near the execution site in the courtyard.
+challenge:
+  name: ""
+  description: |
+    Stand in the fortress courtyard. Without checking your phone: how many Norwegian resistance
+    fighters do you think were executed at Akershus during the five years of occupation? Write your
+    estimate. Then look it up — how close were you? And describe what you can see from where
+    you are standing.
+  notes: "The actual number executed at Akershus is approximately 42."
+  form:
+    - id: photo
+      type: photo
+      label: Take a photo of the memorial or the courtyard
+    - id: found_memorial
+      type: boolean
+      label: Did you find the execution site memorial?
+    - id: execution_estimate
+      type: number
+      label: Your estimate (before looking it up) — how many were executed here?
+    - id: courtyard_description
+      type: string
+      label: Describe what you can see from where you are standing
+    - id: emotional_response
+      type: radio
+      label: How did the space make you feel?
+      options:
+        - Solemn
+        - Angry
+        - Proud
+        - Numb

@@ -1,0 +1,28 @@
+inner_circuit:
+  description: "A compact 2.5–3 hour loop through the democratic heart of Oslo: parliament, culture, the Nobel Peace Center, and the hall where the prize is awarded."
+  locations:
+    - 002_loc_stortinget
+    - 003_loc_national_theatre
+    - 006_loc_nobel_center
+    - 007_loc_city_hall
+
+resistance_walk:
+  description: "A 3.5–4 hour route that adds the royal refusal and Akershus Fortress — the site of occupation, execution, and collaboration's reckoning — before arriving at the Nobel quarter."
+  locations:
+    - 001_loc_royal_palace
+    - 002_loc_stortinget
+    - 003_loc_national_theatre
+    - 004_loc_akershus
+    - 006_loc_nobel_center
+    - 007_loc_city_hall
+
+full_route:
+  description: "A 4.5–5 hour full arc from palace to peace: all seven locations including the Norwegian Resistance Museum at Akershus, where ordinary people made impossible choices."
+  locations:
+    - 001_loc_royal_palace
+    - 002_loc_stortinget
+    - 003_loc_national_theatre
+    - 004_loc_akershus
+    - 005_loc_resistance_museum
+    - 006_loc_nobel_center
+    - 007_loc_city_hall

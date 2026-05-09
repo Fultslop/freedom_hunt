@@ -1,0 +1,37 @@
+title: "The Prize the World Gives Itself"
+image: oslo-nobel-center.jpg
+name:
+  label: ""
+  value: "Nobels Fredssenter"
+address: "Bryggetorget 3, 0250 Oslo"
+coordinates:
+  latitude: 59.9088
+  longitude: 10.7264
+storyline: |
+  Alfred Nobel left most of his fortune to establish prizes for human achievement — and assigned the
+  peace prize specifically to Norway, then not yet independent from Sweden. Since 1901 it has been
+  awarded to people and organisations who have worked to reduce armed conflict and build international
+  solidarity. The Nobel Peace Center, opened in 2005, tells their stories year-round.
+breadcrumb: |
+  On the plaza or at the entrance, find the display or banner showing the most recent Nobel Peace
+  Prize laureate. Who received it, and for what?
+challenge:
+  name: ""
+  description: |
+    Inside the center, find the laureate you know least about — the one whose name means the least
+    to you right now. Read their full citation. Write one sentence in your own words explaining why
+    the Nobel Committee chose them.
+  notes: ""
+  form:
+    - id: photo
+      type: photo
+      label: Take a photo of the laureate display or an exhibit that caught your eye
+    - id: entered_center
+      type: boolean
+      label: Did you enter the center?
+    - id: recent_laureate
+      type: string
+      label: Who is the most recent Nobel Peace Prize laureate?
+    - id: least_known_laureate
+      type: string
+      label: Which laureate did you know least, and in one sentence — why did they win?
