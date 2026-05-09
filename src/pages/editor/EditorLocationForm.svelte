@@ -32,7 +32,7 @@
       name: string;
       description: string;
       notes: string;
-      form: FormField[];
+      form: FormField[] | string;
     };
     breadcrumb: string;
   }
@@ -399,10 +399,11 @@
         ></textarea>
       </div>
 
-      {#if isEdit && fields.challenge.form?.length > 0}
+      {#if isEdit && fields.challenge.form}
         <p class="loc-form__hint">
-          This location has {fields.challenge.form.length} form field(s). Form fields
-          are preserved but not editable here — edit them directly in the YAML file.
+          Form fields are defined in {typeof fields.challenge.form === "string"
+            ? fields.challenge.form
+            : `${fields.challenge.form.length} inline field(s)`}. Edit them directly in the YAML file.
         </p>
       {/if}
     </div>

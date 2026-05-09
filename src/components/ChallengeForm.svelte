@@ -31,6 +31,15 @@
   let fileInput: HTMLInputElement | undefined = $state();
   let maxWarningKeys = $state<Record<string, number>>({});
 
+  function portal(node: HTMLElement) {
+    document.body.appendChild(node);
+    return {
+      destroy() {
+        node.remove();
+      },
+    };
+  }
+
   function checkDefinition(field: FormField): string | null {
     if (!VALID_TYPES.includes(field.type)) {
       return `unknown type "${field.type}"`;
@@ -293,7 +302,7 @@
     </div>
 
     {#if showConfirm}
-      <div class="cf-confirm-overlay">
+      <div class="cf-confirm-overlay" use:portal>
         <div class="cf-confirm-dialog">
           <p class="cf-confirm-msg">Submit your answers?</p>
           <div class="cf-confirm-actions">

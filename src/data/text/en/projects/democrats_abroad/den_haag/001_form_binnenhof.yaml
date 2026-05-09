@@ -1,0 +1,31 @@
+- id: photo
+  type: photo
+  label: Take a photo of something
+- id: found_plaque
+  type: boolean
+  label: Did you find the plaque at the base of the William of Orange statue?
+- id: motto_text
+  type: string
+  label: What motto is engraved on the plaque?
+- id: visitor_count
+  type: number
+  label: Roughly how many other visitors are in the courtyard right now?
+- id: time_of_day
+  type: radio
+  label: What time of day did you arrive at the Binnenhof?
+  options:
+    - Morning (before 12:00)
+    - Afternoon (12:00 - 17:00)
+    - Evening (after 17:00)
+- id: flags
+  label: What flags can you see flying in the courtyard right now?
+  type: multiple
+  min: 1
+  max: 3
+  options:
+    - Dutch
+    - European Union
+    - The Hague city flag
+    - American
+    - German
+    - UK
