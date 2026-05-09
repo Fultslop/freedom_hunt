@@ -22,6 +22,11 @@ export interface Challenge {
   form: FormField[];
 }
 
+/** Raw shape before form resolution — `form` may be a filename string. Internal to loading utilities. */
+export interface RawChallenge extends Omit<Challenge, "form"> {
+  form: FormField[] | string;
+}
+
 export interface LocationName {
   label?: string;
   value: string;
