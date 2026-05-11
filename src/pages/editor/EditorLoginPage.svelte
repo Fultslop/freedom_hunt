@@ -2,6 +2,7 @@
   import { push } from "svelte-spa-router";
   import { authStore } from "../../stores/authStore";
   import { titleBarStore } from "../../stores/titleBarStore";
+  import { postLogin } from "../../utils/api";
   import "./EditorLoginPage.css";
 
   let project = $state("democrats_abroad");
@@ -16,16 +17,12 @@
     error = null;
     submitting = true;
     try {
-      const res = await fetch("/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project, teamName: "", contact: "", password }),
+      const data = await postLogin({
+        project,
+        teamName: "",
+        contact: "",
+        password,
       });
-      const data = (await res.json()) as {
-        ok: boolean;
-        isAdmin?: boolean;
-        error?: string;
-      };
       if (data.ok && data.isAdmin) {
         authStore.login(project, "", "", true);
         push("/editor");

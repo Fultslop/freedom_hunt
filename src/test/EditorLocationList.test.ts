@@ -6,29 +6,29 @@ vi.mock("svelte-spa-router", () => ({
   replace: vi.fn(),
 }));
 
-beforeEach(() => {
-  vi.spyOn(globalThis, "fetch").mockResolvedValue({
-    json: async () => ({
-      ok: true,
-      locations: [
-        {
-          filename: "001_loc_binnenhof.yaml",
-          sha: "abc123",
-          location: {
-            locationId: 1,
-            title: "Binnenhof",
-            address: "Binnenhof 1",
-            coordinates: { latitude: 52.0799, longitude: 4.3133 },
-            storyline: "",
-            breadcrumb: "",
-            name: { label: "", value: "Binnenhof" },
-            challenge: { name: "", description: "", notes: "", form: [] },
-          },
+vi.mock("../utils/api", () => ({
+  fetchEditorLocations: vi.fn().mockResolvedValue({
+    ok: true,
+    locations: [
+      {
+        filename: "001_loc_binnenhof.yaml",
+        sha: "abc123",
+        location: {
+          locationId: 1,
+          title: "Binnenhof",
+          address: "Binnenhof 1",
+          coordinates: { latitude: 52.0799, longitude: 4.3133 },
+          storyline: "",
+          breadcrumb: "",
+          name: { label: "", value: "Binnenhof" },
+          challenge: { name: "", description: "", notes: "", form: [] },
         },
-      ],
-    }),
-  } as Response);
-});
+      },
+    ],
+  }),
+  fetchPrStatuses: vi.fn().mockResolvedValue({ ok: true, statuses: {} }),
+  saveEditorLocation: vi.fn().mockResolvedValue({ ok: true }),
+}));
 
 test("renders location list", async () => {
   render(EditorLocationList, {

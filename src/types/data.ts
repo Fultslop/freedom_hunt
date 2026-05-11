@@ -4,10 +4,12 @@ export type FormFieldType =
   | "number"
   | "radio"
   | "multiple"
-  | "photo";
+  | "photo"
+  | "textarea"
+  | "section";
 
 export interface FormField {
-  id: string;
+  id?: string;
   type: FormFieldType;
   label: string;
   options?: string[];

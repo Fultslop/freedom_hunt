@@ -11,33 +11,39 @@ vi.mock("svelte-spa-router", () => ({
   replace: vi.fn(),
 }));
 
-beforeEach(() => {
-  vi.spyOn(globalThis, "fetch").mockResolvedValue({
-    json: async () => ({
-      ok: true,
-      prUrl: "https://github.com/org/repo/pull/42",
-    }),
-  } as Response);
-});
+vi.mock("../utils/loadText", () => ({
+  loadText: vi.fn().mockResolvedValue([
+    { id: "identity", type: "string", label: "Id" },
+    { id: "title", type: "string", label: "Title" },
+    { id: "storyline", type: "textarea", label: "Storyline" },
+  ]),
+}));
 
-test("renders form in new-location mode", () => {
+vi.mock("../utils/api", () => ({
+  fetchEditorLocation: vi.fn().mockResolvedValue({ ok: false }),
+  saveEditorLocation: vi
+    .fn()
+    .mockResolvedValue({ ok: true, prUrl: "https://github.com/org/repo/pull/42" }),
+}));
+
+test("renders form in new-location mode", async () => {
   render(EditorLocationForm, {
     props: {
       params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
     },
   });
   expect(
-    screen.getByRole("button", { name: /submit for review/i }),
+    await screen.findByRole("button", { name: /submit for review/i }),
   ).toBeInTheDocument();
 });
 
-test("renders identity section", () => {
+test("renders identity section once YAML loads", async () => {
   render(EditorLocationForm, {
     props: {
       params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
     },
   });
-  expect(screen.getByText(/Id/i)).toBeInTheDocument();
+  expect(await screen.findByText(/^Id$/i)).toBeInTheDocument();
 });
 
 test("submits form and shows success state", async () => {
@@ -46,11 +52,15 @@ test("submits form and shows success state", async () => {
       params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
     },
   });
-  await fireEvent.input(screen.getByLabelText(/^id/i), {
-    target: { value: "filename" },
+  await screen.findByLabelText(/^Id$/i);
+  await fireEvent.input(screen.getByLabelText(/^Id$/i), {
+    target: { value: "binnenhof" },
   });
-  await fireEvent.input(screen.getByLabelText(/^title/i), {
+  await fireEvent.input(screen.getByLabelText(/^Title$/i), {
     target: { value: "Binnenhof" },
+  });
+  await fireEvent.input(screen.getByLabelText(/^Storyline$/i), {
+    target: { value: "A great place." },
   });
   await fireEvent.click(
     screen.getByRole("button", { name: /submit for review/i }),

@@ -1,0 +1,60 @@
+- type: section
+  label: Basic info
+
+- id: identity
+  type: string
+  label: Id
+
+- id: title
+  type: string
+  label: Title
+
+- id: image
+  type: string
+  label: "Image filename (e.g. my-photo.jpg — upload separately)"
+
+- id: name.label
+  type: string
+  label: Name label
+
+- id: name.value
+  type: string
+  label: Name value
+
+- id: address
+  type: string
+  label: Street address
+
+- id: coordinates.latitude
+  type: string
+  label: Latitude
+
+- id: coordinates.longitude
+  type: string
+  label: Longitude
+
+- type: section
+  label: Narrative
+
+- id: storyline
+  type: textarea
+  label: Storyline
+
+- id: breadcrumb
+  type: textarea
+  label: Breadcrumb clue
+
+- type: section
+  label: Challenge
+
+- id: challenge.name
+  type: string
+  label: Challenge name
+
+- id: challenge.description
+  type: textarea
+  label: Challenge description
+
+- id: challenge.notes
+  type: textarea
+  label: "Notes (internal, not shown to participants)"

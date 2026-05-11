@@ -11,18 +11,16 @@ vi.mock("svelte-spa-router", () => ({
   replace: vi.fn(),
 }));
 
-beforeEach(() => {
-  vi.spyOn(globalThis, "fetch").mockResolvedValue({
-    json: async () => ({ ok: true, isAdmin: true }),
-  } as Response);
-});
+vi.mock("../utils/api", () => ({
+  postLogin: vi.fn().mockResolvedValue({ ok: true, isAdmin: true }),
+}));
 
 test("renders password field", () => {
   render(EditorLoginPage);
   expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
 });
 
-test("navigates to /editor on successful login", async () => {
+test("navigates to /editor on successful admin login", async () => {
   const { push } = await import("svelte-spa-router");
   render(EditorLoginPage);
   await fireEvent.input(screen.getByLabelText(/password/i), {

@@ -35,6 +35,7 @@ Before starting work, read:
 
 1. `doc/architecture.md` — understand the project structure
 2. Last 3 entries in `doc/devlog/_devlog.md` — entries are delimited by `**DD/MM/YYYY, Author**:` lines, newest first
+3. Read an understand the linting rules: C:\Users\lassc\Code\js\freedom_hunt\eslint.config.js
 
 ## Session End
 

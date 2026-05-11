@@ -1,6 +1,12 @@
 import { render, screen, fireEvent } from "@testing-library/svelte/svelte5";
 import { authStore } from "../stores/authStore";
 import ChallengeForm from "../components/ChallengeForm.svelte";
+import { postFormSubmit } from "../utils/api";
+
+vi.mock("../utils/api", () => ({
+  postFormSubmit: vi.fn().mockResolvedValue({ ok: true }),
+  postPhotoUpload: vi.fn().mockResolvedValue({ ok: true }),
+}));
 
 const form = [
   { id: "found_it", type: "boolean" as const, label: "Did you find it?" },
@@ -8,14 +14,11 @@ const form = [
 ];
 
 beforeEach(() => {
-  vi.spyOn(globalThis, "fetch").mockResolvedValue({
-    json: async () => ({ ok: true }),
-  } as Response);
   authStore.login("test_project", "Team A", "team@test.com");
 });
 
 afterEach(() => {
-  vi.restoreAllMocks();
+  vi.clearAllMocks();
 });
 
 test("renders form fields", () => {
@@ -46,7 +49,7 @@ test("shows confirmation dialog when all required fields are filled", async () =
   expect(screen.getByText(/submit your answers/i)).toBeInTheDocument();
 });
 
-test("submits on confirm", async () => {
+test("calls postFormSubmit with correct payload on confirm", async () => {
   render(ChallengeForm, {
     props: { form, locationId: 1, routeId: "short_loop" },
   });
@@ -55,9 +58,13 @@ test("submits on confirm", async () => {
   });
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
-  expect(fetch).toHaveBeenCalledWith(
-    "/form-submit",
-    expect.objectContaining({ method: "POST" }),
+  expect(postFormSubmit).toHaveBeenCalledWith(
+    expect.objectContaining({
+      locationId: 1,
+      routeId: "short_loop",
+      teamName: "Team A",
+      contact: "team@test.com",
+    }),
   );
 });
 
@@ -84,9 +91,9 @@ test("multiple field: blocks selection beyond max and shows warning", async () =
   await fireEvent.click(screen.getByLabelText("EU"));
   await fireEvent.click(screen.getByLabelText("American"));
   expect(screen.getByText(/you can only select 2/i)).toBeInTheDocument();
-  expect((screen.getByLabelText("American") as HTMLInputElement).checked).toBe(
-    false,
-  );
+  expect(
+    (screen.getByLabelText("American") as HTMLInputElement).checked,
+  ).toBe(false);
 });
 
 test("photo field uses label as button text", () => {
