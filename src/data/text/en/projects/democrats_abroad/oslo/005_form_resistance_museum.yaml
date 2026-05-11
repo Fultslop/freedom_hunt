@@ -1,0 +1,20 @@
+- id: photo
+  type: photo
+  label: Take a photo of the object or display you chose
+- id: entered_museum
+  type: boolean
+  label: Did you enter the museum?
+- id: liberation_date
+  type: string
+  label: What liberation date did you find at the entrance?
+- id: found_object
+  type: string
+  label: What did you find inside, and why does it matter?
+- id: biggest_surprise
+  type: radio
+  label: What surprised you most?
+  options:
+    - The scale of organised resistance
+    - The extent of collaboration
+    - Individual acts of courage
+    - The role of women in the resistance

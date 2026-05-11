@@ -1,7 +1,26 @@
 import { loadText } from "./loadText";
-import type { Location, FormField, RawChallenge } from "../types/data";
+import type { Location, FormField, RawChallenge, FormFieldType } from "../types/data";
 
 type RawLocation = Omit<Location, "challenge"> & { challenge: RawChallenge };
+
+const KNOWN_FORM_FIELD_KEYS = new Set(["id", "type", "label", "options", "min", "max"]);
+
+function withValidatedFields(fields: FormField[]): FormField[] {
+  return fields.map((field) => {
+    const unknownKeys = Object.keys(field as unknown as Record<string, unknown>).filter(
+      (key) => !KNOWN_FORM_FIELD_KEYS.has(key),
+    );
+    if (unknownKeys.length === 0) {
+      return field;
+    }
+    const fieldId = field.id ?? field.label;
+    return {
+      id: fieldId,
+      type: "schema_error" as FormFieldType,
+      label: `unknown properties on '${fieldId}': ${unknownKeys.join(", ")}`,
+    };
+  });
+}
 
 async function loadAndResolveLocation(
   lang: string,
@@ -16,7 +35,17 @@ async function loadAndResolveLocation(
     const formFileName = raw.challenge.form;
     const dir = path.substring(0, path.lastIndexOf("/") + 1);
     const formPath = dir + formFileName.replace(/\.yaml$/, "");
-    raw.challenge.form = (await loadText<FormField[]>(lang, formPath)) ?? [];
+    raw.challenge.form = withValidatedFields(
+      (await loadText<FormField[]>(lang, formPath)) ?? [],
+    );
+  } else if (raw.challenge && Array.isArray(raw.challenge.form)) {
+    raw.challenge.form = [
+      {
+        id: "form",
+        type: "inline_form" as FormFieldType,
+        label: "challenge.form inline array — migrate to a *_form_*.yaml file",
+      },
+    ];
   }
 
   return raw as Location;

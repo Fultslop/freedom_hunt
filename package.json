@@ -14,6 +14,7 @@
     "test:run": "vitest run",
     "format": "prettier --write \"src/**/*.{ts,svelte,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,svelte,css,md}\"",
+    "validate:yaml": "node scripts/validate-yaml.js",
     "typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
@@ -34,6 +35,7 @@
     "@testing-library/svelte": "^5.3.1",
     "@types/js-yaml": "^4.0.9",
     "@types/leaflet": "^1.9.21",
+    "ajv": "^8.20.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.0.0",

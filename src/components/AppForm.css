@@ -217,3 +217,12 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+.af-field--unknown {
+  font-family: monospace;
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  padding: 6px 8px;
+  border: 1px dashed var(--color-error);
+  border-radius: 4px;
+}

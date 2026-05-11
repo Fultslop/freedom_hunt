@@ -22,21 +22,4 @@ challenge:
     Read the inscription on one of the two statue pedestals. Then discuss in your group: which of
     Ibsen's recurring themes feels most alive in the world right now? Pick one and commit to it.
   notes: ""
-  form:
-    - id: photo
-      type: photo
-      label: Take a photo of one of the statues
-    - id: found_both
-      type: boolean
-      label: Did you find both statues?
-    - id: pedestal_inscription
-      type: string
-      label: Copy the inscription from one of the pedestals
-    - id: ibsen_theme
-      type: radio
-      label: Which Ibsen theme did your group choose?
-      options:
-        - Individual freedom against social pressure
-        - Institutional corruption
-        - Tyranny of majority opinion
-        - We couldn't agree
+  form: "003_form_national_theatre.yaml"

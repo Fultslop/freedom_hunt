@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/svelte/svelte5";
 import AppForm from "../components/AppForm.svelte";
-import type { FormField } from "../types/data";
+import type { FormField, FormFieldType } from "../types/data";
 
 // ---------------------------------------------------------------------------
 // Rendering
@@ -64,6 +64,28 @@ test("renders photo button with field label", () => {
   render(AppForm, { props: { fields, onSubmit: vi.fn(), onPhotoUpload } });
   expect(
     screen.getByRole("button", { name: /take a photo/i }),
+  ).toBeInTheDocument();
+});
+
+test("renders field label for unknown field type", () => {
+  const fields: FormField[] = [
+    { id: "bad", type: "inline_form" as FormFieldType, label: "Bad Field" },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.getByText("Bad Field")).toBeInTheDocument();
+});
+
+test("renders schema error label for field with unknown properties", () => {
+  const fields: FormField[] = [
+    {
+      id: "obs",
+      type: "schema_error" as FormFieldType,
+      label: "unknown properties on 'obs': vodoo",
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(
+    screen.getByText("unknown properties on 'obs': vodoo"),
   ).toBeInTheDocument();
 });
 
