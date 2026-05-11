@@ -25,6 +25,22 @@
   cursor: pointer;
 }
 
+.loc-form__refresh {
+  padding: 12px 20px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.loc-form__refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .loc-form__success {
   padding: 16px;
   border: 1px solid var(--color-border);

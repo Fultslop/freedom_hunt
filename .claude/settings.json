@@ -6,7 +6,9 @@
       "Bash(npm uninstall *)",
       "Bash(Get-Content \"C:\\\\Users\\\\lassc\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-lassc-Code-js-freedom-hunt\\\\0c286288-4e22-4bd9-9dd5-470b215068d5\\\\tasks\\\\bb3kp4ees.output\" -Wait)",
       "Bash(Select-String -Pattern \"PASS|FAIL|Tests|Error|passed|failed\" --SimpleMatch)",
-      "Bash(npx svelte-check *)"
+      "Bash(npx svelte-check *)",
+      "Bash(node -e \"import\\('undici'\\).then\\(m => console.log\\('undici Request available:', !!m.Request\\)\\).catch\\(e => console.log\\('undici import failed:', e.message\\)\\);\")",
+      "Bash(findstr \"×\")"
     ]
   }
 }

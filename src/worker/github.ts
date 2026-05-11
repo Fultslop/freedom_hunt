@@ -72,6 +72,13 @@ export function locationFilePath(
   return `${DATA_PATH}/${project}/${city}/${filename}`;
 }
 
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 export async function fetchLocations(
   project: string,
   city: string,
@@ -105,48 +112,60 @@ export async function fetchLocation(
   return { filename, sha: file.sha, location: content };
 }
 
-export async function createLocationPR(
-  project: string,
-  city: string,
-  filename: string,
+export async function createFilePR(
+  filePath: string,
   content: string,
-  _existingSha: string | null,
+  teamName: string,
   env: Env,
 ): Promise<{ prUrl: string }> {
-  const branch = `editor/${Date.now()}`;
-  const path = locationFilePath(project, city, filename);
+  const repoOwner = env.GITHUB_REPO.split("/")[0];
+  const teamSlug = slugify(teamName) || "admin";
+  const branch = `editor/${teamSlug}/${slugify(filePath)}`;
 
+  // Always get main SHA (needed for branch creation fallback)
   const { object } = (await githubRequest(`/git/ref/heads/main`, {}, env)) as {
     object: { sha: string };
   };
 
-  await githubRequest(
-    `/git/refs`,
-    {
-      method: "POST",
-      body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: object.sha }),
-    },
-    env,
-  );
+  // Check if our deterministic branch already exists
+  let branchExists = false;
+  try {
+    await githubRequest(`/git/ref/heads/${branch}`, {}, env);
+    branchExists = true;
+  } catch {
+    // 404 = branch doesn't exist yet
+  }
 
+  if (!branchExists) {
+    await githubRequest(
+      `/git/refs`,
+      {
+        method: "POST",
+        body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: object.sha }),
+      },
+      env,
+    );
+  }
+
+  // Get file SHA on the branch (not main) so the commit succeeds
   let currentSha: string | null = null;
   try {
     const existing = (await githubRequest(
-      `/contents/${path}`,
+      `/contents/${filePath}?ref=${branch}`,
       {},
       env,
     )) as GitHubFile;
     currentSha = existing.sha ?? null;
   } catch {
-    // 404 = new file
+    // 404 = new file on this branch
   }
 
   await githubRequest(
-    `/contents/${path}`,
+    `/contents/${filePath}`,
     {
       method: "PUT",
       body: JSON.stringify({
-        message: `editor: update ${filename}`,
+        message: `editor: update ${filePath.split("/").pop()}`,
         content: encodeGitHubContent(content),
         branch,
         ...(currentSha ? { sha: currentSha } : {}),
@@ -155,12 +174,23 @@ export async function createLocationPR(
     env,
   );
 
+  // Find existing open PR for this branch, or create one
+  const openPRs = (await githubRequest(
+    `/pulls?head=${repoOwner}:${branch}&state=open`,
+    {},
+    env,
+  )) as Array<{ html_url: string }>;
+
+  if (openPRs.length > 0) {
+    return { prUrl: openPRs[0].html_url };
+  }
+
   const pr = (await githubRequest(
     `/pulls`,
     {
       method: "POST",
       body: JSON.stringify({
-        title: `editor: update ${filename}`,
+        title: `editor: update ${filePath.split("/").pop()}`,
         head: branch,
         base: "main",
         body: "Created via editor UI",

@@ -4,11 +4,39 @@ import { requireAuth } from "../auth";
 import {
   fetchLocations,
   fetchLocation,
-  createLocationPR,
+  createFilePR,
+  locationFilePath,
   fetchPRStatuses,
 } from "../github";
 import { json } from "../utils";
 import yaml from "js-yaml";
+
+const SLUG_RE = /^[a-z0-9_]{1,64}$/;
+const LOC_FILENAME_RE = /^\d+_loc_.*\.yaml$/;
+const SHA_RE = /^[0-9a-f]{40}$/;
+const MAX_YAML_BYTES = 50_000;
+
+function validatePostLocation(body: {
+  project: string;
+  city: string;
+  filename: string;
+  existingSha?: string | null;
+  location: unknown;
+}): string | null {
+  if (!SLUG_RE.test(body.project)) return "Invalid project";
+  if (!SLUG_RE.test(body.city)) return "Invalid city";
+  if (body.filename.length > 100 || !LOC_FILENAME_RE.test(body.filename))
+    return "Invalid filename";
+  if (body.existingSha != null && !SHA_RE.test(body.existingSha))
+    return "Invalid existingSha";
+  if (
+    typeof body.location !== "object" ||
+    body.location === null ||
+    Array.isArray(body.location)
+  )
+    return "Invalid location";
+  return null;
+}
 
 function requireAdmin(authPayload: TokenPayload | null): Response | null {
   if (!authPayload?.isAdmin) {
@@ -105,23 +133,26 @@ export async function handleEditorRoutes(
           project: string;
           city: string;
           filename: string;
-          existingSha?: string;
-          location: Record<string, unknown>;
+          existingSha?: string | null;
+          location: unknown;
         };
-      if (!project || !city || !filename || !location) {
-        return json({ ok: false, error: "Missing fields" }, 400);
+      const validationError = validatePostLocation({ project, city, filename, existingSha, location });
+      if (validationError) {
+        return json({ ok: false, error: validationError }, 400);
       }
       const yamlContent = yaml.dump(location, {
         lineWidth: -1,
         noRefs: true,
         indent: 2,
       });
-      const { prUrl } = await createLocationPR(
-        project,
-        city,
-        filename,
+      if (yamlContent.length > MAX_YAML_BYTES) {
+        return json({ ok: false, error: "Location data too large" }, 400);
+      }
+      const filePath = locationFilePath(project, city, filename);
+      const { prUrl } = await createFilePR(
+        filePath,
         yamlContent,
-        existingSha ?? null,
+        authPayload!.teamName,
         env,
       );
       return json({ ok: true, prUrl });

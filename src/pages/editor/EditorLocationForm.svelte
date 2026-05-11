@@ -2,14 +2,26 @@
   import { untrack } from "svelte";
   import { push } from "svelte-spa-router";
   import { titleBarStore } from "../../stores/titleBarStore";
-  import { addPending } from "./editorStorage";
+  import {
+    addPending,
+    getDraft,
+    saveDraft,
+    clearDraft,
+    getPending,
+    findPendingByFilename,
+    getPendingDraftKey,
+  } from "./editorStorage";
   import type { FormField } from "../../types/data";
   import {
     createLocationFilename,
     locationFilenameToString,
     tryParseLocationName,
   } from "./editorUtils";
-  import { fetchEditorLocation, saveEditorLocation } from "../../utils/api";
+  import {
+    fetchEditorLocation,
+    saveEditorLocation,
+    fetchPrStatuses,
+  } from "../../utils/api";
   import { flattenValues } from "../../utils/formValues";
   import { loadText } from "../../utils/loadText";
   import AppForm from "../../components/AppForm.svelte";
@@ -27,14 +39,25 @@
   } = $props();
 
   const isEdit = $derived(!!params.filename);
+  const namespace = $derived(`${params.project}/${params.city}/locations`);
+
+  function getDraftKey(): string {
+    return `editor_draft_${namespace}_${params.filename ?? "new"}`;
+  }
+
+  const draftKey = $derived(getDraftKey());
 
   let fields = $state<FormField[]>([]);
-  let initialValues = $state<Record<string, unknown>>({});
+  let serverValues = $state<Record<string, unknown>>({});
+  let initialValues = $state<Record<string, unknown>>(
+    untrack(() => (!params.filename ? (getDraft(draftKey) ?? {}) : {})),
+  );
   let existingSha = $state<string | null>(null);
   let locLoading = $state(untrack(() => Boolean(params.filename)));
   let submitSuccess = $state(false);
   let prUrl = $state<string | null>(null);
   let submitError = $state<string | null>(null);
+  let checkingDraft = $state(false);
 
   $effect(() => {
     titleBarStore.set({
@@ -50,37 +73,71 @@
     });
   });
 
-  $effect(() => {
+  async function checkDraftStaleness(): Promise<boolean> {
+    const filename = params.filename ?? "new";
+    const pending = findPendingByFilename(namespace, filename);
+    if (!pending?.prUrl) return false;
+
+    const match = (pending.prUrl as string).match(/\/pull\/(\d+)/);
+    if (!match) return false;
+
+    try {
+      const data = await fetchPrStatuses([match[1]]);
+      if (data.ok && data.statuses && data.statuses[match[1]] === "closed") {
+        clearDraft(draftKey);
+        return true;
+      }
+    } catch { /* ignore */ }
+    return false;
+  }
+
+  async function reloadData(): Promise<void> {
+    checkingDraft = true;
+    const wasStale = await checkDraftStaleness();
     if (isEdit && params.filename) {
       locLoading = true;
-      fetchEditorLocation(params.project, params.city, params.filename)
-        .then((data) => {
-          if (data.ok && data.location) {
-            const flat = flattenValues(
-              data.location as Record<string, unknown>,
-            );
-            flat["identity"] =
-              tryParseLocationName(params.filename)?.title ?? "";
+      try {
+        const data = await fetchEditorLocation(params.project, params.city, params.filename);
+        if (data.ok && data.location) {
+          const flat = flattenValues(data.location as Record<string, unknown>);
+          flat["identity"] = tryParseLocationName(params.filename)?.title ?? "";
+          serverValues = flat;
+          existingSha = data.sha ?? null;
+          if (wasStale) {
             initialValues = flat;
-            existingSha = data.sha ?? null;
+          } else {
+            const draft = getDraft(draftKey);
+            initialValues = draft ?? flat;
           }
-        })
-        .catch(() => {})
-        .finally(() => {
-          locLoading = false;
-        });
+        }
+      } catch { /* ignore */ }
+      locLoading = false;
+    } else if (wasStale) {
+      initialValues = {};
+    }
+    checkingDraft = false;
+  }
+
+  $effect(() => {
+    if (isEdit && params.filename) {
+      reloadData();
+    } else {
+      checkDraftStaleness();
     }
   });
 
   async function handleSubmit(nested: Record<string, unknown>) {
     submitError = null;
 
-    const resolvedFilename = locationFilenameToString(
-      createLocationFilename(
-        params.newId ?? 0,
-        (nested["identity"] as string) ?? "",
-      ),
-    );
+    const resolvedFilename =
+      isEdit && params.filename
+        ? params.filename
+        : locationFilenameToString(
+            createLocationFilename(
+              params.newId ?? 0,
+              (nested["identity"] as string) ?? "",
+            ),
+          );
 
     const coords = (nested["coordinates"] ?? {}) as {
       latitude?: string;
@@ -103,7 +160,7 @@
     });
 
     if (data.ok) {
-      addPending(params.project, params.city, {
+      addPending(namespace, {
         filename: resolvedFilename!,
         locationTitle: (nested["title"] as string) ?? "",
         prUrl: data.prUrl,
@@ -115,6 +172,10 @@
       submitError = data.error ?? "Submission failed";
       throw new Error(submitError);
     }
+  }
+
+  function handleSuccess() {
+    submitSuccess = true;
   }
 </script>
 
@@ -154,8 +215,10 @@
     <AppForm
       {fields}
       {initialValues}
+      baseValues={isEdit ? serverValues : undefined}
       onSubmit={handleSubmit}
-      onSuccess={() => (submitSuccess = true)}
+      onValuesChange={(vals) => saveDraft(draftKey, vals)}
+      onSuccess={handleSuccess}
       submitLabel="Submit for review"
     />
 
@@ -166,6 +229,13 @@
           push(`/editor/locations/${params.project}/${params.city}`)}
       >
         Cancel
+      </button>
+      <button
+        class="loc-form__refresh"
+        onclick={reloadData}
+        disabled={checkingDraft}
+      >
+        {checkingDraft ? "Refreshing…" : "Refresh"}
       </button>
     </div>
   </div>

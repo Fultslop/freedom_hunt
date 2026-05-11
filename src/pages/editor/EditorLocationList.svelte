@@ -5,6 +5,7 @@
     getPending,
     addPending,
     removePending,
+    clearDraft,
     type PendingEntry as BasePendingEntry,
   } from "./editorStorage";
   import type { Location as DataLocation } from "../../types/data";
@@ -19,6 +20,8 @@
 
   let { params }: { params: { project: string; city: string } } = $props();
 
+  const namespace = $derived(`${params.project}/${params.city}/locations`);
+
   interface PendingEntry extends BasePendingEntry {
     prUrl?: string;
     prTitle?: string;
@@ -30,6 +33,12 @@
   let loading = $state(true);
   let error = $state<string | null>(null);
   let pending = $state<PendingEntry[]>([]);
+
+  const pendingNewLocations = $derived(
+    pending.filter(
+      (p) => !locations.find((location) => location.filename === p.filename),
+    ),
+  );
 
   titleBarStore.set({
     title: "Locations",
@@ -57,7 +66,7 @@
   }
 
   function syncPending() {
-    const items = getPending(params.project, params.city);
+    const items = getPending(namespace);
     pending = items;
     if (items.length > 0) {
       const numbers = items
@@ -75,12 +84,13 @@
                   /\/pull\/(\d+)/,
                 )?.[1];
                 if (n && data.statuses![n] === "closed") {
-                  removePending(params.project, params.city, p.filename);
+                  removePending(namespace, p.filename);
+                  clearDraft(`editor_draft_${namespace}_${p.filename}`);
                   changed = true;
                 }
               });
               if (changed) {
-                pending = getPending(params.project, params.city);
+                pending = getPending(namespace);
               }
             }
           })
@@ -113,14 +123,14 @@
           location: { ...cleanLoc, hidden: true },
         });
         if (data.ok) {
-          addPending(params.project, params.city, {
+          addPending(namespace, {
             filename: _filename!,
             locationTitle: loc.title,
             prUrl: data.prUrl,
             prTitle: `Hide location: ${loc.title}`,
             submittedAt: new Date().toISOString(),
           });
-          pending = getPending(params.project, params.city);
+          pending = getPending(namespace);
         } else {
           alert(`Failed: ${data.error}`);
         }
@@ -134,6 +144,8 @@
     return pending.find((p) => p.filename === filename);
   }
 
+  // pendingNewLocations (derived) shows entries not yet in the GitHub list — unmerged.
+  // isNewLocation checks by prTitle prefix for entries that ARE in the list but still have an open "Add" PR.
   function isNewLocation(filename: string): boolean {
     return pending.some(
       (p) => p.filename === filename && p.prTitle?.startsWith("Add location:"),
@@ -147,12 +159,12 @@
         `Remove this new location? You will need to close the PR on GitHub manually.\n\n${pend?.prUrl ?? ""}`,
       )
     ) {
-      removePending(params.project, params.city, filename);
-      pending = getPending(params.project, params.city);
+      removePending(namespace, filename);
+      clearDraft(`editor_draft_${namespace}_${filename}`);
+      pending = getPending(namespace);
     }
   }
 
-  
 
 </script>
 
@@ -162,6 +174,39 @@
   <div class="loc-list__error">{error}</div>
 {:else}
   <div class="loc-list">
+    {#if pendingNewLocations.length > 0}
+      <div class="loc-list__section-heading">Pending additions</div>
+      {#each pendingNewLocations as p (p.filename)}
+        <div class="loc-list__item loc-list__item--pending">
+          <div class="loc-list__item-header">
+            <div>
+              <div class="loc-list__item-title">
+                {p.locationTitle ?? p.filename}
+              </div>
+              <div class="loc-list__item-meta">{p.filename}</div>
+            </div>
+            <div class="loc-list__item-actions">
+              <button
+                class="loc-list__btn loc-list__btn--danger"
+                onclick={() => handleDelete(p.filename)}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+          {#if p.prUrl}
+            <a
+              href={p.prUrl as string}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="loc-list__pending"
+            >
+              ⏳ Pending — view PR
+            </a>
+          {/if}
+        </div>
+      {/each}
+    {/if}
     <div class="loc-list__toolbar">
       <button
         class="loc-list__add-btn"

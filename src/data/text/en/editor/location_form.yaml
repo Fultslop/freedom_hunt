@@ -26,11 +26,11 @@
   label: Street address
 
 - id: coordinates.latitude
-  type: string
+  type: number
   label: Latitude
 
 - id: coordinates.longitude
-  type: string
+  type: number
   label: Longitude
 
 - type: section

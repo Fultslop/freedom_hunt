@@ -42,22 +42,47 @@
   let {
     fields,
     initialValues = {},
+    baseValues = undefined,
     onSubmit,
     onPhotoUpload = undefined,
     onSuccess = undefined,
+    onValuesChange = undefined,
     submitLabel = "Submit",
     confirmMessage = undefined,
   }: {
     fields: FormField[];
     initialValues?: Record<string, unknown>;
+    baseValues?: Record<string, unknown>;
     onSubmit: (values: Record<string, unknown>) => Promise<void>;
     onPhotoUpload?: (file: File) => Promise<{ ok: boolean }>;
     onSuccess?: () => void;
+    onValuesChange?: (values: FieldValues) => void;
     submitLabel?: string;
     confirmMessage?: string;
   } = $props();
 
   let values = $state<FieldValues>(untrack(() => ({ ...(initialValues as FieldValues) })));
+  const hasChanges = $derived(
+    fields
+      .filter((f) => f.id && f.type !== STR_SECTION)
+      .some((f) => {
+        const id = f.id!;
+        const curr = values[id];
+        const baseline = baseValues
+          ? (baseValues as Record<string, unknown>)[id]
+          : (initialValues as Record<string, unknown>)[id];
+        if (Array.isArray(curr) || Array.isArray(baseline)) {
+          return (
+            JSON.stringify(curr ?? []) !== JSON.stringify(baseline ?? [])
+          );
+        }
+        return curr !== baseline;
+      }),
+  );
+
+  $effect(() => {
+    onValuesChange?.({ ...values });
+  });
   let errors = $state<Record<string, string>>({});
   let submitState = $state<SubmitState>("idle");
   let uploadState = $state<UploadState>("idle");
@@ -112,14 +137,25 @@
     }
   }
 
+  function canSkipValidation(field: FormField): boolean {
+    return (
+      
+      field.type === STR_SECTION ||
+      field.type === STR_BOOLEAN ||
+      field.type === STR_PHOTO
+    );
+  }
+
   function validateValues(): Record<string, string> {
     const errs: Record<string, string> = {};
     for (const field of fields) {
-      if (!field.id || field.type === STR_SECTION || field.type === STR_BOOLEAN || field.type === STR_PHOTO) {
+      if (!field.id || canSkipValidation(field)) {
         // skip validation for these types
       } else if (field.type === STR_STRING || field.type === STR_TEXTAREA) {
         const v = values[field.id] as string | undefined;
-        if (!v || v.trim() === "") { errs[field.id] = MSG_REQUIRED; }
+        if (!v || v.trim() === "") { 
+          errs[field.id] = MSG_REQUIRED; 
+        }
       } else if (field.type === STR_NUMBER) {
         const v = values[field.id];
         if (v === undefined || v === null || (typeof v === "number" && isNaN(v))) {
@@ -334,13 +370,15 @@
       class="af-submit-btn"
       class:af-submit-btn--submitting={submitState === "submitting"}
       onclick={handleSubmit}
-      disabled={submitState === "submitting"}
+      disabled={submitState === "submitting" || !hasChanges}
     >
       {submitState === "submitting"
         ? "Submitting…"
-        : submitState === "error"
-          ? "Try again"
-          : submitLabel}
+        : !hasChanges
+          ? "No changes"
+          : submitState === "error"
+            ? "Try again"
+            : submitLabel}
     </button>
   {/if}
 </div>
