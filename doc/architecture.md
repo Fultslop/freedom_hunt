@@ -261,6 +261,40 @@ Each function wraps a single endpoint, handles the request shape, and returns a 
 
 **Editor form YAML:** `src/data/text/en/editor/location_form.yaml` defines all fields for the location editor. Adding or reordering editor fields requires only editing this file — no TypeScript changes.
 
+## YAML Data Validation
+
+Location and form YAML files are validated at three layers to prevent invalid data from reaching users.
+
+### JSON Schemas
+
+Two schemas live in `src/data/schemas/`:
+
+| Schema | Applies to | Key constraints |
+|--------|------------|-----------------|
+| `location.schema.json` | `*_loc_*.yaml` | `additionalProperties: false` at root and inside `challenge`; `challenge.form` must be a `string` (filename reference) if present |
+| `form.schema.json` | `*_form_*.yaml` | Array of field objects; each field has `additionalProperties: false`; `type` is an enum of the eight supported field types |
+
+**Why `challenge.form` must be a string:** form data is kept in separate `*_form_*.yaml` files and referenced by filename. Inline arrays in the `challenge.form` field are a data-authoring error.
+
+### Layer 1 — IDE (VS Code)
+
+`.vscode/settings.json` wires the schemas to the file globs via the `redhat.vscode-yaml` extension. Unknown keys, wrong types, and missing required fields appear as red squiggles while editing.
+
+### Layer 2 — Runtime sentinel
+
+`loadLocations.ts` checks the resolved `challenge.form` value after loading. If it is an array (i.e. the form reference was never migrated), the array is replaced with a single sentinel field `{ id: "form", type: "inline_form" }`. `AppForm.svelte` renders any field with an unrecognised `type` as `unrecognized field '${id}'`, so the problem is visible on the location page rather than silently missing.
+
+### Layer 3 — CI (`npm run validate:yaml`)
+
+`scripts/validate-yaml.js` finds all `*_loc_*.yaml` and `*_form_*.yaml` files under `src/data/text/en/projects/`, parses each with `js-yaml`, and validates against the appropriate JSON schema using `ajv`. Errors are written to stderr in the form:
+
+```
+ERROR: src/data/.../001_loc_binnenhof.yaml: /challenge: must NOT have additional properties ('for')
+ERROR: src/data/.../001_form_binnenhof.yaml: /3: must NOT have additional properties ('voodoo')
+```
+
+The script exits 1 on any violation. It runs as a CI step (`.github/workflows/ci.yml`) before typecheck, so bad data blocks the pipeline.
+
 ## Key Design Decisions
 
 **YAML data files.** All content lives in `src/data/text/en/` as YAML, bundled by `@modyfi/vite-plugin-yaml`. Adding a new city = new directory + YAML files; no code changes needed. Location files are named `NNN_loc_<slug>.yaml` and listed in `routes.yaml`.

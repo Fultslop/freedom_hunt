@@ -60,7 +60,7 @@
               data.location as Record<string, unknown>,
             );
             flat["identity"] =
-              tryParseLocationName(params.filename)?.id ?? "";
+              tryParseLocationName(params.filename)?.title ?? "";
             initialValues = flat;
             existingSha = data.sha ?? null;
           }

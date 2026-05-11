@@ -1,0 +1,20 @@
+- id: photo
+  type: photo
+  label: Take a photo of the memorial or the courtyard
+- id: found_memorial
+  type: boolean
+  label: Did you find the execution site memorial?
+- id: execution_estimate
+  type: number
+  label: Your estimate (before looking it up) — how many were executed here?
+- id: courtyard_description
+  type: string
+  label: Describe what you can see from where you are standing
+- id: emotional_response
+  type: radio
+  label: How did the space make you feel?
+  options:
+    - Solemn
+    - Angry
+    - Proud
+    - Numb

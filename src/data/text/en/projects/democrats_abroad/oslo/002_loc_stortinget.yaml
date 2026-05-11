@@ -22,24 +22,4 @@ challenge:
     Two relief panels flank the entrance — one on each side. Describe what each scene depicts.
     Then discuss in your group: which panel better represents what a parliament is actually for?
   notes: ""
-  form:
-    - id: photo
-      type: photo
-      label: Take a photo of one of the relief panels
-    - id: left_panel
-      type: string
-      label: Describe the left relief panel scene
-    - id: right_panel
-      type: string
-      label: Describe the right relief panel scene
-    - id: better_panel
-      type: radio
-      label: Which panel does your group think better represents what a parliament is for?
-      options:
-        - Left panel
-        - Right panel
-        - Neither
-        - Both equally
-    - id: flag_flying
-      type: boolean
-      label: Is the Norwegian flag flying above the building today?
+  form: "002_form_stortinget.yaml"

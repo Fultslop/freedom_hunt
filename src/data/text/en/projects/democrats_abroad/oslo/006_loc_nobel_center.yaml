@@ -22,16 +22,4 @@ challenge:
     to you right now. Read their full citation. Write one sentence in your own words explaining why
     the Nobel Committee chose them.
   notes: ""
-  form:
-    - id: photo
-      type: photo
-      label: Take a photo of the laureate display or an exhibit that caught your eye
-    - id: entered_center
-      type: boolean
-      label: Did you enter the center?
-    - id: recent_laureate
-      type: string
-      label: Who is the most recent Nobel Peace Prize laureate?
-    - id: least_known_laureate
-      type: string
-      label: Which laureate did you know least, and in one sentence — why did they win?
+  form: "006_form_nobel_center.yaml"

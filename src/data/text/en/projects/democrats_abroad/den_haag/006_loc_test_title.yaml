@@ -12,5 +12,5 @@ challenge:
   name: challenge name
   description: Challenge description
   notes: "Notes "
-  form: []
+  form: "006_form_test_title.yaml"
 breadcrumb: "Clue to the next "

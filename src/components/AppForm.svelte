@@ -177,7 +177,11 @@
 
 <div class="app-form">
   {#each fields as field (field.id ?? field.label)}
-    {#if field.type === "section"}
+    {#if !VALID_TYPES.includes(field.type)}
+      <div class="af-field af-field--unknown">
+        {field.label}
+      </div>
+    {:else if field.type === "section"}
       <div class="af-section-heading">{field.label}</div>
     {:else}
       {@const id = field.id!}
