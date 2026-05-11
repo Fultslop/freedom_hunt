@@ -1,6 +1,6 @@
 identity: test_title
 title: Test title
-image: some.jpg
+image: img.jpg
 name:
   label: Name Label
   value: Name Value
@@ -13,4 +13,4 @@ breadcrumb: 'Clue to the next '
 challenge:
   name: challenge name
   description: Challenge description
-  notes: Notes 1
+  notes: Notessss
