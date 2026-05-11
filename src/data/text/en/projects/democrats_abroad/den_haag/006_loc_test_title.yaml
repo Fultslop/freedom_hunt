@@ -1,5 +1,6 @@
+identity: test_title
 title: Test title
-image: ""
+image: img.jpg
 name:
   label: Name Label
   value: Name Value
@@ -8,9 +9,8 @@ coordinates:
   latitude: 100
   longitude: 200
 storyline: New story line was added via the deployment. Let's test PR auto clears
+breadcrumb: 'Clue to the next '
 challenge:
   name: challenge name
   description: Challenge description
-  notes: "Notes "
-  form: "006_form_test_title.yaml"
-breadcrumb: "Clue to the next "
+  notes: Notes ++
