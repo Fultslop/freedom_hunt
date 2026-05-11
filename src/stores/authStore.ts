@@ -1,6 +1,7 @@
 import { writable } from "svelte/store";
 import { replace } from "svelte-spa-router";
 import type { AuthState } from "../types/auth";
+import { fetchAuthMe, postLogout } from "../utils/api";
 
 interface AuthStoreState {
   activeAuth: AuthState | null;
@@ -21,8 +22,7 @@ function createAuthStore() {
 
   async function init() {
     try {
-      const res = await fetch("/auth/me");
-      const data = (await res.json()) as Record<string, unknown>;
+      const data = await fetchAuthMe();
       if (data.ok) {
         upd((state) => ({
           ...state,
@@ -55,7 +55,7 @@ function createAuthStore() {
   async function logout() {
     upd((state) => ({ ...state, isLoggingOut: true }));
     try {
-      await fetch("/auth/logout", { method: "POST" });
+      await postLogout();
     } catch {
       /* ignore logout errors */
     }

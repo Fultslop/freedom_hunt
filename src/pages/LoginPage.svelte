@@ -2,6 +2,7 @@
   import { push } from "svelte-spa-router";
   import { authStore } from "../stores/authStore";
   import { titleBarStore } from "../stores/titleBarStore";
+  import { postLogin } from "../utils/api";
   import "./LoginPage.css";
 
   let { params }: { params: { project: string } } = $props();
@@ -20,23 +21,12 @@
     error = null;
     loading = true;
     try {
-      const res = await fetch("/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          project: params.project,
-          teamName,
-          contact,
-          password,
-        }),
+      const data = await postLogin({
+        project: params.project,
+        teamName,
+        contact,
+        password,
       });
-      const data = (await res.json()) as {
-        ok: boolean;
-        error?: string;
-        teamName?: string;
-        contact?: string;
-        isAdmin?: boolean;
-      };
       if (data.ok) {
         authStore.login(
           params.project,

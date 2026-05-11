@@ -7,17 +7,17 @@
     removePending,
     type PendingEntry as BasePendingEntry,
   } from "./editorStorage";
-  import type { Location } from "../../types/data";
+  import type { Location as DataLocation } from "../../types/data";
   import "./EditorLocationList.css";
   import { getNextLocationId } from "./editorUtils";
+  import {
+    fetchEditorLocations,
+    fetchPrStatuses,
+    saveEditorLocation,
+    type LocationListEntry,
+  } from "../../utils/api";
 
   let { params }: { params: { project: string; city: string } } = $props();
-
-  interface LocationEntry {
-    filename: string;
-    sha: string;
-    location: Location;
-  }
 
   interface PendingEntry extends BasePendingEntry {
     prUrl?: string;
@@ -26,7 +26,7 @@
     submittedAt?: string;
   }
 
-  let locations = $state<LocationEntry[]>([]);
+  let locations = $state<LocationListEntry[]>([]);
   let loading = $state(true);
   let error = $state<string | null>(null);
   let pending = $state<PendingEntry[]>([]);
@@ -41,17 +41,10 @@
     loading = true;
     error = null;
     try {
-      const res = await fetch(
-        `/editor/locations?project=${params.project}&city=${params.city}`,
-      );
-      const data = (await res.json()) as {
-        ok: boolean;
-        locations?: LocationEntry[];
-        error?: string;
-      };
+      const data = await fetchEditorLocations(params.project, params.city);
       if (data.ok && data.locations) {
-        locations = data.locations.sort(
-          (a, b) => a.filename.localeCompare(b.filename),
+        locations = data.locations.sort((a, b) =>
+          a.filename.localeCompare(b.filename),
         );
       } else {
         error = data.error ?? "Failed to load locations";
@@ -71,22 +64,17 @@
         .map(
           (p) => (p.prUrl as string | undefined)?.match(/\/pull\/(\d+)/)?.[1],
         )
-        .filter(Boolean);
+        .filter((n): n is string => Boolean(n));
       if (numbers.length > 0) {
-        fetch(`/editor/pr-status?numbers=${numbers.join(",")}`)
-          .then((r) => r.json())
+        fetchPrStatuses(numbers)
           .then((data) => {
-            const typed = data as {
-              ok?: boolean;
-              statuses?: Record<string, string>;
-            };
-            if (typed.ok && typed.statuses) {
+            if (data.ok && data.statuses) {
               let changed = false;
               items.forEach((p) => {
                 const n = (p.prUrl as string | undefined)?.match(
                   /\/pull\/(\d+)/,
                 )?.[1];
-                if (n && typed.statuses![n] === "closed") {
+                if (n && data.statuses![n] === "closed") {
                   removePending(params.project, params.city, p.filename);
                   changed = true;
                 }
@@ -107,7 +95,7 @@
   });
 
   async function handleHide(
-    loc: Location & { _filename?: string },
+    loc: DataLocation & { _filename?: string },
     sha: string,
   ) {
     if (
@@ -117,22 +105,13 @@
     ) {
       const { _filename, ...cleanLoc } = loc;
       try {
-        const res = await fetch("/editor/location", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            project: params.project,
-            city: params.city,
-            filename: _filename,
-            existingSha: sha,
-            location: { ...cleanLoc, hidden: true },
-          }),
+        const data = await saveEditorLocation({
+          project: params.project,
+          city: params.city,
+          filename: _filename!,
+          existingSha: sha,
+          location: { ...cleanLoc, hidden: true },
         });
-        const data = (await res.json()) as {
-          ok?: boolean;
-          prUrl?: string;
-          error?: string;
-        };
         if (data.ok) {
           addPending(params.project, params.city, {
             filename: _filename!,

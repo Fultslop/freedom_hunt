@@ -39,6 +39,7 @@ src/
     TitleBar.svelte     — Persistent top bar (back, title, progress, theme switcher)
     ChallengeCard.svelte — Card for one location (storyline, breadcrumb, challenge)
     ChallengeForm.svelte — Inline form embedded inside a ChallengeCard
+    AppForm.svelte      — Generic data-driven form (renders all field types, calls onSubmit callback)
     CitySelector.svelte — City card used in ProjectPage
     RouteSelector.svelte — Route card used in CityPage
     MarkdownText.svelte — Renders markdown via marked
@@ -55,6 +56,8 @@ src/
     loadLocations.ts    — Resolves and loads location YAML files for a route
     authGuards.ts       — Route pre-condition functions for svelte-spa-router
     routeNav.ts         — Navigation helpers (clampedNext, clampedPrev)
+    api.ts              — All client HTTP functions (challenge, editor, auth)
+    formValues.ts       — buildNestedValues (dotted-path → nested object) and flattenValues (inverse)
   actions/
     swipe.ts            — Svelte action for touch swipe events
     leafletMap.ts       — Svelte action for Leaflet map integration
@@ -66,6 +69,8 @@ src/
     text/
       en/
         application.yaml              — App title & tagline
+        editor/
+          location_form.yaml            — Field definitions for the location editor form
         projects/
           projects.yaml               — Project index (id, name, description)
           <projectId>/
@@ -189,7 +194,9 @@ challenge:
         - Evening (after 17:00)
 ```
 
-Supported form field types: `boolean`, `string`, `number`, `radio`.
+Supported form field types: `boolean`, `string`, `number`, `radio`, `multiple`, `photo`, `textarea`, `section`.
+
+`textarea` renders a `<textarea>` for long text. `section` is a pseudo-field that renders a heading in the form with no associated value — used by the editor form for visual grouping.
 
 Reference: `src/data/text/en/projects/democrats_abroad/den_haag/001_loc_binnenhof.yaml` is the canonical complete example.
 
@@ -210,6 +217,49 @@ Images are not bundled — they are served as static files at `/assets/img/<file
 - **Prod:** a Vite plugin copies `src/data/img/` → `dist/client/assets/img/` at build time.
 
 `AssetManager.fetchImage(filename)` fetches the URL, converts it to a blob URL, and caches it in memory. Components call this inside `$effect` blocks and store the result in `$state`.
+
+## API Layer
+
+All client-side HTTP calls go through `src/utils/api.ts`. No component or store calls `fetch()` directly.
+
+Functions are grouped by domain:
+
+| Group | Functions |
+|-------|-----------|
+| Challenge | `postFormSubmit(payload)` → `POST /form-submit`; `postPhotoUpload(locationId, file)` → `POST /upload` |
+| Editor | `fetchEditorLocations(project, city)`, `fetchEditorLocation(project, city, file)`, `saveEditorLocation(payload)`, `fetchPrStatuses(numbers[])` |
+| Auth | `fetchAuthMe()`, `postLogin(payload)`, `postLogout()` |
+
+Each function wraps a single endpoint, handles the request shape, and returns a typed response. Tests mock the function directly rather than mocking `globalThis.fetch`.
+
+## Unified Form System
+
+`AppForm.svelte` is the single generic form component. It receives a `FormField[]` array and an `onSubmit` callback; it never calls any endpoint directly.
+
+**Props:**
+- `fields: FormField[]` — field definitions (from YAML or passed inline)
+- `initialValues?: Record<string, unknown>` — pre-populated values for edit mode
+- `onSubmit: (values) => Promise<void>` — called with nested output after validation
+- `onPhotoUpload?: (file) => Promise<{ ok: boolean }>` — injected photo upload handler
+- `onSuccess?: () => void` — called after `onSubmit` resolves without error
+- `confirmMessage?: string` — if set, shows a confirm dialog before calling `onSubmit`
+- `submitLabel?: string` — button label (default: `"Submit"`)
+
+**Dotted-path IDs:** A field with `id: "coordinates.latitude"` writes into `{ coordinates: { latitude: value } }` in the value passed to `onSubmit`. `flattenValues()` provides the reverse (for seeding `initialValues` from a loaded nested object).
+
+**Field types:** `boolean`, `string`, `number`, `radio`, `multiple`, `photo`, `textarea`, `section`
+
+- `textarea` — long text, renders `<textarea>`
+- `section` — pseudo-field, renders a section heading, produces no value
+
+**Consumer pattern:**
+
+| Component | Role |
+|-----------|------|
+| `ChallengeForm` | Thin wrapper: adds flag dividers, success state; provides `onSubmit` (calls `postFormSubmit`), `onPhotoUpload` (calls `postPhotoUpload`), and `confirmMessage` |
+| `EditorLocationForm` | Data-driven wrapper: loads field list from `src/data/text/en/editor/location_form.yaml` via `loadText()`; flattens loaded location data into `initialValues`; `onSubmit` rebuilds nested object, parses coordinates, calls `saveEditorLocation()` |
+
+**Editor form YAML:** `src/data/text/en/editor/location_form.yaml` defines all fields for the location editor. Adding or reordering editor fields requires only editing this file — no TypeScript changes.
 
 ## Key Design Decisions
 

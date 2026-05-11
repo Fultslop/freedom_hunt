@@ -8,104 +8,10 @@
   min-height: 100vh;
 }
 
-.loc-form__section {
-  margin-bottom: 28px;
-}
-
-.loc-form__section-title {
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-secondary);
-  margin-bottom: 12px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.loc-form__field {
-  margin-bottom: 14px;
-}
-
-.loc-form__label {
-  display: block;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 4px;
-}
-
-.loc-form__label--muted {
-  font-weight: 400;
-  color: var(--color-text-secondary);
-}
-
-.loc-form__input,
-.loc-form__textarea {
-  display: block;
-  width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-surface);
-  font-size: var(--font-size-base);
-  color: var(--color-text);
-  box-sizing: border-box;
-  font-family: inherit;
-}
-
-.loc-form__input:focus,
-.loc-form__textarea:focus {
-  outline: none;
-  border-color: var(--color-accent);
-}
-
-.loc-form__input--readonly {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.loc-form__textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.loc-form__row {
-  display: flex;
-  gap: 12px;
-}
-
-.loc-form__row .loc-form__field {
-  flex: 1;
-}
-
-.loc-form__hint {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  margin-top: 4px;
-}
-
 .loc-form__actions {
   display: flex;
   gap: 12px;
   margin-top: 32px;
-}
-
-.loc-form__submit {
-  flex: 1;
-  padding: 12px;
-  background: var(--color-accent);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.loc-form__submit--loading {
-  opacity: 0.7;
-  cursor: default;
 }
 
 .loc-form__cancel {
@@ -136,8 +42,9 @@
 
 .loc-form__error {
   margin-top: 12px;
+  margin-bottom: 12px;
   font-size: var(--font-size-sm);
-  color: var(--color-accent);
+  color: var(--color-error);
 }
 
 .loc-form__loading {

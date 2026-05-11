@@ -7,10 +7,72 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import prettierConfig from "eslint-config-prettier";
 import unusedImports from "eslint-plugin-unused-imports";
 
+const SKIP_PARENT_TYPES = new Set([
+  "ImportDeclaration",
+  "ExportNamedDeclaration",
+  "ExpressionStatement",
+  "TSLiteralType",
+]);
+
+const noDuplicateStringRule = {
+  meta: {
+    type: "suggestion",
+    docs: { description: "Disallow duplicate string literals; extract to a named constant" },
+    schema: [
+      {
+        type: "object",
+        properties: {
+          threshold: { type: "integer", minimum: 2 },
+          minLength: { type: "integer", minimum: 1 },
+        },
+        additionalProperties: false,
+      },
+    ],
+    messages: {
+      defineConstant:
+        "Define a constant instead of duplicating this literal {{times}} times.",
+    },
+  },
+  create(context) {
+    const { threshold = 2, minLength = 3 } = context.options[0] ?? {};
+    const occurrences = new Map();
+    return {
+      Literal(node) {
+        if (
+          typeof node.value === "string" &&
+          node.value.length >= minLength &&
+          !SKIP_PARENT_TYPES.has(node.parent?.type)
+        ) {
+          const list = occurrences.get(node.value) ?? [];
+          list.push(node);
+          occurrences.set(node.value, list);
+        }
+      },
+      "Program:exit"() {
+        for (const nodes of occurrences.values()) {
+          if (nodes.length >= threshold) {
+            for (const node of nodes) {
+              context.report({
+                node,
+                messageId: "defineConstant",
+                data: { times: String(nodes.length) },
+              });
+            }
+          }
+        }
+      },
+    };
+  },
+};
+
+const localPlugin = { rules: { "no-duplicate-string": noDuplicateStringRule } };
+
 const sharedRules = {
   "no-useless-return": "error",
   "no-continue": "error",
   "unused-imports/no-unused-imports": "error",
+  // disable this for now, as it can be noisy 
+  //"local/no-duplicate-string": ["error", { "threshold": 2, "minLength": 3 }],
 };
 
 const sharedRestrictedSyntax = [
@@ -28,7 +90,7 @@ export default defineConfig([
   globalIgnores(["dist", "build", "node_modules", "src/test/worker*.test.ts"]),
   {
     files: ["**/*.{js,ts}"],
-    plugins: { "@typescript-eslint": tseslint.plugin, "unused-imports": unusedImports },
+    plugins: { "@typescript-eslint": tseslint.plugin, "unused-imports": unusedImports, local: localPlugin },
     extends: [
       js.configs.recommended,
       ...tseslint.configs.recommended,
@@ -53,7 +115,7 @@ export default defineConfig([
   },
   {
     files: ["**/*.svelte"],
-    plugins: { svelte, "@typescript-eslint": tseslint.plugin, "unused-imports": unusedImports },
+    plugins: { svelte, "@typescript-eslint": tseslint.plugin, "unused-imports": unusedImports, local: localPlugin },
     languageOptions: {
       parser: svelteParser,
       parserOptions: {

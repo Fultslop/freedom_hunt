@@ -1,0 +1,219 @@
+/* src/components/AppForm.css */
+
+.af-field {
+  margin-bottom: 12px;
+}
+
+.af-section-heading {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+  margin-top: 20px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.af-label {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  display: block;
+}
+
+.af-label--checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.af-label--radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: var(--font-size-base);
+  font-weight: 400;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+}
+
+.af-checkbox {
+  width: 16px;
+  height: 16px;
+}
+
+.af-radio-group {
+  margin-top: 6px;
+}
+
+.af-max-warning {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin-top: 4px;
+  animation: af-fade-out 1.5s ease forwards;
+}
+
+@keyframes af-fade-out {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.af-input,
+.af-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: var(--font-size-base);
+  margin-top: 4px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.af-input:focus,
+.af-textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.af-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.af-input--error,
+.af-textarea--error {
+  border-color: var(--color-error);
+}
+
+.af-error-msg {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin-top: 2px;
+}
+
+.af-photo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.af-photo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.af-photo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.af-photo-input {
+  display: none;
+}
+
+.af-photo-error {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+}
+
+.af-submit-btn {
+  width: 100%;
+  padding: 10px 0;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.af-submit-btn--submitting {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.af-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.af-confirm-dialog {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 24px 20px 18px;
+  width: min(320px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.af-confirm-msg {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.af-confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.af-confirm-cancel {
+  flex: 1;
+  padding: 10px 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.af-confirm-ok {
+  flex: 1;
+  padding: 10px 0;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+}
