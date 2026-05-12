@@ -23,6 +23,11 @@
   display: block;
 }
 
+.af-label--required::after {
+  content: " *";
+  color: var(--color-error);
+}
+
 .af-label--checkbox {
   display: flex;
   align-items: center;

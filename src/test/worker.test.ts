@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { Response as NodeResponse } from "undici";
 import worker from "../worker";
 import { buildR2Key } from "../worker/routes/uploadRoute";
 import { createToken } from "../worker/auth";
@@ -233,32 +234,39 @@ describe("POST /editor/location", () => {
 
     globalThis.fetch = vi
       .fn()
-      // 1. get HEAD SHA
+      // 1. get main SHA
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ object: { sha: "head-sha" } }), {
+        new Response(JSON.stringify({ object: { sha: "mainsha" } }), {
           headers: { "Content-Type": "application/json" },
         }),
       )
-      // 2. create branch
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ ref: "refs/heads/editor/001-123" }), {
-          headers: { "Content-Type": "application/json" },
-        }),
-      )
-      // 3. get existing file SHA (404 = new file)
+      // 2. check if branch exists (404)
       .mockResolvedValueOnce(new Response("Not Found", { status: 404 }))
-      // 4. PUT file
+      // 3. create branch
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ref: "refs/heads/editor/team-a/src-data-..." }), {
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      // 4. get file SHA on branch (404)
+      .mockResolvedValueOnce(new Response("Not Found", { status: 404 }))
+      // 5. PUT file
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ content: { sha: "new-sha" } }), {
           headers: { "Content-Type": "application/json" },
         }),
       )
-      // 5. create PR
+      // 6. search for open PRs (empty)
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify([]), {
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      // 7. create PR
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
             html_url: "https://github.com/owner/repo/pull/1",
-            number: 1,
           }),
           {
             headers: { "Content-Type": "application/json" },
@@ -286,6 +294,95 @@ describe("POST /editor/location", () => {
     const data = await response.json();
     expect(data.ok).toBe(true);
     expect(data.prUrl).toBe("https://github.com/owner/repo/pull/1");
+  });
+
+  describe("input validation", () => {
+    const VALID_BODY = {
+      project: "democrats_abroad",
+      city: "den_haag",
+      filename: "001_loc_test.yaml",
+      location: { title: "Test" },
+    };
+
+    async function postLocation(
+      body: Record<string, unknown>,
+      token: string,
+    ): Promise<Response> {
+      return worker.fetch(
+        new Request("https://example.com/editor/location", {
+          method: "POST",
+          body: JSON.stringify(body),
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `freedom_hunt_auth=${token}`,
+          },
+        }),
+        makeAdminEnv(),
+      );
+    }
+
+    it("rejects project with invalid characters", async () => {
+      const token = await makeAdminToken();
+      const response = await postLocation({ ...VALID_BODY, project: "bad/proj" }, token);
+      expect(response.status).toBe(400);
+      expect((await response.json() as Record<string, unknown>).ok).toBe(false);
+    });
+
+    it("rejects project exceeding 64 characters", async () => {
+      const token = await makeAdminToken();
+      const response = await postLocation({ ...VALID_BODY, project: "a".repeat(65) }, token);
+      expect(response.status).toBe(400);
+    });
+
+    it("rejects city with invalid characters", async () => {
+      const token = await makeAdminToken();
+      const response = await postLocation({ ...VALID_BODY, city: "bad city!" }, token);
+      expect(response.status).toBe(400);
+    });
+
+    it("rejects city exceeding 64 characters", async () => {
+      const token = await makeAdminToken();
+      const response = await postLocation({ ...VALID_BODY, city: "a".repeat(65) }, token);
+      expect(response.status).toBe(400);
+    });
+
+    it("rejects filename that doesn't match location file pattern", async () => {
+      const token = await makeAdminToken();
+      const response = await postLocation({ ...VALID_BODY, filename: "bad_name.yaml" }, token);
+      expect(response.status).toBe(400);
+    });
+
+    it("rejects filename exceeding 100 characters", async () => {
+      const token = await makeAdminToken();
+      const longFilename = "001_loc_" + "a".repeat(93) + ".yaml";
+      const response = await postLocation({ ...VALID_BODY, filename: longFilename }, token);
+      expect(response.status).toBe(400);
+    });
+
+    it("rejects existingSha that is not a 40-char hex string", async () => {
+      const token = await makeAdminToken();
+      const response = await postLocation({ ...VALID_BODY, existingSha: "notasha" }, token);
+      expect(response.status).toBe(400);
+    });
+
+    it("rejects location that is null", async () => {
+      const token = await makeAdminToken();
+      const response = await postLocation({ ...VALID_BODY, location: null }, token);
+      expect(response.status).toBe(400);
+    });
+
+    it("rejects location that is an array", async () => {
+      const token = await makeAdminToken();
+      const response = await postLocation({ ...VALID_BODY, location: [] }, token);
+      expect(response.status).toBe(400);
+    });
+
+    it("rejects location whose YAML serialization exceeds 50 KB", async () => {
+      const token = await makeAdminToken();
+      const bigLocation = { title: "x".repeat(60_000) };
+      const response = await postLocation({ ...VALID_BODY, location: bigLocation }, token);
+      expect(response.status).toBe(400);
+    });
   });
 });
 
@@ -426,6 +523,15 @@ describe("/editor/pr-status", () => {
 });
 
 describe("/auth/logout", () => {
+  // happy-dom v20 blocks Set-Cookie from Response.headers.get(); use undici's
+  // Response for this block so the cookie-clearing assertion can read the header.
+  beforeEach(() => {
+    vi.stubGlobal("Response", NodeResponse);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("returns 200 with ok: true", async () => {
     const env = { AUTH_SECRET: TEST_SECRET };
     const request = new Request("https://example.com/auth/logout", {

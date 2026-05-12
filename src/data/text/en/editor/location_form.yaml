@@ -4,45 +4,56 @@
 - id: identity
   type: string
   label: Id
+  isRequired: true
 
 - id: title
   type: string
   label: Title
+  isRequired: true
 
 - id: image
   type: string
   label: "Image filename (e.g. my-photo.jpg — upload separately)"
+  isRequired: false
 
 - id: name.label
   type: string
   label: Name label
+  isRequired: true
 
 - id: name.value
   type: string
   label: Name value
+  isRequired: false
 
 - id: address
   type: string
   label: Street address
+  isRequired: false
 
 - id: coordinates.latitude
-  type: string
+  type: number
   label: Latitude
+  isRequired: true
 
 - id: coordinates.longitude
-  type: string
+  type: number
   label: Longitude
+  isRequired: true
 
 - type: section
   label: Narrative
+  isRequired: true
 
 - id: storyline
   type: textarea
   label: Storyline
+  isRequired: true
 
 - id: breadcrumb
   type: textarea
   label: Breadcrumb clue
+  isRequired: false
 
 - type: section
   label: Challenge
@@ -50,11 +61,14 @@
 - id: challenge.name
   type: string
   label: Challenge name
-
+  isRequired: false
+  
 - id: challenge.description
   type: textarea
   label: Challenge description
+  isRequired: false
 
 - id: challenge.notes
   type: textarea
   label: "Notes (internal, not shown to participants)"
+  isRequired: false

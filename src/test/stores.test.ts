@@ -3,6 +3,9 @@ import { themeStore } from "../stores/themeStore";
 import { fontSizeStore, FONT_SIZES } from "../stores/fontSizeStore";
 import { titleBarStore } from "../stores/titleBarStore";
 import { languageStore } from "../stores/languageStore";
+import type { TitleBarState } from "../stores/titleBarStore";
+
+const TITLE_BAR_DEFAULT: TitleBarState = { title: "Freedom Hunt", progress: null, backPath: null };
 
 describe("themeStore", () => {
   it("defaults to app theme", () => {
@@ -37,6 +40,10 @@ describe("fontSizeStore", () => {
 });
 
 describe("titleBarStore", () => {
+  beforeEach(() => {
+    titleBarStore.set(TITLE_BAR_DEFAULT);
+  });
+
   it("has default title", () => {
     const state = get(titleBarStore);
     expect(state.title).toBe("Freedom Hunt");

@@ -5,11 +5,15 @@
     getPending,
     addPending,
     removePending,
+    clearDraft,
+    prWasClosed,
+    clearCompletedPending,
+    updatePendingStatus,
     type PendingEntry as BasePendingEntry,
   } from "./editorStorage";
   import type { Location as DataLocation } from "../../types/data";
   import "./EditorLocationList.css";
-  import { getNextLocationId } from "./editorUtils";
+  import { getNextLocationId, getLocationIndex } from "./editorUtils";
   import {
     fetchEditorLocations,
     fetchPrStatuses,
@@ -18,6 +22,8 @@
   } from "../../utils/api";
 
   let { params }: { params: { project: string; city: string } } = $props();
+
+  const namespace = $derived(`${params.project}/${params.city}/locations`);
 
   interface PendingEntry extends BasePendingEntry {
     prUrl?: string;
@@ -31,6 +37,45 @@
   let error = $state<string | null>(null);
   let pending = $state<PendingEntry[]>([]);
 
+  const pendingNewLocations = $derived(
+    pending.filter(
+      (p) => !locations.find((location) => location.filename === p.filename),
+    ),
+  );
+
+  const hasCompleted = $derived(pending.some((p) => p.status === "up_to_date"));
+
+  type ListItem =
+    | {
+        kind: "live";
+        filename: string;
+        sha: string;
+        location: DataLocation;
+        pending?: PendingEntry;
+      }
+    | { kind: "pending"; filename: string; entry: PendingEntry };
+
+  const allItems = $derived(
+    [
+      ...locations.map(
+        (loc): ListItem => ({
+          kind: "live",
+          filename: loc.filename,
+          sha: loc.sha,
+          location: loc.location,
+          pending: pendingFor(loc.filename),
+        }),
+      ),
+      ...pendingNewLocations.map(
+        (p): ListItem => ({
+          kind: "pending",
+          filename: p.filename,
+          entry: p,
+        }),
+      ),
+    ].sort((a, b) => getLocationIndex(a.filename) - getLocationIndex(b.filename)),
+  );
+
   titleBarStore.set({
     title: "Locations",
     progress: null,
@@ -43,8 +88,8 @@
     try {
       const data = await fetchEditorLocations(params.project, params.city);
       if (data.ok && data.locations) {
-        locations = data.locations.sort((a, b) =>
-          a.filename.localeCompare(b.filename),
+        locations = data.locations.sort(
+          (a, b) => getLocationIndex(a.filename) - getLocationIndex(b.filename),
         );
       } else {
         error = data.error ?? "Failed to load locations";
@@ -57,8 +102,25 @@
   }
 
   function syncPending() {
-    const items = getPending(params.project, params.city);
+    const STALE_MS = 5 * 60 * 1000;
+    let items = getPending(namespace);
+
+    let staleChanged = false;
+    items.forEach((p) => {
+      if (p.status === "submitting" && !(p.prUrl as string | undefined)) {
+        const age =
+          Date.now() - new Date((p.submittedAt as string) ?? 0).getTime();
+        if (age > STALE_MS) {
+          updatePendingStatus(namespace, p.filename, "failed");
+          staleChanged = true;
+        }
+      }
+    });
+    if (staleChanged) {
+      items = getPending(namespace);
+    }
     pending = items;
+
     if (items.length > 0) {
       const numbers = items
         .map(
@@ -74,13 +136,19 @@
                 const n = (p.prUrl as string | undefined)?.match(
                   /\/pull\/(\d+)/,
                 )?.[1];
-                if (n && data.statuses![n] === "closed") {
-                  removePending(params.project, params.city, p.filename);
-                  changed = true;
+                if (n) {
+                  const prStatus = data.statuses![n];
+                  if (prStatus === "closed") {
+                    prWasClosed(namespace, p.filename);
+                    changed = true;
+                  } else if (prStatus === "open" && p.status === "submitting") {
+                    updatePendingStatus(namespace, p.filename, "pending");
+                    changed = true;
+                  }
                 }
               });
               if (changed) {
-                pending = getPending(params.project, params.city);
+                pending = getPending(namespace);
               }
             }
           })
@@ -113,14 +181,15 @@
           location: { ...cleanLoc, hidden: true },
         });
         if (data.ok) {
-          addPending(params.project, params.city, {
+          addPending(namespace, {
             filename: _filename!,
             locationTitle: loc.title,
             prUrl: data.prUrl,
             prTitle: `Hide location: ${loc.title}`,
             submittedAt: new Date().toISOString(),
+            status: "pending",
           });
-          pending = getPending(params.project, params.city);
+          pending = getPending(namespace);
         } else {
           alert(`Failed: ${data.error}`);
         }
@@ -147,13 +216,30 @@
         `Remove this new location? You will need to close the PR on GitHub manually.\n\n${pend?.prUrl ?? ""}`,
       )
     ) {
-      removePending(params.project, params.city, filename);
-      pending = getPending(params.project, params.city);
+      removePending(namespace, filename);
+      const draftKey = pend?.isNew
+        ? `editor_draft_${namespace}_new`
+        : `editor_draft_${namespace}_${filename}`;
+      clearDraft(draftKey);
+      pending = getPending(namespace);
     }
   }
 
-  
+  function handleRetry(pend: PendingEntry) {
+    if (pend.isNew) {
+      const newId = getNextLocationId(locations.map((loc) => loc.filename));
+      push(`/editor/locations/${params.project}/${params.city}/new/${newId}`);
+    } else {
+      push(
+        `/editor/locations/${params.project}/${params.city}/edit/${pend.filename}`,
+      );
+    }
+  }
 
+  function handleClearCompleted() {
+    clearCompletedPending(namespace);
+    pending = getPending(namespace);
+  }
 </script>
 
 {#if loading}
@@ -163,74 +249,155 @@
 {:else}
   <div class="loc-list">
     <div class="loc-list__toolbar">
-      <button
-        class="loc-list__add-btn"
-        onclick={() => {
-          const newId = getNextLocationId(locations.map((loc) => loc.filename));
-          push(`/editor/locations/${params.project}/${params.city}/new/${newId}`);
-        }}
-      >
-        + Add location
-      </button>
-      <button
-        class="loc-list__refresh-btn"
-        onclick={() => {
-          fetchLocations();
-          syncPending();
-        }}
-      >
-        Refresh
-      </button>
+      <div style="display:flex;gap:8px">
+        {#if hasCompleted}
+          <button class="loc-list__clear-btn" onclick={handleClearCompleted}>
+            ✕ Clear completed
+          </button>
+        {/if}
+        <button
+          class="loc-list__refresh-btn"
+          onclick={() => {
+            fetchLocations();
+            syncPending();
+          }}
+        >
+          ↻ Refresh
+        </button>
+      </div>
     </div>
 
-    {#each locations as { filename, sha, location } (filename)}
-      {@const pend = pendingFor(filename)}
-      <div class="loc-list__item">
-        <div class="loc-list__item-header">
-          <div>
-            <div class="loc-list__item-title">{location.title || filename}</div>
-            <div class="loc-list__item-meta">
-              {`${filename}`}
+    {#each allItems as item (item.filename)}
+      {#if item.kind === "live"}
+        {@const pend = item.pending}
+        <div class="loc-list__item">
+          <div class="loc-list__item-header">
+            <div>
+              <div class="loc-list__item-title">
+                {item.location.title || item.filename}
+              </div>
+              <div class="loc-list__item-meta">{item.filename}</div>
             </div>
-          </div>
-          <div class="loc-list__item-actions">
-            <button
-              class="loc-list__btn"
-              onclick={() =>
-                push(
-                  `/editor/locations/${params.project}/${params.city}/edit/${filename}`,
-                )}
-            >
-              Edit
-            </button>
-            <button
-              class="loc-list__btn loc-list__btn--danger"
-              onclick={() =>
-                handleHide({ ...location, _filename: filename }, sha)}
-            >
-              Hide
-            </button>
-            {#if isNewLocation(filename)}
+            <div class="loc-list__item-actions">
+              <button
+                class="loc-list__btn"
+                onclick={() =>
+                  push(
+                    `/editor/locations/${params.project}/${params.city}/edit/${item.filename}`,
+                  )}
+              >
+                Edit
+              </button>
               <button
                 class="loc-list__btn loc-list__btn--danger"
-                onclick={() => handleDelete(filename)}
+                onclick={() =>
+                  handleHide(
+                    { ...item.location, _filename: item.filename },
+                    item.sha,
+                  )}
               >
-                Delete
+                Hide
               </button>
-            {/if}
+              {#if isNewLocation(item.filename)}
+                <button
+                  class="loc-list__btn loc-list__btn--danger"
+                  onclick={() => handleDelete(item.filename)}
+                >
+                  Delete
+                </button>
+              {/if}
+            </div>
           </div>
+          {#if pend}
+            {#if pend.status === "submitting"}
+              <span class="loc-list__badge loc-list__badge--submitting"
+                >⏱ Submitting…</span
+              >
+            {:else if pend.status === "failed"}
+              <span class="loc-list__badge loc-list__badge--failed">
+                ✕ Submission failed
+                <button
+                  class="loc-list__badge-retry"
+                  onclick={() => handleRetry(pend)}
+                >
+                  ↺ Retry
+                </button>
+              </span>
+            {:else if pend.status === "up_to_date"}
+              <span class="loc-list__badge loc-list__badge--up-to-date"
+                >✓ Up to date</span
+              >
+            {:else if pend.prUrl}
+              <a
+                href={pend.prUrl as string}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="loc-list__badge loc-list__badge--pending"
+              >
+                ⏳ Pending — view PR
+              </a>
+            {/if}
+          {/if}
         </div>
-        {#if pend}
-          <a
-            href={pend.prUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="loc-list__pending"
-          >
-            ⏳ Pending edit — view PR
-          </a>
-        {/if}
-      </div>
+      {:else}
+        {@const p = item.entry}
+        <div class="loc-list__item loc-list__item--pending">
+          <div class="loc-list__item-header">
+            <div>
+              <div class="loc-list__item-title">
+                {p.locationTitle ?? p.filename}
+              </div>
+              <div class="loc-list__item-meta">{p.filename}</div>
+            </div>
+            <div class="loc-list__item-actions">
+              <button
+                class="loc-list__btn loc-list__btn--danger"
+                onclick={() => handleDelete(p.filename)}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+          {#if p.status === "submitting"}
+            <span class="loc-list__badge loc-list__badge--submitting"
+              >⏱ Submitting…</span
+            >
+          {:else if p.status === "failed"}
+            <span class="loc-list__badge loc-list__badge--failed">
+              ✕ Submission failed
+              <button
+                class="loc-list__badge-retry"
+                onclick={() => handleRetry(p)}
+              >
+                ↺ Retry
+              </button>
+            </span>
+          {:else if p.status === "up_to_date"}
+            <span class="loc-list__badge loc-list__badge--up-to-date"
+              >✓ Up to date</span
+            >
+          {:else if p.prUrl}
+            <a
+              href={p.prUrl as string}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="loc-list__badge loc-list__badge--pending"
+            >
+              ⏳ Pending — view PR
+            </a>
+          {/if}
+        </div>
+      {/if}
     {/each}
+
+    <button
+      class="loc-list__item loc-list__item--add"
+      onclick={() => {
+        const newId = getNextLocationId(allItems.map((i) => i.filename));
+        push(`/editor/locations/${params.project}/${params.city}/new/${newId}`);
+      }}
+    >
+      + Add location …
+    </button>
   </div>
 {/if}

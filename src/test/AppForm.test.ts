@@ -115,18 +115,32 @@ test("pre-populates string field from initialValues", () => {
 
 test("shows required error for empty string field on submit", async () => {
   const fields: FormField[] = [
-    { id: "note", type: "string", label: "Your note" },
+    { id: "note", type: "string", label: "Your note", isRequired: true },
   ];
   render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  // Input something then clear it to trigger hasChanges = true
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "x" },
+  });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "" },
+  });
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   expect(screen.getByText("Required")).toBeInTheDocument();
 });
 
 test("shows required error for empty textarea on submit", async () => {
   const fields: FormField[] = [
-    { id: "story", type: "textarea", label: "Your story" },
+    { id: "story", type: "textarea", label: "Your story", isRequired: true },
   ];
   render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  // Input something then clear it to trigger hasChanges = true
+  await fireEvent.input(screen.getByLabelText("Your story"), {
+    target: { value: "x" },
+  });
+  await fireEvent.input(screen.getByLabelText("Your story"), {
+    target: { value: "" },
+  });
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   expect(screen.getByText("Required")).toBeInTheDocument();
 });
@@ -138,9 +152,40 @@ test("does not validate section or boolean fields as required", async () => {
   ];
   const onSubmit = vi.fn().mockResolvedValue(undefined);
   render(AppForm, { props: { fields, onSubmit } });
+  // Toggle boolean to trigger hasChanges = true
+  await fireEvent.click(screen.getByLabelText("I agree"));
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   expect(screen.queryByText("Required")).not.toBeInTheDocument();
   await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
+});
+
+test("does not show required error for non-required empty string on submit", async () => {
+  const fields: FormField[] = [
+    { id: "note", type: "string", label: "Your note", isRequired: false },
+  ];
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(AppForm, { props: { fields, onSubmit } });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "x" },
+  });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "" },
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  expect(screen.queryByText("Required")).not.toBeInTheDocument();
+  await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
+});
+
+test("required field label has af-label--required class, non-required does not", () => {
+  const fields: FormField[] = [
+    { id: "title", type: "string", label: "Title", isRequired: true },
+    { id: "note", type: "string", label: "Note" },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  const titleLabel = screen.getByLabelText("Title").closest(".af-field")?.querySelector("label");
+  const noteLabel = screen.getByLabelText("Note").closest(".af-field")?.querySelector("label");
+  expect(titleLabel).toHaveClass("af-label--required");
+  expect(noteLabel).not.toHaveClass("af-label--required");
 });
 
 // ---------------------------------------------------------------------------
@@ -260,4 +305,84 @@ test("multiple field: blocks selection beyond max and shows warning", async () =
   expect(
     (screen.getByLabelText("American") as HTMLInputElement).checked,
   ).toBe(false);
+});
+
+// ---------------------------------------------------------------------------
+// hasChanges
+// ---------------------------------------------------------------------------
+
+test("submit button shows 'No changes' and is disabled when values equal initialValues", async () => {
+  const fields: FormField[] = [
+    { id: "title", type: "string", label: "Title" },
+  ];
+  render(AppForm, {
+    props: {
+      fields,
+      initialValues: { title: "Binnenhof" },
+      onSubmit: vi.fn(),
+    },
+  });
+  const btn = await screen.findByRole("button", { name: /no changes/i });
+  expect(btn).toBeDisabled();
+});
+
+test("submit button is enabled after user changes a field", async () => {
+  const fields: FormField[] = [
+    { id: "title", type: "string", label: "Title" },
+  ];
+  render(AppForm, {
+    props: {
+      fields,
+      initialValues: { title: "Binnenhof" },
+      onSubmit: vi.fn(),
+    },
+  });
+  await fireEvent.input(screen.getByLabelText("Title"), {
+    target: { value: "Binnenhof Updated" },
+  });
+  const btn = screen.getByRole("button", { name: /submit/i });
+  expect(btn).not.toBeDisabled();
+});
+
+test("baseValues overrides initialValues as the hasChanges baseline", async () => {
+  const fields: FormField[] = [
+    { id: "title", type: "string", label: "Title" },
+  ];
+  // initialValues = draft (differs from server)
+  // baseValues = server data (the committed baseline)
+  render(AppForm, {
+    props: {
+      fields,
+      initialValues: { title: "Draft Title" },
+      baseValues: { title: "Server Title" },
+      onSubmit: vi.fn(),
+    },
+  });
+  // Form pre-populated with "Draft Title", which differs from baseValues "Server Title"
+  // → hasChanges = true → submit is enabled (not "No changes")
+  const btn = await screen.findByRole("button", { name: /submit/i });
+  expect(btn).not.toBeDisabled();
+  expect(btn).not.toHaveTextContent(/no changes/i);
+});
+
+// ---------------------------------------------------------------------------
+// onValuesChange
+// ---------------------------------------------------------------------------
+
+test("onValuesChange is called when a field value changes", async () => {
+  const fields: FormField[] = [
+    { id: "title", type: "string", label: "Title" },
+  ];
+  const onValuesChange = vi.fn();
+  render(AppForm, {
+    props: { fields, onSubmit: vi.fn(), onValuesChange },
+  });
+  await fireEvent.input(screen.getByLabelText("Title"), {
+    target: { value: "hello" },
+  });
+  await waitFor(() => {
+    expect(onValuesChange).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "hello" }),
+    );
+  });
 });

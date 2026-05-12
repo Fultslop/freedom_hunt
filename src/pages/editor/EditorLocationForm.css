@@ -1,5 +1,3 @@
-/* src/pages/editor/EditorLocationForm.css */
-
 .loc-form {
   max-width: 480px;
   margin: 0 auto;
@@ -25,26 +23,20 @@
   cursor: pointer;
 }
 
-.loc-form__success {
-  padding: 16px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+.loc-form__refresh {
+  padding: 12px 20px;
   background: var(--color-surface);
-  margin-top: 16px;
-  font-size: var(--font-size-sm);
   color: var(--color-text);
-}
-
-.loc-form__pr-link {
-  color: var(--color-accent);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 600;
+  cursor: pointer;
 }
 
-.loc-form__error {
-  margin-top: 12px;
-  margin-bottom: 12px;
-  font-size: var(--font-size-sm);
-  color: var(--color-error);
+.loc-form__refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .loc-form__loading {
