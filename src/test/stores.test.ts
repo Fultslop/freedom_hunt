@@ -24,6 +24,10 @@ describe("themeStore", () => {
 });
 
 describe("fontSizeStore", () => {
+  beforeEach(() => {
+    fontSizeStore.setFontSize("small");
+  });
+
   it("defaults to small", () => {
     expect(get(fontSizeStore).fontSize).toBe("small");
   });

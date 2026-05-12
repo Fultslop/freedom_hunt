@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/svelte/svelte5";
+import { flushSync } from "svelte";
 import { leafletMap } from "../actions/leafletMap";
 import type { LeafletMapParams } from "../actions/leafletMap";
 import CoordinatePicker from "../components/CoordinatePicker.svelte";
@@ -50,9 +51,7 @@ test("map click fires onchange with clicked coordinates", async () => {
   render(CoordinatePicker, {
     props: { value: { latitude: 52.0799, longitude: 4.3133 }, onchange },
   });
-  await vi.waitFor(() => {
-    expect(vi.mocked(leafletMap).mock.calls.length).toBeGreaterThan(0);
-  });
+  flushSync();
   const actionParams = vi.mocked(leafletMap).mock.calls[0][1] as LeafletMapParams;
   actionParams.onClick!(53.0, 5.0);
   expect(onchange).toHaveBeenCalledWith({ latitude: 53.0, longitude: 5.0 });
