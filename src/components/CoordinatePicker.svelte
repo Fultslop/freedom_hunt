@@ -1,13 +1,15 @@
 <script lang="ts">
-  import { leafletMap } from "../actions/leafletMap";
+  import { leafletMap as defaultMapAction } from "../actions/leafletMap";
   import "./CoordinatePicker.css";
 
   let {
     value = { latitude: 0, longitude: 0 },
     onchange,
+    mapAction = defaultMapAction,
   }: {
     value?: { latitude: number; longitude: number };
     onchange: (coords: { latitude: number; longitude: number }) => void;
+    mapAction?: typeof defaultMapAction;
   } = $props();
 
   const center = $derived<[number, number]>([value.latitude, value.longitude]);
@@ -46,7 +48,7 @@
   </div>
   <div
     class="coord-picker__map"
-    use:leafletMap={{
+    use:mapAction={{
       center,
       zoom: 15,
       scrollWheelZoom: true,
