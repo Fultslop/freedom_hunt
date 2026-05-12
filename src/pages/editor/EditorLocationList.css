@@ -173,3 +173,19 @@
 .loc-list__item--add:hover {
   background: var(--color-surface);
 }
+
+.loc-list__city-select {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.loc-list__city-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

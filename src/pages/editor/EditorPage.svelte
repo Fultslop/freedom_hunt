@@ -9,6 +9,12 @@
   let project = $derived(
     $authStore.activeAuth?.projectId ?? "democrats_abroad",
   );
+
+  function handleLocationsClick() {
+    const city =
+      localStorage.getItem(`editor_last_city_${project}`) ?? "den_haag";
+    push(`/editor/locations/${project}/${city}`);
+  }
 </script>
 
 <div class="editor-page">
@@ -32,7 +38,7 @@
 
     <button
       class="editor-page__tile"
-      onclick={() => push(`/editor/locations/${project}/den_haag`)}
+      onclick={handleLocationsClick}
     >
       <div class="editor-page__tile-name">Locations</div>
       <div class="editor-page__tile-desc">

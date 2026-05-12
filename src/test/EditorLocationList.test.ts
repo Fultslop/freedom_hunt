@@ -3,6 +3,7 @@ import EditorLocationList from "../pages/editor/EditorLocationList.svelte";
 import { addPending } from "../pages/editor/editorStorage";
 import { push } from "svelte-spa-router";
 import { fetchEditorLocations } from "../utils/api";
+import { loadText } from "../utils/loadText";
 
 vi.mock("svelte-spa-router", () => ({
   push: vi.fn(),
@@ -31,6 +32,15 @@ vi.mock("../utils/api", () => ({
   }),
   fetchPrStatuses: vi.fn().mockResolvedValue({ ok: true, statuses: {} }),
   saveEditorLocation: vi.fn().mockResolvedValue({ ok: true }),
+}));
+
+vi.mock("../utils/loadText", () => ({
+  loadText: vi.fn().mockResolvedValue({
+    items: [
+      { id: "den_haag", name: "Den Haag", country: "Netherlands" },
+      { id: "oslo", name: "Oslo", country: "Norway" },
+    ],
+  }),
 }));
 
 beforeEach(() => localStorage.clear());
@@ -182,6 +192,7 @@ test("shows only the add row when there are no locations and no pending entries"
   const addBtn = await screen.findByRole("button", { name: /\+ add location …/i });
   expect(addBtn).toBeInTheDocument();
   expect(screen.queryByText("Binnenhof")).not.toBeInTheDocument();
+  expect(vi.mocked(loadText)).toHaveBeenCalled();
 });
 
 test("clicking add row accounts for pending filenames when computing next ID", async () => {
@@ -223,4 +234,42 @@ test("toolbar shows ↻ Refresh and ✕ Clear completed labels", async () => {
   expect(
     screen.getByRole("button", { name: /✕ clear completed/i }),
   ).toBeInTheDocument();
+});
+
+test("renders city dropdown with city names from loadText", async () => {
+  render(EditorLocationList, {
+    props: { params: { project: "democrats_abroad", city: "den_haag" } },
+  });
+  const select = await screen.findByRole("combobox");
+  expect(select).toBeInTheDocument();
+  expect(screen.getByRole("option", { name: "Den Haag" })).toBeInTheDocument();
+  expect(screen.getByRole("option", { name: "Oslo" })).toBeInTheDocument();
+});
+
+test("selecting a city navigates to the new city URL", async () => {
+  render(EditorLocationList, {
+    props: { params: { project: "democrats_abroad", city: "den_haag" } },
+  });
+  const select = await screen.findByRole("combobox");
+  await fireEvent.change(select, { target: { value: "oslo" } });
+  expect(push).toHaveBeenCalledWith(
+    "/editor/locations/democrats_abroad/oslo",
+  );
+});
+
+test("selecting a city saves it to localStorage", async () => {
+  render(EditorLocationList, {
+    props: { params: { project: "democrats_abroad", city: "den_haag" } },
+  });
+  const select = await screen.findByRole("combobox");
+  await fireEvent.change(select, { target: { value: "oslo" } });
+  expect(localStorage.getItem("editor_last_city_democrats_abroad")).toBe("oslo");
+});
+
+test("on mount, saves the current city to localStorage", async () => {
+  render(EditorLocationList, {
+    props: { params: { project: "democrats_abroad", city: "den_haag" } },
+  });
+  await screen.findByRole("combobox");
+  expect(localStorage.getItem("editor_last_city_democrats_abroad")).toBe("den_haag");
 });
