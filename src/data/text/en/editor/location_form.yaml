@@ -12,8 +12,8 @@
   isRequired: true
 
 - id: image
-  type: string
-  label: "Image filename (e.g. my-photo.jpg — upload separately)"
+  type: image-picker
+  label: Image
   isRequired: false
 
 - id: name.label
