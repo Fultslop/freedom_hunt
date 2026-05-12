@@ -54,6 +54,7 @@
     onPhotoUpload = undefined,
     onSuccess = undefined,
     onValuesChange = undefined,
+    onHasChangesChange = undefined,
     submitLabel = "Submit",
     confirmMessage = undefined,
   }: {
@@ -64,6 +65,7 @@
     onPhotoUpload?: (file: File) => Promise<{ ok: boolean }>;
     onSuccess?: () => void;
     onValuesChange?: (values: FieldValues) => void;
+    onHasChangesChange?: (hasChanges: boolean) => void;
     submitLabel?: string;
     confirmMessage?: string;
   } = $props();
@@ -89,6 +91,9 @@
 
   $effect(() => {
     onValuesChange?.({ ...values });
+  });
+  $effect(() => {
+    onHasChangesChange?.(hasChanges);
   });
   let errors = $state<Record<string, string>>({});
   let submitState = $state<SubmitState>("idle");

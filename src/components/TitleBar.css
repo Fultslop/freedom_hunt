@@ -192,3 +192,16 @@
   transition: width 0.2s ease;
   background: var(--color-progress-fill);
 }
+
+.titlebar__title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.titlebar__subtitle {
+  font-size: 11px;
+  color: var(--color-bar-text-secondary);
+  font-weight: 400;
+  line-height: 1.2;
+}

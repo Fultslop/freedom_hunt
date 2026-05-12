@@ -4,6 +4,7 @@
   import { titleBarStore } from "../../stores/titleBarStore";
   import {
     addPending,
+    clearDraft,
     getDraft,
     saveDraft,
     updatePendingStatus,
@@ -65,13 +66,28 @@
   let modalNewPrUrl = $state<string | undefined>(undefined);
   let modalError = $state<string | undefined>(undefined);
   let lastSubmittedNested = $state<Record<string, unknown>>({});
+  let isDirty = $state(false);
+
+  function getSubtitle(): string {
+    if (!params.filename) { return "new"; }
+    const parsed = tryParseLocationName(params.filename);
+    if (!parsed) { return params.filename; }
+    return parsed.title
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
 
   $effect(() => {
     titleBarStore.set({
       title: isEdit ? "Edit location" : "Add location",
+      subtitle: getSubtitle(),
       progress: null,
       backPath: `/editor/locations/${params.project}/${params.city}`,
     });
+  });
+
+  $effect(() => {
+    titleBarStore.update((state) => ({ ...state, isDirty }));
   });
 
   $effect(() => {
@@ -151,6 +167,14 @@
       checkDraftStaleness();
     }
   });
+
+  function handleCancel() {
+    const backPath = `/editor/locations/${params.project}/${params.city}`;
+    if (!isDirty || window.confirm("Discard changes?")) {
+      if (isDirty) { clearDraft(draftKey); }
+      push(backPath);
+    }
+  }
 
   async function handleSubmit(nested: Record<string, unknown>) {
     lastSubmittedNested = nested;
@@ -274,6 +298,7 @@
       baseValues={isEdit ? serverValues : undefined}
       onSubmit={handleSubmit}
       onValuesChange={(vals) => saveDraft(draftKey, vals)}
+      onHasChangesChange={(changed) => { isDirty = changed; }}
       onSuccess={handleSuccess}
       submitLabel="Submit for review"
     />
@@ -281,8 +306,7 @@
     <div class="loc-form__actions">
       <button
         class="loc-form__cancel"
-        onclick={() =>
-          push(`/editor/locations/${params.project}/${params.city}`)}
+        onclick={handleCancel}
       >
         Cancel
       </button>

@@ -36,7 +36,15 @@
           ←
         </button>
       {/if}
-      <span class="titlebar__title">{$titleBarStore.title}</span>
+      <div class="titlebar__title-wrap">
+        <span class="titlebar__title">{$titleBarStore.title}</span>
+        {#if $titleBarStore.subtitle}
+          <span
+            class="titlebar__subtitle"
+            data-testid="titlebar-subtitle"
+          >{$titleBarStore.subtitle}{$titleBarStore.isDirty ? " *" : ""}</span>
+        {/if}
+      </div>
     </div>
 
     <div class="titlebar__menu-wrap">

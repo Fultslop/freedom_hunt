@@ -549,3 +549,49 @@ test("optional image-picker with empty value passes validation", async () => {
   expect(screen.queryByText("Required")).not.toBeInTheDocument();
   await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
 });
+
+// ---------------------------------------------------------------------------
+// onHasChangesChange
+// ---------------------------------------------------------------------------
+
+test("calls onHasChangesChange(true) when a field value differs from initialValues", async () => {
+  const onHasChangesChange = vi.fn();
+  const fields: FormField[] = [
+    { id: "name", type: "string", label: "Name" },
+  ];
+  render(AppForm, {
+    props: {
+      fields,
+      initialValues: { name: "Alice" },
+      onSubmit: vi.fn(),
+      onHasChangesChange,
+    },
+  });
+  await fireEvent.input(screen.getByLabelText("Name"), {
+    target: { value: "Bob" },
+  });
+  await waitFor(() => {
+    expect(onHasChangesChange).toHaveBeenCalledWith(true);
+  });
+});
+
+test("calls onHasChangesChange(false) when value is restored to initialValues", async () => {
+  const onHasChangesChange = vi.fn();
+  const fields: FormField[] = [
+    { id: "name", type: "string", label: "Name" },
+  ];
+  render(AppForm, {
+    props: {
+      fields,
+      initialValues: { name: "Alice" },
+      onSubmit: vi.fn(),
+      onHasChangesChange,
+    },
+  });
+  const input = screen.getByLabelText("Name");
+  await fireEvent.input(input, { target: { value: "Bob" } });
+  await fireEvent.input(input, { target: { value: "Alice" } });
+  await waitFor(() => {
+    expect(onHasChangesChange).toHaveBeenLastCalledWith(false);
+  });
+});

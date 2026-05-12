@@ -40,3 +40,36 @@ test("hides progress bar when progress is null", () => {
   render(TitleBar);
   expect(screen.queryByTestId("progress-bar")).not.toBeInTheDocument();
 });
+
+test("does not render subtitle when subtitle is not set", () => {
+  render(TitleBar);
+  expect(screen.queryByTestId("titlebar-subtitle")).not.toBeInTheDocument();
+});
+
+test("renders subtitle without asterisk when isDirty is false", () => {
+  titleBarStore.set({
+    title: "Test",
+    progress: null,
+    backPath: null,
+    subtitle: "Dam Square",
+    isDirty: false,
+  });
+  render(TitleBar);
+  expect(screen.getByTestId("titlebar-subtitle")).toHaveTextContent(
+    "Dam Square",
+  );
+});
+
+test("renders subtitle with asterisk when isDirty is true", () => {
+  titleBarStore.set({
+    title: "Test",
+    progress: null,
+    backPath: null,
+    subtitle: "Dam Square",
+    isDirty: true,
+  });
+  render(TitleBar);
+  expect(screen.getByTestId("titlebar-subtitle")).toHaveTextContent(
+    "Dam Square *",
+  );
+});
