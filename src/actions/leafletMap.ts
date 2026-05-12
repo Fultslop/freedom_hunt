@@ -4,6 +4,8 @@ import "leaflet/dist/leaflet.css";
 export interface LeafletMapParams {
   center: [number, number];
   zoom: number;
+  scrollWheelZoom?: boolean;
+  onClick?: (lat: number, lng: number) => void;
 }
 
 const PIN = leaflet.divIcon({
@@ -13,7 +15,10 @@ const PIN = leaflet.divIcon({
 });
 
 export function leafletMap(node: HTMLElement, params: LeafletMapParams) {
-  const map = leaflet.map(node, { zoomControl: false, scrollWheelZoom: false });
+  const map = leaflet.map(node, {
+    zoomControl: false,
+    scrollWheelZoom: params.scrollWheelZoom ?? false,
+  });
   map.setView(params.center, params.zoom);
 
   leaflet
@@ -29,10 +34,19 @@ export function leafletMap(node: HTMLElement, params: LeafletMapParams) {
     })
     .addTo(map);
 
+  let clickCallback = params.onClick;
+  if (params.onClick) {
+    node.style.cursor = "crosshair";
+    map.on("click", (e: leaflet.LeafletMouseEvent) => {
+      clickCallback?.(e.latlng.lat, e.latlng.lng);
+    });
+  }
+
   return {
     update(newParams: LeafletMapParams) {
-      map.setView(newParams.center, newParams.zoom);
+      map.panTo(newParams.center);
       marker.setLatLng(newParams.center);
+      clickCallback = newParams.onClick;
     },
     destroy() {
       map.remove();

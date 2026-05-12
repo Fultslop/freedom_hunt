@@ -10,7 +10,7 @@
     prWasClosed,
     findPendingByFilename,
   } from "./editorStorage";
-  import type { FormField } from "../../types/data";
+  import type { FormField, Coordinates, CitiesText } from "../../types/data";
   import {
     createLocationFilename,
     locationFilenameToString,
@@ -49,12 +49,12 @@
 
   let fields = $state<FormField[]>([]);
   let serverValues = $state<Record<string, unknown>>({});
-  let initialValues = $state<Record<string, unknown>>(
-    untrack(() => (!params.filename ? (getDraft(draftKey) ?? {}) : {})),
-  );
+  let initialValues = $state<Record<string, unknown>>({});
   let existingSha = $state<string | null>(null);
   let locLoading = $state(untrack(() => Boolean(params.filename)));
   let checkingDraft = $state(false);
+  let cityCoords = $state<Coordinates | null>(null);
+  let citiesLoading = $state(true);
 
   // Modal state
   let showModal = $state(false);
@@ -77,6 +77,18 @@
   $effect(() => {
     loadText<FormField[]>("en", "editor/location_form").then((data) => {
       if (data) { fields = data; }
+    });
+  });
+
+  $effect(() => {
+    loadText<CitiesText>("en", `projects/${params.project}/cities`).then((data) => {
+      const city = data?.items?.find((c) => c.id === params.city);
+      cityCoords = city?.coordinates ?? null;
+      if (!isEdit) {
+        const draft = getDraft(draftKey);
+        initialValues = draft ?? (cityCoords ? { coordinates: cityCoords } : {});
+      }
+      citiesLoading = false;
     });
   });
 
@@ -108,6 +120,13 @@
         if (data.ok && data.location) {
           const flat = flattenValues(data.location as Record<string, unknown>);
           flat["identity"] = tryParseLocationName(params.filename)?.title ?? "";
+          const lat = flat["coordinates.latitude"] as number | undefined;
+          const lng = flat["coordinates.longitude"] as number | undefined;
+          if (lat !== undefined || lng !== undefined) {
+            flat["coordinates"] = { latitude: lat ?? 0, longitude: lng ?? 0 };
+            delete flat["coordinates.latitude"];
+            delete flat["coordinates.longitude"];
+          }
           serverValues = flat;
           existingSha = data.sha ?? null;
           if (wasStale) {
@@ -175,15 +194,12 @@
     modalState = "submitting";
     showModal = true;
 
-    const coords = (nested["coordinates"] ?? {}) as {
-      latitude?: string;
-      longitude?: string;
-    };
+    const coords = (nested["coordinates"] ?? { latitude: 0, longitude: 0 }) as Coordinates;
     const location = {
       ...nested,
       coordinates: {
-        latitude: parseFloat(coords.latitude ?? "0") || 0,
-        longitude: parseFloat(coords.longitude ?? "0") || 0,
+        latitude: Number(coords.latitude) || 0,
+        longitude: Number(coords.longitude) || 0,
       },
     };
 
@@ -248,7 +264,7 @@
   }
 </script>
 
-{#if locLoading || fields.length === 0}
+{#if locLoading || citiesLoading || fields.length === 0}
   <div class="loc-form__loading">Loading…</div>
 {:else}
   <div class="loc-form">
