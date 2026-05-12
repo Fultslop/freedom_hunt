@@ -1,19 +1,19 @@
-title: "The Final Civic Act"
-image: alireza-parpaei-den-haag-binnenhof-unsplash.jpg
+identity: The American Book Center
+title: Register
+image: da_abroad_logo.png
 name:
-  label: ""
-  value: "Binnenhof / Het Plein"
-address: "Binnenhof 1"
+  label: ABC
+  value: Binnenhof / Het Plein
+address: Lange Poten 23
 coordinates:
-  longitude: 4.3133
-  latitude: 52.0799
+  latitude: 52.07863564104193
+  longitude: 4.314561188220979
 storyline: |
   The Binnenhof is the oldest seat of parliament in the world still in use. Its 13th-century towers have witnessed wars, occupations, liberation, and democratic renewal.
-challenge:
-  name: ""
-  description: |
-    Register to vote — or confirm your registration is current — before you leave this courtyard. Photograph the screen showing your completed registration as proof.
-  notes: ""
-  form: "001_form_binnenhof.yaml"
 breadcrumb: |
   Find the inner courtyard where a statue of William of Orange keeps watch. What motto is engraved on the plaque at his feet?
+challenge:
+  name: ''
+  description: |
+    Register to vote — or confirm your registration is current — before you leave this courtyard. Photograph the screen showing your completed registration as proof.
+  notes: ''
