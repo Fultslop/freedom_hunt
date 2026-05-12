@@ -45,10 +45,13 @@ test("manual longitude change fires onchange with updated coords", async () => {
   expect(onchange).toHaveBeenCalledWith({ latitude: 52.0799, longitude: 5 });
 });
 
-test("map click fires onchange with clicked coordinates", () => {
+test("map click fires onchange with clicked coordinates", async () => {
   const onchange = vi.fn();
   render(CoordinatePicker, {
     props: { value: { latitude: 52.0799, longitude: 4.3133 }, onchange },
+  });
+  await vi.waitFor(() => {
+    expect(vi.mocked(leafletMap).mock.calls.length).toBeGreaterThan(0);
   });
   const actionParams = vi.mocked(leafletMap).mock.calls[0][1] as LeafletMapParams;
   actionParams.onClick!(53.0, 5.0);
