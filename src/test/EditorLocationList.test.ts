@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/svelte/svelte5";
 import EditorLocationList from "../pages/editor/EditorLocationList.svelte";
 import { addPending } from "../pages/editor/editorStorage";
 import { push } from "svelte-spa-router";
+import { fetchEditorLocations } from "../utils/api";
 
 vi.mock("svelte-spa-router", () => ({
   push: vi.fn(),
@@ -50,7 +51,7 @@ test("renders Add location button", async () => {
   ).toBeInTheDocument();
 });
 
-test("shows 'Pending additions' section for new locations not yet in GitHub", async () => {
+test("renders pending-only item inline without 'Pending additions' heading", async () => {
   addPending("democrats_abroad/den_haag/locations", {
     filename: "008_loc_new_place.yaml",
     locationTitle: "New Place",
@@ -64,12 +65,11 @@ test("shows 'Pending additions' section for new locations not yet in GitHub", as
     props: { params: { project: "democrats_abroad", city: "den_haag" } },
   });
 
-  expect(await screen.findByText("Pending additions")).toBeInTheDocument();
-  expect(screen.getByText("New Place")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /pending — view pr/i })).toHaveAttribute(
-    "href",
-    "https://github.com/org/repo/pull/99",
-  );
+  expect(await screen.findByText("New Place")).toBeInTheDocument();
+  expect(screen.queryByText("Pending additions")).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: /pending — view pr/i }),
+  ).toHaveAttribute("href", "https://github.com/org/repo/pull/99");
 });
 
 test("does not show 'Pending additions' when all pending entries are in GitHub list", async () => {
@@ -170,4 +170,57 @@ test("'Clear completed' button appears when up_to_date entries exist and removes
   await fireEvent.click(clearBtn);
   expect(screen.queryByText(/Up to date/)).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /clear completed/i })).not.toBeInTheDocument();
+});
+
+test("shows only the add row when there are no locations and no pending entries", async () => {
+  vi.mocked(fetchEditorLocations).mockResolvedValueOnce({ ok: true, locations: [] });
+
+  render(EditorLocationList, {
+    props: { params: { project: "democrats_abroad", city: "den_haag" } },
+  });
+
+  const addBtn = await screen.findByRole("button", { name: /\+ add location …/i });
+  expect(addBtn).toBeInTheDocument();
+  expect(screen.queryByText("Binnenhof")).not.toBeInTheDocument();
+});
+
+test("clicking add row accounts for pending filenames when computing next ID", async () => {
+  addPending("democrats_abroad/den_haag/locations", {
+    filename: "008_loc_new_place.yaml",
+    locationTitle: "New Place",
+    prTitle: "Add location: New Place",
+    submittedAt: new Date().toISOString(),
+    status: "pending",
+  });
+
+  render(EditorLocationList, {
+    props: { params: { project: "democrats_abroad", city: "den_haag" } },
+  });
+
+  await screen.findByText("New Place");
+  await fireEvent.click(screen.getByRole("button", { name: /\+ add location …/i }));
+  // live: [001], pending: [008] → max(1, 8) + 1 = 9
+  expect(push).toHaveBeenCalledWith(
+    "/editor/locations/democrats_abroad/den_haag/new/9",
+  );
+});
+
+test("toolbar shows ↻ Refresh and ✕ Clear completed labels", async () => {
+  addPending("democrats_abroad/den_haag/locations", {
+    filename: "001_loc_binnenhof.yaml",
+    locationTitle: "Binnenhof",
+    prTitle: "Edit location: Binnenhof",
+    submittedAt: new Date().toISOString(),
+    status: "up_to_date",
+  });
+
+  render(EditorLocationList, {
+    props: { params: { project: "democrats_abroad", city: "den_haag" } },
+  });
+
+  await screen.findByText("Binnenhof");
+  expect(screen.getByRole("button", { name: /↻ refresh/i })).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: /✕ clear completed/i }),
+  ).toBeInTheDocument();
 });

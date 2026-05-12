@@ -10,7 +10,7 @@ vi.mock("../utils/api", () => ({
 
 const form = [
   { id: "found_it", type: "boolean" as const, label: "Did you find it?" },
-  { id: "note", type: "string" as const, label: "Your note" },
+  { id: "note", type: "string" as const, label: "Your note", isRequired: true },
 ];
 
 beforeEach(() => {

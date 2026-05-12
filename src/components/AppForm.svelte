@@ -149,7 +149,7 @@
   function validateValues(): Record<string, string> {
     const errs: Record<string, string> = {};
     for (const field of fields) {
-      if (!field.id || canSkipValidation(field)) {
+      if (!field.id || canSkipValidation(field) || !field.isRequired) {
         // skip validation for these types
       } else if (field.type === STR_STRING || field.type === STR_TEXTAREA) {
         const v = values[field.id] as string | undefined;
@@ -261,7 +261,7 @@
             />
           </label>
         {:else}
-          <label class="af-label" for={id}>{field.label}</label>
+          <label class="af-label" class:af-label--required={field.isRequired} for={id}>{field.label}</label>
           {#if err}<p class="af-error-msg">{err}</p>{/if}
           {#if field.type === "string"}
             <input

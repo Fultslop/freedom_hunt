@@ -13,7 +13,7 @@
   } from "./editorStorage";
   import type { Location as DataLocation } from "../../types/data";
   import "./EditorLocationList.css";
-  import { getNextLocationId } from "./editorUtils";
+  import { getNextLocationId, getLocationIndex } from "./editorUtils";
   import {
     fetchEditorLocations,
     fetchPrStatuses,
@@ -45,6 +45,37 @@
 
   const hasCompleted = $derived(pending.some((p) => p.status === "up_to_date"));
 
+  type ListItem =
+    | {
+        kind: "live";
+        filename: string;
+        sha: string;
+        location: DataLocation;
+        pending?: PendingEntry;
+      }
+    | { kind: "pending"; filename: string; entry: PendingEntry };
+
+  const allItems = $derived(
+    [
+      ...locations.map(
+        (loc): ListItem => ({
+          kind: "live",
+          filename: loc.filename,
+          sha: loc.sha,
+          location: loc.location,
+          pending: pendingFor(loc.filename),
+        }),
+      ),
+      ...pendingNewLocations.map(
+        (p): ListItem => ({
+          kind: "pending",
+          filename: p.filename,
+          entry: p,
+        }),
+      ),
+    ].sort((a, b) => getLocationIndex(a.filename) - getLocationIndex(b.filename)),
+  );
+
   titleBarStore.set({
     title: "Locations",
     progress: null,
@@ -57,8 +88,8 @@
     try {
       const data = await fetchEditorLocations(params.project, params.city);
       if (data.ok && data.locations) {
-        locations = data.locations.sort((a, b) =>
-          a.filename.localeCompare(b.filename),
+        locations = data.locations.sort(
+          (a, b) => getLocationIndex(a.filename) - getLocationIndex(b.filename),
         );
       } else {
         error = data.error ?? "Failed to load locations";
@@ -217,9 +248,99 @@
   <div class="loc-list__error">{error}</div>
 {:else}
   <div class="loc-list">
-    {#if pendingNewLocations.length > 0}
-      <div class="loc-list__section-heading">Pending additions</div>
-      {#each pendingNewLocations as p (p.filename)}
+    <div class="loc-list__toolbar">
+      <div style="display:flex;gap:8px">
+        {#if hasCompleted}
+          <button class="loc-list__clear-btn" onclick={handleClearCompleted}>
+            ✕ Clear completed
+          </button>
+        {/if}
+        <button
+          class="loc-list__refresh-btn"
+          onclick={() => {
+            fetchLocations();
+            syncPending();
+          }}
+        >
+          ↻ Refresh
+        </button>
+      </div>
+    </div>
+
+    {#each allItems as item (item.filename)}
+      {#if item.kind === "live"}
+        {@const pend = item.pending}
+        <div class="loc-list__item">
+          <div class="loc-list__item-header">
+            <div>
+              <div class="loc-list__item-title">
+                {item.location.title || item.filename}
+              </div>
+              <div class="loc-list__item-meta">{item.filename}</div>
+            </div>
+            <div class="loc-list__item-actions">
+              <button
+                class="loc-list__btn"
+                onclick={() =>
+                  push(
+                    `/editor/locations/${params.project}/${params.city}/edit/${item.filename}`,
+                  )}
+              >
+                Edit
+              </button>
+              <button
+                class="loc-list__btn loc-list__btn--danger"
+                onclick={() =>
+                  handleHide(
+                    { ...item.location, _filename: item.filename },
+                    item.sha,
+                  )}
+              >
+                Hide
+              </button>
+              {#if isNewLocation(item.filename)}
+                <button
+                  class="loc-list__btn loc-list__btn--danger"
+                  onclick={() => handleDelete(item.filename)}
+                >
+                  Delete
+                </button>
+              {/if}
+            </div>
+          </div>
+          {#if pend}
+            {#if pend.status === "submitting"}
+              <span class="loc-list__badge loc-list__badge--submitting"
+                >⏱ Submitting…</span
+              >
+            {:else if pend.status === "failed"}
+              <span class="loc-list__badge loc-list__badge--failed">
+                ✕ Submission failed
+                <button
+                  class="loc-list__badge-retry"
+                  onclick={() => handleRetry(pend)}
+                >
+                  ↺ Retry
+                </button>
+              </span>
+            {:else if pend.status === "up_to_date"}
+              <span class="loc-list__badge loc-list__badge--up-to-date"
+                >✓ Up to date</span
+              >
+            {:else if pend.prUrl}
+              <a
+                href={pend.prUrl as string}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="loc-list__badge loc-list__badge--pending"
+              >
+                ⏳ Pending — view PR
+              </a>
+            {/if}
+          {/if}
+        </div>
+      {:else}
+        {@const p = item.entry}
         <div class="loc-list__item loc-list__item--pending">
           <div class="loc-list__item-header">
             <div>
@@ -238,14 +359,23 @@
             </div>
           </div>
           {#if p.status === "submitting"}
-            <span class="loc-list__badge loc-list__badge--submitting">⏱ Submitting…</span>
+            <span class="loc-list__badge loc-list__badge--submitting"
+              >⏱ Submitting…</span
+            >
           {:else if p.status === "failed"}
             <span class="loc-list__badge loc-list__badge--failed">
               ✕ Submission failed
-              <button class="loc-list__badge-retry" onclick={() => handleRetry(p)}>↺ Retry</button>
+              <button
+                class="loc-list__badge-retry"
+                onclick={() => handleRetry(p)}
+              >
+                ↺ Retry
+              </button>
             </span>
           {:else if p.status === "up_to_date"}
-            <span class="loc-list__badge loc-list__badge--up-to-date">✓ Up to date</span>
+            <span class="loc-list__badge loc-list__badge--up-to-date"
+              >✓ Up to date</span
+            >
           {:else if p.prUrl}
             <a
               href={p.prUrl as string}
@@ -257,94 +387,17 @@
             </a>
           {/if}
         </div>
-      {/each}
-    {/if}
-
-    <div class="loc-list__toolbar">
-      <button
-        class="loc-list__add-btn"
-        onclick={() => {
-          const newId = getNextLocationId(locations.map((loc) => loc.filename));
-          push(`/editor/locations/${params.project}/${params.city}/new/${newId}`);
-        }}
-      >
-        + Add location
-      </button>
-      <div style="display:flex;gap:8px">
-        {#if hasCompleted}
-          <button class="loc-list__clear-btn" onclick={handleClearCompleted}>
-            Clear completed
-          </button>
-        {/if}
-        <button
-          class="loc-list__refresh-btn"
-          onclick={() => {
-            fetchLocations();
-            syncPending();
-          }}
-        >
-          Refresh
-        </button>
-      </div>
-    </div>
-
-    {#each locations as { filename, sha, location } (filename)}
-      {@const pend = pendingFor(filename)}
-      <div class="loc-list__item">
-        <div class="loc-list__item-header">
-          <div>
-            <div class="loc-list__item-title">{location.title || filename}</div>
-            <div class="loc-list__item-meta">{filename}</div>
-          </div>
-          <div class="loc-list__item-actions">
-            <button
-              class="loc-list__btn"
-              onclick={() =>
-                push(
-                  `/editor/locations/${params.project}/${params.city}/edit/${filename}`,
-                )}
-            >
-              Edit
-            </button>
-            <button
-              class="loc-list__btn loc-list__btn--danger"
-              onclick={() =>
-                handleHide({ ...location, _filename: filename }, sha)}
-            >
-              Hide
-            </button>
-            {#if isNewLocation(filename)}
-              <button
-                class="loc-list__btn loc-list__btn--danger"
-                onclick={() => handleDelete(filename)}
-              >
-                Delete
-              </button>
-            {/if}
-          </div>
-        </div>
-        {#if pend}
-          {#if pend.status === "submitting"}
-            <span class="loc-list__badge loc-list__badge--submitting">⏱ Submitting…</span>
-          {:else if pend.status === "failed"}
-            <span class="loc-list__badge loc-list__badge--failed">
-              ✕ Submission failed
-              <button class="loc-list__badge-retry" onclick={() => handleRetry(pend)}>↺ Retry</button>
-            </span>
-          {:else if pend.status === "up_to_date"}
-            <span class="loc-list__badge loc-list__badge--up-to-date">✓ Up to date</span>
-          {:else if pend.prUrl}
-            <a
-              href={pend.prUrl as string}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="loc-list__badge loc-list__badge--pending"
-            >
-              ⏳ Pending — view PR
-            </a>
-          {/if}
-        {/if}
-      </div>
+      {/if}
     {/each}
+
+    <button
+      class="loc-list__item loc-list__item--add"
+      onclick={() => {
+        const newId = getNextLocationId(allItems.map((i) => i.filename));
+        push(`/editor/locations/${params.project}/${params.city}/new/${newId}`);
+      }}
+    >
+      + Add location …
+    </button>
   </div>
 {/if}

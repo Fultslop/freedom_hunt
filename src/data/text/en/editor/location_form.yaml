@@ -43,14 +43,17 @@
 
 - type: section
   label: Narrative
+  isRequired: true
 
 - id: storyline
   type: textarea
   label: Storyline
+  isRequired: true
 
 - id: breadcrumb
   type: textarea
   label: Breadcrumb clue
+  isRequired: false
 
 - type: section
   label: Challenge
@@ -58,11 +61,14 @@
 - id: challenge.name
   type: string
   label: Challenge name
-
+  isRequired: false
+  
 - id: challenge.description
   type: textarea
   label: Challenge description
+  isRequired: false
 
 - id: challenge.notes
   type: textarea
   label: "Notes (internal, not shown to participants)"
+  isRequired: false

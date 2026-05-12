@@ -15,22 +15,12 @@
   margin-bottom: 20px;
 }
 
-.loc-list__add-btn,
 .loc-list__refresh-btn {
   padding: 8px 16px;
   border-radius: 6px;
   font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
-  border: none;
-}
-
-.loc-list__add-btn {
-  background: var(--color-accent);
-  color: #fff;
-}
-
-.loc-list__refresh-btn {
   background: var(--color-surface);
   color: var(--color-text);
   border: 1px solid var(--color-border);
@@ -163,17 +153,23 @@
   color: var(--color-text-secondary);
 }
 
-.loc-list__section-heading {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-secondary, #888);
-  padding: 12px 0 4px;
-}
-
 .loc-list__item--pending {
   opacity: 0.85;
   border-left: 3px solid var(--color-accent, #f0a500);
   padding-left: 8px;
+}
+
+.loc-list__item--add {
+  border-style: dashed;
+  color: var(--color-accent);
+  cursor: pointer;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--font-size-base);
+}
+
+.loc-list__item--add:hover {
+  background: var(--color-surface);
 }

@@ -115,7 +115,7 @@ test("pre-populates string field from initialValues", () => {
 
 test("shows required error for empty string field on submit", async () => {
   const fields: FormField[] = [
-    { id: "note", type: "string", label: "Your note" },
+    { id: "note", type: "string", label: "Your note", isRequired: true },
   ];
   render(AppForm, { props: { fields, onSubmit: vi.fn() } });
   // Input something then clear it to trigger hasChanges = true
@@ -131,7 +131,7 @@ test("shows required error for empty string field on submit", async () => {
 
 test("shows required error for empty textarea on submit", async () => {
   const fields: FormField[] = [
-    { id: "story", type: "textarea", label: "Your story" },
+    { id: "story", type: "textarea", label: "Your story", isRequired: true },
   ];
   render(AppForm, { props: { fields, onSubmit: vi.fn() } });
   // Input something then clear it to trigger hasChanges = true
@@ -157,6 +157,35 @@ test("does not validate section or boolean fields as required", async () => {
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   expect(screen.queryByText("Required")).not.toBeInTheDocument();
   await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
+});
+
+test("does not show required error for non-required empty string on submit", async () => {
+  const fields: FormField[] = [
+    { id: "note", type: "string", label: "Your note", isRequired: false },
+  ];
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(AppForm, { props: { fields, onSubmit } });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "x" },
+  });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "" },
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  expect(screen.queryByText("Required")).not.toBeInTheDocument();
+  await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
+});
+
+test("required field label has af-label--required class, non-required does not", () => {
+  const fields: FormField[] = [
+    { id: "title", type: "string", label: "Title", isRequired: true },
+    { id: "note", type: "string", label: "Note" },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  const titleLabel = screen.getByLabelText("Title").closest(".af-field")?.querySelector("label");
+  const noteLabel = screen.getByLabelText("Note").closest(".af-field")?.querySelector("label");
+  expect(titleLabel).toHaveClass("af-label--required");
+  expect(noteLabel).not.toHaveClass("af-label--required");
 });
 
 // ---------------------------------------------------------------------------
