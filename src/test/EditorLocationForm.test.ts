@@ -6,7 +6,7 @@ import {
 } from "@testing-library/svelte/svelte5";
 import EditorLocationForm from "../pages/editor/EditorLocationForm.svelte";
 import { saveEditorLocation, fetchEditorLocation, fetchPrStatuses } from "../utils/api";
-import { getDraft, saveDraft, addPending, clearDraft } from "../pages/editor/editorStorage";
+import { getDraft, saveDraft, addPending } from "../pages/editor/editorStorage";
 
 vi.mock("svelte-spa-router", () => ({
   push: vi.fn(),
@@ -29,6 +29,13 @@ vi.mock("../utils/api", () => ({
   fetchPrStatuses: vi.fn().mockResolvedValue({ ok: false }),
 }));
 
+beforeEach(() => {
+  localStorage.clear();
+  vi.mocked(saveEditorLocation).mockClear();
+  vi.mocked(fetchEditorLocation).mockClear();
+  vi.mocked(fetchPrStatuses).mockClear();
+});
+
 test("renders form in new-location mode", async () => {
   render(EditorLocationForm, {
     props: {
@@ -49,7 +56,7 @@ test("renders identity section once YAML loads", async () => {
   expect(await screen.findByText(/^Id$/i)).toBeInTheDocument();
 });
 
-test("submits form and shows success state", async () => {
+test("submits form and shows modal in success state", async () => {
   render(EditorLocationForm, {
     props: {
       params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
@@ -70,13 +77,77 @@ test("submits form and shows success state", async () => {
   );
   await waitFor(() => {
     expect(
-      screen.getByText(/changes submitted for review/i),
+      screen.getByText(/form submitted for review/i),
     ).toBeInTheDocument();
   });
 });
 
+test("shows failure modal when API returns an error", async () => {
+  vi.mocked(saveEditorLocation).mockResolvedValueOnce({
+    ok: false,
+    error: "GitHub 422: branch exists",
+  });
+  render(EditorLocationForm, {
+    props: {
+      params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
+    },
+  });
+  await screen.findByLabelText(/^Id$/i);
+  await fireEvent.input(screen.getByLabelText(/^Id$/i), {
+    target: { value: "binnenhof" },
+  });
+  await fireEvent.input(screen.getByLabelText(/^Title$/i), {
+    target: { value: "Binnenhof" },
+  });
+  await fireEvent.input(screen.getByLabelText(/^Storyline$/i), {
+    target: { value: "A great place." },
+  });
+  await fireEvent.click(
+    screen.getByRole("button", { name: /submit for review/i }),
+  );
+  await waitFor(() => {
+    expect(screen.getByText(/submission failed/i)).toBeInTheDocument();
+    expect(screen.getByText(/GitHub 422: branch exists/)).toBeInTheDocument();
+  });
+});
+
+test("retry re-submits and shows success modal on second attempt", async () => {
+  vi.mocked(saveEditorLocation)
+    .mockResolvedValueOnce({ ok: false, error: "First attempt failed" })
+    .mockResolvedValueOnce({
+      ok: true,
+      prUrl: "https://github.com/org/repo/pull/42",
+    });
+
+  render(EditorLocationForm, {
+    props: {
+      params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
+    },
+  });
+  await screen.findByLabelText(/^Id$/i);
+  await fireEvent.input(screen.getByLabelText(/^Id$/i), {
+    target: { value: "binnenhof" },
+  });
+  await fireEvent.input(screen.getByLabelText(/^Title$/i), {
+    target: { value: "Binnenhof" },
+  });
+  await fireEvent.input(screen.getByLabelText(/^Storyline$/i), {
+    target: { value: "A great place." },
+  });
+  await fireEvent.click(
+    screen.getByRole("button", { name: /submit for review/i }),
+  );
+  await waitFor(() => {
+    expect(screen.getByText(/submission failed/i)).toBeInTheDocument();
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /retry/i }));
+  await waitFor(() => {
+    expect(screen.getByText(/form submitted for review/i)).toBeInTheDocument();
+  });
+  expect(vi.mocked(saveEditorLocation)).toHaveBeenCalledTimes(2);
+});
+
 test("edit: calls saveEditorLocation with original filename, not a recomputed one", async () => {
-  vi.mocked(saveEditorLocation).mockClear();
   vi.mocked(fetchEditorLocation).mockResolvedValueOnce({
     ok: true,
     sha: "def456",
@@ -128,7 +199,6 @@ test("edit: calls saveEditorLocation with original filename, not a recomputed on
 // ---------------------------------------------------------------------------
 
 test("saves a draft to localStorage as the user types", async () => {
-  localStorage.clear();
   render(EditorLocationForm, {
     props: {
       params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
@@ -150,7 +220,6 @@ test("saves a draft to localStorage as the user types", async () => {
 });
 
 test("restores draft values into the form on mount", async () => {
-  localStorage.clear();
   saveDraft("editor_draft_democrats_abroad/den_haag/locations_new", {
     title: "Restored Title",
     identity: "restored",
@@ -170,7 +239,6 @@ test("restores draft values into the form on mount", async () => {
 });
 
 test("preserves draft in localStorage after successful submit", async () => {
-  localStorage.clear();
   const draftKey = "editor_draft_democrats_abroad/den_haag/locations_new";
 
   render(EditorLocationForm, {
@@ -201,7 +269,6 @@ test("preserves draft in localStorage after successful submit", async () => {
 });
 
 test("edit: restores draft instead of server values when draft exists", async () => {
-  localStorage.clear();
   const draftKey = "editor_draft_democrats_abroad/den_haag/locations_001_loc_binnenhof.yaml";
   saveDraft(draftKey, {
     title: "Draft Title (unsaved)",
@@ -249,18 +316,15 @@ test("edit: restores draft instead of server values when draft exists", async ()
 // ---------------------------------------------------------------------------
 
 test("clears draft and reloads server values when PR is closed", async () => {
-  localStorage.clear();
-
-  // Set up a pending entry for a closed PR
   addPending("democrats_abroad/den_haag/locations", {
     filename: "001_loc_binnenhof.yaml",
     locationTitle: "Binnenhof",
     prUrl: "https://github.com/org/repo/pull/99",
     prTitle: "Edit location: Binnenhof",
     submittedAt: new Date().toISOString(),
+    status: "pending",
   });
 
-  // Save a stale draft
   const draftKey = "editor_draft_democrats_abroad/den_haag/locations_001_loc_binnenhof.yaml";
   saveDraft(draftKey, {
     title: "Stale Draft Title",
@@ -268,13 +332,11 @@ test("clears draft and reloads server values when PR is closed", async () => {
     storyline: "Stale.",
   });
 
-  // Mock: PR #99 is closed
   vi.mocked(fetchPrStatuses).mockResolvedValueOnce({
     ok: true,
     statuses: { "99": "closed" },
   });
 
-  // Mock: server data for reload
   vi.mocked(fetchEditorLocation).mockResolvedValueOnce({
     ok: true,
     sha: "abc123",
@@ -301,7 +363,6 @@ test("clears draft and reloads server values when PR is closed", async () => {
     },
   });
 
-  // Wait for server data to appear (draft was cleared, so server values are used)
   await waitFor(() => {
     expect(
       (screen.getByLabelText(/^Title$/i) as HTMLInputElement).value,
@@ -310,14 +371,13 @@ test("clears draft and reloads server values when PR is closed", async () => {
 });
 
 test("keeps draft when PR is still open", async () => {
-  localStorage.clear();
-
   addPending("democrats_abroad/den_haag/locations", {
     filename: "001_loc_binnenhof.yaml",
     locationTitle: "Binnenhof",
     prUrl: "https://github.com/org/repo/pull/55",
     prTitle: "Edit location: Binnenhof",
     submittedAt: new Date().toISOString(),
+    status: "pending",
   });
 
   const draftKey = "editor_draft_democrats_abroad/den_haag/locations_001_loc_binnenhof.yaml";
@@ -327,7 +387,6 @@ test("keeps draft when PR is still open", async () => {
     storyline: "Draft.",
   });
 
-  // Mock: PR #55 is still open
   vi.mocked(fetchPrStatuses).mockResolvedValueOnce({
     ok: true,
     statuses: { "55": "open" },
@@ -359,13 +418,48 @@ test("keeps draft when PR is still open", async () => {
     },
   });
 
-  // Wait for draft to be shown (draft preserved since PR is open)
   await waitFor(() => {
     expect(
       (screen.getByLabelText(/^Title$/i) as HTMLInputElement).value,
     ).toBe("Draft Title");
   });
 
-  // Draft should still exist
   expect(getDraft(draftKey)).not.toBeNull();
+});
+
+// ---------------------------------------------------------------------------
+// SubmitModal — isNewPr detection
+// ---------------------------------------------------------------------------
+
+test("shows 'Opening PR' when previous failed entry has no prUrl", async () => {
+  addPending("democrats_abroad/den_haag/locations", {
+    filename: "000_loc_binnenhof.yaml",
+    locationTitle: "Binnenhof",
+    prTitle: "Add location: Binnenhof",
+    submittedAt: new Date().toISOString(),
+    status: "failed",
+    isNew: true,
+  });
+
+  render(EditorLocationForm, {
+    props: {
+      params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
+    },
+  });
+  await screen.findByLabelText(/^Id$/i);
+  await fireEvent.input(screen.getByLabelText(/^Id$/i), {
+    target: { value: "binnenhof" },
+  });
+  await fireEvent.input(screen.getByLabelText(/^Title$/i), {
+    target: { value: "Binnenhof" },
+  });
+  await fireEvent.input(screen.getByLabelText(/^Storyline$/i), {
+    target: { value: "A great place." },
+  });
+  await fireEvent.click(
+    screen.getByRole("button", { name: /submit for review/i }),
+  );
+  await waitFor(() => {
+    expect(screen.getByText(/Opening PR:/)).toBeInTheDocument();
+  });
 });

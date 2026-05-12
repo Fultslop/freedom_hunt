@@ -3,13 +3,20 @@ const DRAFT_PREFIX = "editor_draft_";
 
 export interface PendingEntry {
   filename: string;
+  status: "submitting" | "pending" | "up_to_date" | "failed";
+  isNew?: boolean;
   [key: string]: unknown;
 }
 
 export function getPending(namespace: string): PendingEntry[] {
   try {
     const raw = localStorage.getItem(`${PENDING_PREFIX}${namespace}`);
-    return raw ? (JSON.parse(raw) as PendingEntry[]) : [];
+    if (!raw) { return []; }
+    const parsed = JSON.parse(raw) as Array<Record<string, unknown>>;
+    return parsed.map((e) => ({
+      ...e,
+      status: (e.status as PendingEntry["status"] | undefined) ?? "pending",
+    })) as PendingEntry[];
   } catch {
     return [];
   }
@@ -29,6 +36,36 @@ export function removePending(namespace: string, filename: string): void {
   localStorage.setItem(
     `${PENDING_PREFIX}${namespace}`,
     JSON.stringify(current.filter((e) => e.filename !== filename)),
+  );
+}
+
+export function updatePendingStatus(
+  namespace: string,
+  filename: string,
+  status: PendingEntry["status"],
+): void {
+  const current = getPending(namespace);
+  const entry = current.find((e) => e.filename === filename);
+  if (entry) {
+    entry.status = status;
+    localStorage.setItem(`${PENDING_PREFIX}${namespace}`, JSON.stringify(current));
+  }
+}
+
+export function prWasClosed(namespace: string, filename: string): void {
+  const entry = findPendingByFilename(namespace, filename);
+  updatePendingStatus(namespace, filename, "up_to_date");
+  const draftKey = entry?.isNew
+    ? `${DRAFT_PREFIX}${namespace}_new`
+    : getPendingDraftKey(namespace, filename);
+  clearDraft(draftKey);
+}
+
+export function clearCompletedPending(namespace: string): void {
+  const current = getPending(namespace);
+  localStorage.setItem(
+    `${PENDING_PREFIX}${namespace}`,
+    JSON.stringify(current.filter((e) => e.status !== "up_to_date")),
   );
 }
 
@@ -57,10 +94,7 @@ export function clearDraft(key: string): void {
   }
 }
 
-export function getPendingDraftKey(
-  namespace: string,
-  filename: string,
-): string {
+export function getPendingDraftKey(namespace: string, filename: string): string {
   return `${DRAFT_PREFIX}${namespace}_${filename}`;
 }
 

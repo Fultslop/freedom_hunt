@@ -23,18 +23,21 @@ function validatePostLocation(body: {
   existingSha?: string | null;
   location: unknown;
 }): string | null {
-  if (!SLUG_RE.test(body.project)) return "Invalid project";
-  if (!SLUG_RE.test(body.city)) return "Invalid city";
-  if (body.filename.length > 100 || !LOC_FILENAME_RE.test(body.filename))
+  if (!SLUG_RE.test(body.project)) { return "Invalid project"; }
+  if (!SLUG_RE.test(body.city)) { return "Invalid city"; }
+  if (body.filename.length > 100 || !LOC_FILENAME_RE.test(body.filename)) {
     return "Invalid filename";
-  if (body.existingSha != null && !SHA_RE.test(body.existingSha))
+  }
+  if (body.existingSha != null && !SHA_RE.test(body.existingSha)) {
     return "Invalid existingSha";
+  }
   if (
     typeof body.location !== "object" ||
     body.location === null ||
     Array.isArray(body.location)
-  )
+  ) {
     return "Invalid location";
+  }
   return null;
 }
 

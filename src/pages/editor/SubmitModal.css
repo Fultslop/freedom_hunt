@@ -1,0 +1,115 @@
+.submit-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.submit-modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 28px 32px;
+  width: min(400px, calc(100vw - 32px));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.submit-modal__heading {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 8px;
+}
+
+.submit-modal__heading--success {
+  color: #27ae60;
+}
+
+.submit-modal__heading--failed {
+  color: var(--color-error, #c0392b);
+}
+
+.submit-modal__subtext {
+  font-size: 12px;
+  font-family: monospace;
+  color: var(--color-text-secondary);
+  margin: 0 0 20px;
+}
+
+.submit-modal__pr-link {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.submit-modal__progress {
+  height: 3px;
+  background: var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.submit-modal__progress::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: -40%;
+  width: 40%;
+  background: var(--color-accent);
+  border-radius: 2px;
+  animation: submit-modal-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes submit-modal-slide {
+  0%   { left: -40%; }
+  100% { left: 100%; }
+}
+
+.submit-modal__error {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--color-error, #c0392b);
+  white-space: pre-wrap;
+  word-break: break-all;
+  user-select: all;
+  margin: 0 0 20px;
+}
+
+.submit-modal__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.submit-modal__btn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.submit-modal__btn--secondary {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.submit-modal__btn--primary {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.submit-modal__btn--danger {
+  background: #c0392b;
+  color: #fff;
+}

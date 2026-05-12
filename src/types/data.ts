@@ -15,6 +15,7 @@ export interface FormField {
   options?: string[];
   min?: number;
   max?: number;
+  isRequired?: boolean;
 }
 
 export interface Challenge {

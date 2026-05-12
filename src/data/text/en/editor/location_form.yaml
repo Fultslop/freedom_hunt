@@ -4,34 +4,42 @@
 - id: identity
   type: string
   label: Id
+  isRequired: true
 
 - id: title
   type: string
   label: Title
+  isRequired: true
 
 - id: image
   type: string
   label: "Image filename (e.g. my-photo.jpg — upload separately)"
+  isRequired: false
 
 - id: name.label
   type: string
   label: Name label
+  isRequired: true
 
 - id: name.value
   type: string
   label: Name value
+  isRequired: false
 
 - id: address
   type: string
   label: Street address
+  isRequired: false
 
 - id: coordinates.latitude
   type: number
   label: Latitude
+  isRequired: true
 
 - id: coordinates.longitude
   type: number
   label: Longitude
+  isRequired: true
 
 - type: section
   label: Narrative
