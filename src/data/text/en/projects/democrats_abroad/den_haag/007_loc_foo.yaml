@@ -1,0 +1,16 @@
+identity: foo
+title: bar
+image: img.jpg
+name:
+  label: name
+  value: value
+address: street
+coordinates:
+  latitude: 1
+  longitude: 2
+storyline: fefe
+breadcrumb: fefe
+challenge:
+  name: fefe
+  description: fefe
+  notes: fefe
