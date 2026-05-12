@@ -31,14 +31,9 @@
   label: Street address
   isRequired: false
 
-- id: coordinates.latitude
-  type: number
-  label: Latitude
-  isRequired: true
-
-- id: coordinates.longitude
-  type: number
-  label: Longitude
+- id: coordinates
+  type: coord-picker
+  label: Coordinates
   isRequired: true
 
 - type: section

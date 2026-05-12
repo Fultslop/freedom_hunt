@@ -29,6 +29,12 @@ vi.mock("../utils/api", () => ({
   fetchPrStatuses: vi.fn().mockResolvedValue({ ok: false }),
 }));
 
+vi.mock("../actions/leafletMap", () => ({
+  leafletMap: vi.fn(() => ({ update: vi.fn(), destroy: vi.fn() })),
+}));
+
+import { loadText } from "../utils/loadText";
+
 beforeEach(() => {
   localStorage.clear();
   vi.mocked(saveEditorLocation).mockClear();
@@ -462,4 +468,126 @@ test("shows 'Opening PR' when previous failed entry has no prUrl", async () => {
   await waitFor(() => {
     expect(screen.getByText(/Opening PR:/)).toBeInTheDocument();
   });
+});
+
+// ---------------------------------------------------------------------------
+// City coordinate defaults and initialValues reconstruction
+// ---------------------------------------------------------------------------
+
+test("new location with no draft: coordinates seeded from city data", async () => {
+  vi.mocked(loadText)
+    .mockResolvedValueOnce([
+      { id: "coordinates", type: "coord-picker", label: "Coordinates", isRequired: true },
+    ])
+    .mockResolvedValueOnce({
+      items: [
+        {
+          id: "den_haag",
+          name: "Den Haag",
+          country: "Netherlands",
+          coordinates: { latitude: 52.0799, longitude: 4.3133 },
+        },
+      ],
+    });
+
+  render(EditorLocationForm, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", newId: 1 } },
+  });
+
+  await waitFor(() => {
+    expect(
+      (screen.getByLabelText(/latitude/i) as HTMLInputElement).value,
+    ).toBe("52.0799");
+  });
+  expect(
+    (screen.getByLabelText(/longitude/i) as HTMLInputElement).value,
+  ).toBe("4.3133");
+});
+
+test("new location with existing draft: draft takes precedence over city coords", async () => {
+  // Pre-seed a draft with different coordinates
+  const draftKey = "editor_draft_democrats_abroad/den_haag/locations_new";
+  localStorage.setItem(
+    draftKey,
+    JSON.stringify({ coordinates: { latitude: 51.0, longitude: 3.0 } }),
+  );
+
+  vi.mocked(loadText)
+    .mockResolvedValueOnce([
+      { id: "coordinates", type: "coord-picker", label: "Coordinates", isRequired: true },
+    ])
+    .mockResolvedValueOnce({
+      items: [
+        {
+          id: "den_haag",
+          name: "Den Haag",
+          country: "Netherlands",
+          coordinates: { latitude: 52.0799, longitude: 4.3133 },
+        },
+      ],
+    });
+
+  render(EditorLocationForm, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", newId: 1 } },
+  });
+
+  await waitFor(() => {
+    expect(
+      (screen.getByLabelText(/latitude/i) as HTMLInputElement).value,
+    ).toBe("51");
+  });
+  expect(
+    (screen.getByLabelText(/longitude/i) as HTMLInputElement).value,
+  ).toBe("3");
+});
+
+test("edit mode: initialValues.coordinates is a compound object, not dotted-path keys", async () => {
+  vi.mocked(fetchEditorLocation).mockResolvedValueOnce({
+    ok: true,
+    sha: "abc123",
+    location: {
+      locationId: 1,
+      title: "Binnenhof",
+      coordinates: { latitude: 52.0799, longitude: 4.3133 },
+      storyline: "A historic place.",
+      breadcrumb: "Look for the gate.",
+      name: { label: "", value: "Binnenhof" },
+      challenge: { name: "", description: "Find it.", notes: "", form: [] },
+    },
+  });
+
+  vi.mocked(loadText)
+    .mockResolvedValueOnce([
+      { id: "coordinates", type: "coord-picker", label: "Coordinates", isRequired: true },
+    ])
+    .mockResolvedValueOnce({
+      items: [
+        {
+          id: "den_haag",
+          name: "Den Haag",
+          country: "Netherlands",
+          coordinates: { latitude: 52.0799, longitude: 4.3133 },
+        },
+      ],
+    });
+
+  render(EditorLocationForm, {
+    props: {
+      params: {
+        project: "democrats_abroad",
+        city: "den_haag",
+        filename: "001_loc_binnenhof.yaml",
+        newId: 0,
+      },
+    },
+  });
+
+  await waitFor(() => {
+    expect(
+      (screen.getByLabelText(/latitude/i) as HTMLInputElement).value,
+    ).toBe("52.0799");
+  });
+  expect(
+    (screen.getByLabelText(/longitude/i) as HTMLInputElement).value,
+  ).toBe("4.3133");
 });

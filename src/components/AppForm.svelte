@@ -5,6 +5,7 @@
   import { buildNestedValues } from "../utils/formValues";
   import { getAvailableImages, type ImageEntry } from "../utils/images";
   import ImagePickerDialog from "./ImagePickerDialog.svelte";
+  import CoordinatePicker from "./CoordinatePicker.svelte";
   import "./AppForm.css";
 
   const STR_STRING = "string";
@@ -16,6 +17,7 @@
   const STR_TEXTAREA = "textarea";
   const STR_SECTION = "section";
   const STR_IMAGE_PICKER = "image-picker";
+  const STR_COORD_PICKER = "coord-picker";
 
   const VALID_TYPES: FormFieldType[] = [
     STR_STRING,
@@ -27,6 +29,7 @@
     STR_TEXTAREA,
     STR_SECTION,
     STR_IMAGE_PICKER,
+    STR_COORD_PICKER,
   ];
 
   const MSG_UNKNOWN_TYPE = (type: FormFieldType) => `unknown type "${type}"`;
@@ -41,7 +44,7 @@
 
   type SubmitState = "idle" | "submitting" | "error";
   type UploadState = "idle" | "uploading" | "success" | "error";
-  type FieldValues = Record<string, string | number | boolean | string[]>;
+  type FieldValues = Record<string, string | number | boolean | string[] | { latitude: number; longitude: number }>;
 
   let {
     fields,
@@ -76,9 +79,9 @@
           ? (baseValues as Record<string, unknown>)[id]
           : (initialValues as Record<string, unknown>)[id];
         if (Array.isArray(curr) || Array.isArray(baseline)) {
-          return (
-            JSON.stringify(curr ?? []) !== JSON.stringify(baseline ?? [])
-          );
+          return JSON.stringify(curr ?? []) !== JSON.stringify(baseline ?? []);
+        } else if (typeof curr === "object" || typeof baseline === "object") {
+          return JSON.stringify(curr ?? {}) !== JSON.stringify(baseline ?? {});
         }
         return curr !== baseline;
       }),
@@ -189,6 +192,11 @@
       } else if (field.type === STR_IMAGE_PICKER) {
         const imageValue = (values[field.id] as string | undefined) ?? "";
         if (imageValue === "") { errs[field.id] = MSG_REQUIRED; }
+      } else if (field.type === STR_COORD_PICKER) {
+        const v = values[field.id] as { latitude: number; longitude: number } | undefined;
+        if (!v || (v.latitude === 0 && v.longitude === 0)) {
+          errs[field.id] = MSG_REQUIRED;
+        }
       }
     }
     return errs;
@@ -420,6 +428,11 @@
                 </div>
               {/if}
             </div>
+          {:else if field.type === "coord-picker"}
+            <CoordinatePicker
+              value={values[id] as { latitude: number; longitude: number }}
+              onchange={(coords) => { values[id] = coords; }}
+            />
           {/if}
         {/if}
       </div>

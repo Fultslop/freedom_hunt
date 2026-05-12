@@ -7,7 +7,8 @@ export type FormFieldType =
   | "photo"
   | "textarea"
   | "section"
-  | "image-picker";
+  | "image-picker"
+  | "coord-picker";
 
 export interface FormField {
   id?: string;
@@ -66,6 +67,7 @@ export interface City {
   image?: string;
   country: string;
   description?: string;
+  coordinates?: Coordinates;
 }
 
 export interface Project {

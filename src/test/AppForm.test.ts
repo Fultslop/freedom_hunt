@@ -9,6 +9,17 @@ vi.mock("../utils/images", () => ({
   ],
 }));
 
+import { leafletMap } from "../actions/leafletMap";
+import type { LeafletMapParams } from "../actions/leafletMap";
+
+vi.mock("../actions/leafletMap", () => ({
+  leafletMap: vi.fn(() => ({ update: vi.fn(), destroy: vi.fn() })),
+}));
+
+beforeEach(() => {
+  vi.mocked(leafletMap).mockClear();
+});
+
 // ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------
@@ -231,6 +242,49 @@ test("calls onSubmit after confirming", async () => {
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
   await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
+});
+
+// ---------------------------------------------------------------------------
+// coord-picker field type
+// ---------------------------------------------------------------------------
+
+test("renders coord-picker field as latitude and longitude inputs", () => {
+  const fields: FormField[] = [
+    { id: "coordinates", type: "coord-picker" as FormFieldType, label: "Coordinates" },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.getByLabelText(/latitude/i)).toBeInTheDocument();
+  expect(screen.getByLabelText(/longitude/i)).toBeInTheDocument();
+});
+
+test("coord-picker value change propagates to onSubmit as coordinates object", async () => {
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  const fields: FormField[] = [
+    {
+      id: "coordinates",
+      type: "coord-picker" as FormFieldType,
+      label: "Coordinates",
+      isRequired: true,
+    },
+  ];
+  render(AppForm, {
+    props: {
+      fields,
+      initialValues: { coordinates: { latitude: 52.0799, longitude: 4.3133 } },
+      onSubmit,
+    },
+  });
+  const actionParams = vi.mocked(leafletMap).mock.calls[0][1] as LeafletMapParams;
+  actionParams.onClick!(53.0, 5.0);
+  await waitFor(() => {
+    expect(screen.getByRole("button", { name: /submit/i })).not.toBeDisabled();
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  await waitFor(() => {
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ coordinates: { latitude: 53.0, longitude: 5.0 } }),
+    );
+  });
 });
 
 test("does not call onSubmit when confirmation is cancelled", async () => {

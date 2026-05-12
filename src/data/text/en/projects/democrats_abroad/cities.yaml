@@ -9,8 +9,14 @@ items:
     image: den-haag-logo.jpg
     country: "Netherlands"
     description: "The seat of Dutch government and international justice."
+    coordinates:
+      longitude: 4.3133
+      latitude: 52.0799
   - id: oslo
     name: "Oslo"
     image: oslo-hero.jpg
     country: "Norway"
     description: "Where democracy was tested, resistance was born, and peace is celebrated every December."
+    coordinates:
+      latitude: 59.9169
+      longitude: 10.7274
