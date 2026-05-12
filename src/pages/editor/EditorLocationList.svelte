@@ -11,7 +11,7 @@
     updatePendingStatus,
     type PendingEntry as BasePendingEntry,
   } from "./editorStorage";
-  import type { Location as DataLocation } from "../../types/data";
+  import type { Location as DataLocation, City, CitiesText } from "../../types/data";
   import "./EditorLocationList.css";
   import { getNextLocationId, getLocationIndex } from "./editorUtils";
   import {
@@ -20,6 +20,7 @@
     saveEditorLocation,
     type LocationListEntry,
   } from "../../utils/api";
+  import { loadText } from "../../utils/loadText";
 
   let { params }: { params: { project: string; city: string } } = $props();
 
@@ -36,6 +37,8 @@
   let loading = $state(true);
   let error = $state<string | null>(null);
   let pending = $state<PendingEntry[]>([]);
+  let cities = $state<City[]>([]);
+  let selectedCity = $state("");
 
   const pendingNewLocations = $derived(
     pending.filter(
@@ -158,6 +161,14 @@
   }
 
   $effect(() => {
+    params.city;
+    selectedCity = params.city;
+    localStorage.setItem(`editor_last_city_${params.project}`, params.city);
+    loadText<CitiesText>("en", `projects/${params.project}/cities`).then(
+      (data) => {
+        cities = data?.items ?? [];
+      },
+    );
     fetchLocations();
     syncPending();
   });
@@ -240,6 +251,12 @@
     clearCompletedPending(namespace);
     pending = getPending(namespace);
   }
+
+  function handleCityChange(e: Event) {
+    const newCity = (e.currentTarget as HTMLSelectElement).value;
+    localStorage.setItem(`editor_last_city_${params.project}`, newCity);
+    push(`/editor/locations/${params.project}/${newCity}`);
+  }
 </script>
 
 {#if loading}
@@ -249,6 +266,16 @@
 {:else}
   <div class="loc-list">
     <div class="loc-list__toolbar">
+      <select
+        class="loc-list__city-select"
+        bind:value={selectedCity}
+        onchange={handleCityChange}
+        disabled={cities.length === 0}
+      >
+        {#each cities as city (city.id)}
+          <option value={city.id}>{city.name}</option>
+        {/each}
+      </select>
       <div style="display:flex;gap:8px">
         {#if hasCompleted}
           <button class="loc-list__clear-btn" onclick={handleClearCompleted}>

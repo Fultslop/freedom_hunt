@@ -1,6 +1,7 @@
-import { render, screen } from "@testing-library/svelte/svelte5";
+import { render, screen, fireEvent } from "@testing-library/svelte/svelte5";
 import { authStore } from "../stores/authStore";
 import EditorPage from "../pages/editor/EditorPage.svelte";
+import { push } from "svelte-spa-router";
 
 vi.mock("svelte-spa-router", () => ({
   push: vi.fn(),
@@ -9,6 +10,7 @@ vi.mock("svelte-spa-router", () => ({
 
 beforeEach(() => {
   authStore.login("democrats_abroad", "Admin", "", true);
+  localStorage.clear();
 });
 
 test("renders organiser tools heading", () => {
@@ -21,4 +23,21 @@ test("renders organiser tools heading", () => {
 test("renders locations tile link", () => {
   render(EditorPage);
   expect(screen.getByText("Locations")).toBeInTheDocument();
+});
+
+test("Locations tile navigates to the last-used city from localStorage", async () => {
+  localStorage.setItem("editor_last_city_democrats_abroad", "oslo");
+  render(EditorPage);
+  await fireEvent.click(screen.getByText("Locations"));
+  expect(push).toHaveBeenCalledWith(
+    "/editor/locations/democrats_abroad/oslo",
+  );
+});
+
+test("Locations tile falls back to den_haag when no city is stored", async () => {
+  render(EditorPage);
+  await fireEvent.click(screen.getByText("Locations"));
+  expect(push).toHaveBeenCalledWith(
+    "/editor/locations/democrats_abroad/den_haag",
+  );
 });
