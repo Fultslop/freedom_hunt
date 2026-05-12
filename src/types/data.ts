@@ -6,7 +6,8 @@ export type FormFieldType =
   | "multiple"
   | "photo"
   | "textarea"
-  | "section";
+  | "section"
+  | "image-picker";
 
 export interface FormField {
   id?: string;

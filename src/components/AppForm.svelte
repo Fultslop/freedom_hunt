@@ -3,6 +3,8 @@
   import { Camera } from "lucide-svelte";
   import type { FormField, FormFieldType } from "../types/data";
   import { buildNestedValues } from "../utils/formValues";
+  import { getAvailableImages, type ImageEntry } from "../utils/images";
+  import ImagePickerDialog from "./ImagePickerDialog.svelte";
   import "./AppForm.css";
 
   const STR_STRING = "string";
@@ -13,6 +15,7 @@
   const STR_PHOTO = "photo";
   const STR_TEXTAREA = "textarea";
   const STR_SECTION = "section";
+  const STR_IMAGE_PICKER = "image-picker";
 
   const VALID_TYPES: FormFieldType[] = [
     STR_STRING,
@@ -23,6 +26,7 @@
     STR_PHOTO,
     STR_TEXTAREA,
     STR_SECTION,
+    STR_IMAGE_PICKER,
   ];
 
   const MSG_UNKNOWN_TYPE = (type: FormFieldType) => `unknown type "${type}"`;
@@ -89,6 +93,19 @@
   let showConfirm = $state(false);
   let fileInput: HTMLInputElement | undefined = $state();
   let maxWarningKeys = $state<Record<string, number>>({});
+  const availableImages: ImageEntry[] = getAvailableImages();
+  let imagePickerOpenId = $state<string | null>(null);
+  let imagePickerTrigger: HTMLButtonElement | undefined;
+
+  function openImagePicker(id: string, trigger: HTMLButtonElement) {
+    imagePickerOpenId = id;
+    imagePickerTrigger = trigger;
+  }
+
+  function closeImagePicker() {
+    imagePickerOpenId = null;
+    imagePickerTrigger?.focus();
+  }
 
   function portal(node: HTMLElement) {
     document.body.appendChild(node);
@@ -169,6 +186,9 @@
         if (selected.length < min) {
           errs[field.id] = MSG_SELECT_MIN(min);
         }
+      } else if (field.type === STR_IMAGE_PICKER) {
+        const imageValue = (values[field.id] as string | undefined) ?? "";
+        if (imageValue === "") { errs[field.id] = MSG_REQUIRED; }
       }
     }
     return errs;
@@ -343,6 +363,62 @@
                   {opt}
                 </label>
               {/each}
+            </div>
+          {:else if field.type === "image-picker"}
+            {@const currentImg = (values[id] as string | undefined) ?? ""}
+            {@const matchedImg = availableImages.find((img) => img.filename === currentImg)}
+            <div class="af-image-picker" {id}>
+              {#if currentImg === ""}
+                <button
+                  type="button"
+                  class="af-image-picker__choose"
+                  onclick={(e) => openImagePicker(id, e.currentTarget as HTMLButtonElement)}
+                >
+                  Choose image
+                </button>
+              {:else if matchedImg}
+                <div class="af-image-picker__selected">
+                  <img
+                    src={matchedImg.url}
+                    alt={currentImg}
+                    class="af-image-picker__thumb"
+                  />
+                  <span class="af-image-picker__name">{currentImg}</span>
+                  <button
+                    type="button"
+                    class="af-image-picker__change"
+                    onclick={(e) => openImagePicker(id, e.currentTarget as HTMLButtonElement)}
+                  >
+                    Change
+                  </button>
+                </div>
+              {:else}
+                <div class="af-image-picker__unknown">
+                  <span class="af-image-picker__warning"
+                    >⚠ file {currentImg} not found in project</span
+                  >
+                  <button
+                    type="button"
+                    class="af-image-picker__change"
+                    onclick={(e) => openImagePicker(id, e.currentTarget as HTMLButtonElement)}
+                  >
+                    Change
+                  </button>
+                </div>
+              {/if}
+              {#if imagePickerOpenId === id}
+                <div use:portal>
+                  <ImagePickerDialog
+                    currentValue={currentImg}
+                    images={availableImages}
+                    onSelect={(filename) => {
+                      values[id] = filename;
+                      closeImagePicker();
+                    }}
+                    onCancel={closeImagePicker}
+                  />
+                </div>
+              {/if}
             </div>
           {/if}
         {/if}

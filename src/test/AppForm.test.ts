@@ -2,6 +2,13 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/svelte/svel
 import AppForm from "../components/AppForm.svelte";
 import type { FormField, FormFieldType } from "../types/data";
 
+vi.mock("../utils/images", () => ({
+  getAvailableImages: () => [
+    { filename: "logo.jpg", url: "/assets/logo.jpg" },
+    { filename: "photo.png", url: "/assets/photo.png" },
+  ],
+}));
+
 // ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------
@@ -385,4 +392,106 @@ test("onValuesChange is called when a field value changes", async () => {
       expect.objectContaining({ title: "hello" }),
     );
   });
+});
+
+// ---------------------------------------------------------------------------
+// image-picker field
+// ---------------------------------------------------------------------------
+
+test("image-picker renders 'Choose image' button when value is empty", () => {
+  const fields: FormField[] = [
+    { id: "image", type: "image-picker" as FormFieldType, label: "Image" },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(
+    screen.getByRole("button", { name: /choose image/i }),
+  ).toBeInTheDocument();
+});
+
+test("image-picker opens dialog and selects image on tile click", async () => {
+  const fields: FormField[] = [
+    { id: "image", type: "image-picker" as FormFieldType, label: "Image" },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  await fireEvent.click(screen.getByRole("button", { name: /choose image/i }));
+  expect(screen.getByRole("dialog")).toBeInTheDocument();
+  await fireEvent.click(screen.getByRole("button", { name: "logo.jpg" }));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.getByRole("img", { name: "logo.jpg" })).toBeInTheDocument();
+  expect(screen.getByText("logo.jpg")).toBeInTheDocument();
+});
+
+test("image-picker shows warning for unknown filename in initialValues", () => {
+  const fields: FormField[] = [
+    { id: "image", type: "image-picker" as FormFieldType, label: "Image" },
+  ];
+  render(AppForm, {
+    props: {
+      fields,
+      initialValues: { image: "missing.jpg" },
+      onSubmit: vi.fn(),
+    },
+  });
+  expect(
+    screen.getByText("⚠ file missing.jpg not found in project"),
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("img")).not.toBeInTheDocument();
+});
+
+test("required image-picker shows Required error when empty on submit", async () => {
+  const fields: FormField[] = [
+    {
+      id: "image",
+      type: "image-picker" as FormFieldType,
+      label: "Image",
+      isRequired: true,
+    },
+  ];
+  render(AppForm, {
+    props: {
+      fields,
+      initialValues: { image: "logo.jpg" },
+      onSubmit: vi.fn(),
+    },
+  });
+  // Open dialog and select None to set value to ""
+  const changeButtons = screen.getAllByRole("button", { name: /change/i });
+  await fireEvent.click(changeButtons[0]);
+  await fireEvent.click(screen.getByRole("button", { name: /none/i }));
+  // hasChanges is now true ("" !== "logo.jpg"), submit is enabled
+  await waitFor(() => {
+    const submitBtn = screen.getByRole("button", { name: /submit/i });
+    expect(submitBtn).not.toBeDisabled();
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  expect(screen.getByText("Required")).toBeInTheDocument();
+});
+
+test("optional image-picker with empty value passes validation", async () => {
+  const fields: FormField[] = [
+    {
+      id: "image",
+      type: "image-picker" as FormFieldType,
+      label: "Image",
+      isRequired: false,
+    },
+  ];
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(AppForm, {
+    props: {
+      fields,
+      initialValues: { image: "logo.jpg" },
+      onSubmit,
+    },
+  });
+  const changeButtons = screen.getAllByRole("button", { name: /change/i });
+  await fireEvent.click(changeButtons[0]);
+  await fireEvent.click(screen.getByRole("button", { name: /none/i }));
+  await waitFor(() => {
+    const submitBtn = screen.getByRole("button", { name: /submit/i });
+    expect(submitBtn).not.toBeDisabled();
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  expect(screen.queryByText("Required")).not.toBeInTheDocument();
+  await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
 });
