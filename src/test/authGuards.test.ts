@@ -38,9 +38,15 @@ describe("requireAdmin", () => {
     expect(requireAdmin()).toBe(true);
   });
 
-  it("redirects to / and returns false when not admin", () => {
+  it("redirects to /editor/login and returns false when not admin", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      json: async () => ({}),
+    } as Response);
+    await authStore.logout();
+    vi.clearAllMocks();
     authStore.login("proj", "Team", "t@test.com", false);
     expect(requireAdmin()).toBe(false);
-    expect(replace).toHaveBeenCalledWith("/");
+    expect(replace).toHaveBeenCalledOnce();
+    expect(replace).toHaveBeenCalledWith("/editor/login");
   });
 });

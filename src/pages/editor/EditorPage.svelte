@@ -1,10 +1,17 @@
 <script lang="ts">
-  import { push } from "svelte-spa-router";
+  import { push, replace } from "svelte-spa-router";
   import { authStore } from "../../stores/authStore";
   import { titleBarStore } from "../../stores/titleBarStore";
   import "./EditorPage.css";
 
   titleBarStore.set({ title: "Editor", progress: null, backPath: null });
+
+  $effect(() => {
+    const { activeAuth, authLoading } = $authStore;
+    if (!authLoading && !activeAuth?.isAdmin) {
+      replace("/editor/login");
+    }
+  });
 
   let project = $derived(
     $authStore.activeAuth?.projectId ?? "democrats_abroad",

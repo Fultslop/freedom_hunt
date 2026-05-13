@@ -1,7 +1,7 @@
-import { render, screen, fireEvent } from "@testing-library/svelte/svelte5";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte/svelte5";
 import { authStore } from "../stores/authStore";
 import EditorPage from "../pages/editor/EditorPage.svelte";
-import { push } from "svelte-spa-router";
+import { push, replace } from "svelte-spa-router";
 
 vi.mock("svelte-spa-router", () => ({
   push: vi.fn(),
@@ -40,4 +40,30 @@ test("Locations tile falls back to den_haag when no city is stored", async () =>
   expect(push).toHaveBeenCalledWith(
     "/editor/locations/democrats_abroad/den_haag",
   );
+});
+
+describe("auth guard effect", () => {
+  beforeEach(async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      json: async () => ({}),
+    } as Response);
+    await authStore.logout();
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  test("redirects to /editor/login when auth has loaded with no admin session", async () => {
+    render(EditorPage);
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith("/editor/login");
+    });
+  });
+
+  test("does not redirect when auth has loaded with valid admin session", async () => {
+    authStore.login("democrats_abroad", "Admin", "", true);
+    render(EditorPage);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(replace).not.toHaveBeenCalled();
+  });
 });

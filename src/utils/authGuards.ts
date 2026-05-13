@@ -22,7 +22,7 @@ export function requireAdmin(): boolean {
     return true;
   }
   if (!activeAuth?.isAdmin) {
-    replace("/");
+    replace("/editor/login");
     return false;
   }
   return true;
