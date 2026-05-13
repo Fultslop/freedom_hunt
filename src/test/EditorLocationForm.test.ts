@@ -7,6 +7,9 @@ import {
 import EditorLocationForm from "../pages/editor/EditorLocationForm.svelte";
 import { saveEditorLocation, fetchEditorLocation, fetchPrStatuses } from "../utils/api";
 import { getDraft, saveDraft, addPending } from "../pages/editor/editorStorage";
+import { get } from "svelte/store";
+import { push } from "svelte-spa-router";
+import { titleBarStore } from "../stores/titleBarStore";
 
 vi.mock("svelte-spa-router", () => ({
   push: vi.fn(),
@@ -40,6 +43,12 @@ beforeEach(() => {
   vi.mocked(saveEditorLocation).mockClear();
   vi.mocked(fetchEditorLocation).mockClear();
   vi.mocked(fetchPrStatuses).mockClear();
+  vi.mocked(push).mockClear();
+  window.confirm = vi.fn();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 test("renders form in new-location mode", async () => {
@@ -590,4 +599,106 @@ test("edit mode: initialValues.coordinates is a compound object, not dotted-path
   expect(
     (screen.getByLabelText(/longitude/i) as HTMLInputElement).value,
   ).toBe("4.3133");
+});
+
+// ---------------------------------------------------------------------------
+// Cancel confirm and discard draft
+// ---------------------------------------------------------------------------
+
+test("sets titleBar subtitle to 'new' in new-location mode", async () => {
+  render(EditorLocationForm, {
+    props: {
+      params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
+    },
+  });
+  await screen.findByRole("button", { name: /no changes/i });
+  expect(get(titleBarStore).subtitle).toBe("new");
+});
+
+test("sets titleBar subtitle to formatted title in edit mode", async () => {
+  render(EditorLocationForm, {
+    props: {
+      params: {
+        project: "democrats_abroad",
+        city: "den_haag",
+        filename: "001_loc_dam_square.yaml",
+        newId: 0,
+      },
+    },
+  });
+  await screen.findByRole("button", { name: /no changes/i });
+  expect(get(titleBarStore).subtitle).toBe("Dam Square");
+});
+
+test("cancel with no changes navigates without confirm dialog", async () => {
+  const confirmSpy = vi.spyOn(window, "confirm");
+  render(EditorLocationForm, {
+    props: {
+      params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
+    },
+  });
+  await screen.findByRole("button", { name: /no changes/i });
+  await fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
+  expect(confirmSpy).not.toHaveBeenCalled();
+  expect(vi.mocked(push)).toHaveBeenCalledWith(
+    "/editor/locations/democrats_abroad/den_haag",
+  );
+});
+
+test("cancel with changes shows confirm dialog", async () => {
+  vi.spyOn(window, "confirm").mockReturnValue(false);
+  render(EditorLocationForm, {
+    props: {
+      params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
+    },
+  });
+  await screen.findByLabelText(/^Id$/i);
+  await fireEvent.input(screen.getByLabelText(/^Id$/i), {
+    target: { value: "binnenhof" },
+  });
+  await waitFor(() => {
+    expect(get(titleBarStore).isDirty).toBe(true);
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
+  expect(window.confirm).toHaveBeenCalledWith("Discard changes?");
+});
+
+test("cancel confirmed clears draft and navigates", async () => {
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  render(EditorLocationForm, {
+    props: {
+      params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
+    },
+  });
+  await screen.findByLabelText(/^Id$/i);
+  await fireEvent.input(screen.getByLabelText(/^Id$/i), {
+    target: { value: "binnenhof" },
+  });
+  await waitFor(() => {
+    expect(get(titleBarStore).isDirty).toBe(true);
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
+  const draftKey = "editor_draft_democrats_abroad/den_haag/locations_new";
+  expect(localStorage.getItem(draftKey)).toBeNull();
+  expect(vi.mocked(push)).toHaveBeenCalledWith(
+    "/editor/locations/democrats_abroad/den_haag",
+  );
+});
+
+test("cancel dismissed stays on page", async () => {
+  vi.spyOn(window, "confirm").mockReturnValue(false);
+  render(EditorLocationForm, {
+    props: {
+      params: { project: "democrats_abroad", city: "den_haag", newId: 0 },
+    },
+  });
+  await screen.findByLabelText(/^Id$/i);
+  await fireEvent.input(screen.getByLabelText(/^Id$/i), {
+    target: { value: "binnenhof" },
+  });
+  await waitFor(() => {
+    expect(get(titleBarStore).isDirty).toBe(true);
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
+  expect(vi.mocked(push)).not.toHaveBeenCalled();
 });

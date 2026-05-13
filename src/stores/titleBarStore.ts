@@ -4,6 +4,8 @@ export interface TitleBarState {
   title?: string;
   progress?: { current: number; total: number } | null;
   backPath?: string | null;
+  subtitle?: string;
+  isDirty?: boolean;
 }
 
 export const titleBarStore = writable<TitleBarState>({
