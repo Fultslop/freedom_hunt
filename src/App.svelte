@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  export { requireAuth, requireAdmin } from "./utils/authGuards";
+  export { requireAuth, requireEditorAccess } from "./utils/authGuards";
 </script>
 
 <script lang="ts">
@@ -9,10 +9,12 @@
   import { themeStore } from "./stores/themeStore";
   import { fontSizeStore } from "./stores/fontSizeStore";
   import { authStore } from "./stores/authStore";
-  import { requireAuth, requireAdmin } from "./utils/authGuards";
+  import { requireAuth, requireEditorAccess } from "./utils/authGuards";
   import TitleBar from "./components/TitleBar.svelte";
   import AppPage from "./pages/AppPage.svelte";
   import LoginPage from "./pages/LoginPage.svelte";
+  import SignupPage from "./pages/SignupPage.svelte";
+  import InviteAcceptPage from "./pages/InviteAcceptPage.svelte";
   import ProjectPage from "./pages/ProjectPage.svelte";
   import CityPage from "./pages/CityPage.svelte";
   import RoutePage from "./pages/RoutePage.svelte";
@@ -28,22 +30,24 @@
   const routes = {
     "/": asRoute(AppPage),
     "/login/:project": asRoute(LoginPage),
+    "/signup": asRoute(SignupPage),
+    "/invite/:token": asRoute(InviteAcceptPage),
     "/editor/login": asRoute(EditorLoginPage),
     "/editor": wrap({
       component: asRoute(EditorPage),
-      conditions: [requireAdmin],
+      conditions: [requireEditorAccess],
     }),
     "/editor/locations/:project/:city": wrap({
       component: asRoute(EditorLocationList),
-      conditions: [requireAdmin],
+      conditions: [requireEditorAccess],
     }),
     "/editor/locations/:project/:city/new/:newId": wrap({
       component: asRoute(EditorLocationForm),
-      conditions: [requireAdmin],
+      conditions: [requireEditorAccess],
     }),
     "/editor/locations/:project/:city/edit/:filename": wrap({
       component: asRoute(EditorLocationForm),
-      conditions: [requireAdmin],
+      conditions: [requireEditorAccess],
     }),
     "/:project": wrap({
       component: asRoute(ProjectPage),

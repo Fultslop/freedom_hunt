@@ -74,3 +74,48 @@
   padding: 2px 8px;
   border-radius: 4px;
 }
+
+.editor-page__invite {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.editor-page__invite-btn {
+  padding: 0.625rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.editor-page__invite-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.editor-page__invite-url {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  word-break: break-all;
+}
+
+.editor-page__invite-url code {
+  display: block;
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  font-family: monospace;
+}
+
+.editor-page__invite-error {
+  font-size: 0.875rem;
+  color: var(--color-error, #c0392b);
+}

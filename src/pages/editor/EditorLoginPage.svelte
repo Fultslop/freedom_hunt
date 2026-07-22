@@ -2,10 +2,10 @@
   import { push } from "svelte-spa-router";
   import { authStore } from "../../stores/authStore";
   import { titleBarStore } from "../../stores/titleBarStore";
-  import { postLogin } from "../../utils/api";
+  import { postUserLogin, postInviteAccept } from "../../utils/api";
   import "./EditorLoginPage.css";
 
-  let project = $state("democrats_abroad");
+  let email = $state("");
   let password = $state("");
   let error = $state<string | null>(null);
   let submitting = $state(false);
@@ -17,19 +17,35 @@
     error = null;
     submitting = true;
     try {
-      const data = await postLogin({
-        project,
-        teamName: "",
-        contact: "",
-        password,
-      });
-      if (data.ok && data.isAdmin) {
-        authStore.login(project, "", "", true);
+      const data = await postUserLogin({ email, password });
+
+      if (data.ok && data.userId) {
+        authStore.loginEditor(
+          data.userId,
+          data.email ?? email,
+          data.username ?? "",
+          data.capabilities ?? [],
+        );
+
+        const pendingInvite = sessionStorage.getItem("pendingInvite");
+        if (pendingInvite) {
+          sessionStorage.removeItem("pendingInvite");
+          const inviteData = await postInviteAccept(pendingInvite);
+          if (inviteData.ok && inviteData.userId) {
+            authStore.loginEditor(
+              inviteData.userId,
+              inviteData.email ?? data.email ?? email,
+              inviteData.username ?? data.username ?? "",
+              inviteData.capabilities ?? [],
+            );
+          }
+        }
+
         push("/editor");
-      } else if (data.ok && !data.isAdmin) {
-        error = "These credentials do not have organiser access.";
+      } else if (data.isBootstrap) {
+        error = "This password is for maintainer bootstrap only. Please create a regular account.";
       } else {
-        error = data.error ?? "Incorrect password.";
+        error = data.error ?? "Incorrect email or password.";
       }
     } catch {
       error = "Connection error. Please try again.";
@@ -44,13 +60,13 @@
     <div class="editor-login__eyebrow">Organiser tools</div>
     <div class="editor-login__headline">Sign in</div>
   </div>
-  <form onsubmit={handleSubmit} class="editor-login__form">
+  <form onsubmit={handleSubmit} class="editor-login__form" aria-label="login">
     <div class="editor-login__field">
-      <label class="editor-login__label" for="project">Project</label>
+      <label class="editor-login__label" for="email">Email</label>
       <input
-        id="project"
-        type="text"
-        bind:value={project}
+        id="email"
+        type="email"
+        bind:value={email}
         required
         class="editor-login__input"
       />
@@ -60,7 +76,7 @@
         ? "editor-login__field--last-error"
         : "editor-login__field--last"}
     >
-      <label class="editor-login__label" for="password">Admin password</label>
+      <label class="editor-login__label" for="password">Password</label>
       <input
         id="password"
         type="password"
@@ -81,17 +97,17 @@
     </button>
   </form>
 
+  <div style="margin-top: 1.5rem; text-align: center; font-size: 0.875rem; color: var(--color-text-secondary);">
+    Don't have an account? <a href="#/signup" style="color: var(--color-accent); text-decoration: none;">Create account</a>
+  </div>
+
   {#if import.meta.env.DEV}
     <div class="editor-login__dev-hint">
       <div class="editor-login__dev-hint-title">Local dev setup</div>
-      <p>The editor requires an admin entry in the local KV store. Run this once:</p>
+      <p>Sign up at <code>#/signup</code>, then bootstrap organizer access:</p>
       <pre class="editor-login__dev-hint-code">npx wrangler kv key put "admin:democrats_abroad" "devpassword" \
   --binding AUTH_STORE --local</pre>
-      <p>Then sign in with:</p>
-      <ul>
-        <li><strong>Project:</strong> democrats_abroad</li>
-        <li><strong>Password:</strong> devpassword</li>
-      </ul>
+      <p>Then call <code>POST /auth/login</code> with the admin password to get a bootstrap token, and <code>POST /auth/bootstrap/promote</code> with your user_id.</p>
     </div>
   {/if}
 </div>

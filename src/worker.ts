@@ -1,5 +1,6 @@
 import type { Env } from "./types/worker";
 import { handleAuthRoutes } from "./worker/routes/authRoutes";
+import { handleInviteRoutes } from "./worker/routes/inviteRoutes";
 import { handleUploadRoute } from "./worker/routes/uploadRoute";
 import { handleFormSubmitRoute } from "./worker/routes/formSubmitRoute";
 import { handleEditorRoutes } from "./worker/routes/editorRoutes";
@@ -9,6 +10,7 @@ export default {
     const url = new URL(request.url);
     return (
       (await handleAuthRoutes(request, url, env)) ??
+      (await handleInviteRoutes(request, url, env)) ??
       (await handleUploadRoute(request, url, env)) ??
       (await handleFormSubmitRoute(request, url, env)) ??
       (await handleEditorRoutes(request, url, env)) ??

@@ -16,12 +16,19 @@ export function requireAuth(detail: {
   return true;
 }
 
-export function requireAdmin(): boolean {
+export function requireEditorAccess(): boolean {
   const { activeAuth, authLoading, isLoggingOut } = get(authStore);
   if (authLoading || isLoggingOut) {
     return true;
   }
-  if (!activeAuth?.isAdmin) {
+  if (!activeAuth || activeAuth.kind !== "editor") {
+    replace("/editor/login");
+    return false;
+  }
+  const hasAccess =
+    activeAuth.capabilities.includes("editor") ||
+    activeAuth.capabilities.includes("organizer");
+  if (!hasAccess) {
     replace("/editor/login");
     return false;
   }

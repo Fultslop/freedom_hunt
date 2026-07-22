@@ -15,11 +15,12 @@
   let submitted = $state(false);
 
   async function handleSubmit(values: Record<string, unknown>) {
+    const auth = $authStore.activeAuth;
     const data = await postFormSubmit({
       locationId,
       routeId,
-      teamName: $authStore.activeAuth?.teamName ?? "",
-      contact: $authStore.activeAuth?.contact ?? "",
+      teamName: auth?.kind === "participant" ? auth.teamName : "",
+      contact: auth?.kind === "participant" ? (auth.contact ?? "") : "",
       answers: values,
     });
     if (!data.ok) { throw new Error("Submission failed"); }

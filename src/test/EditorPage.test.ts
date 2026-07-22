@@ -2,15 +2,25 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/svelte/svel
 import { authStore } from "../stores/authStore";
 import EditorPage from "../pages/editor/EditorPage.svelte";
 import { push, replace } from "svelte-spa-router";
+import * as api from "../utils/api";
 
 vi.mock("svelte-spa-router", () => ({
   push: vi.fn(),
   replace: vi.fn(),
 }));
 
+vi.mock("../utils/api", () => ({
+  postInviteCreate: vi.fn(),
+}));
+
 beforeEach(() => {
-  authStore.login("democrats_abroad", "Admin", "", true);
+  authStore.setForTest({
+    activeAuth: { kind: "editor", userId: "u1", email: "a@b.com", username: "admin", capabilities: ["organizer"] },
+    authLoading: false,
+    isLoggingOut: false,
+  });
   localStorage.clear();
+  vi.clearAllMocks();
 });
 
 test("renders organiser tools heading", () => {
@@ -52,18 +62,53 @@ describe("auth guard effect", () => {
     localStorage.clear();
   });
 
-  test("redirects to /editor/login when auth has loaded with no admin session", async () => {
+  test("redirects to /editor/login when auth has loaded with no editor session", async () => {
     render(EditorPage);
     await waitFor(() => {
       expect(replace).toHaveBeenCalledWith("/editor/login");
     });
   });
 
-  test("does not redirect when auth has loaded with valid admin session", async () => {
-    authStore.login("democrats_abroad", "Admin", "", true);
+  test("does not redirect when auth has loaded with a valid editor session", async () => {
+    authStore.setForTest({
+      activeAuth: { kind: "editor", userId: "u1", email: "a@b.com", username: "admin", capabilities: ["organizer"] },
+      authLoading: false,
+      isLoggingOut: false,
+    });
     render(EditorPage);
     await Promise.resolve();
     await Promise.resolve();
     expect(replace).not.toHaveBeenCalled();
+  });
+});
+
+describe("EditorPage — invite editor", () => {
+  it("shows the Invite editor button", async () => {
+    authStore.setForTest({
+      activeAuth: { kind: "editor", userId: "u1", email: "a@b.com", username: "alice", capabilities: ["organizer"] },
+      authLoading: false,
+      isLoggingOut: false,
+    });
+    render(EditorPage);
+    await waitFor(() => {
+      expect(screen.getByText(/invite editor/i)).toBeTruthy();
+    });
+  });
+
+  it("shows the invite URL after clicking the button", async () => {
+    authStore.setForTest({
+      activeAuth: { kind: "editor", userId: "u1", email: "a@b.com", username: "alice", capabilities: ["organizer"] },
+      authLoading: false,
+      isLoggingOut: false,
+    });
+    vi.mocked(api.postInviteCreate).mockResolvedValue({
+      ok: true, token: "tok789", inviteUrl: "https://example.com/#/invite/tok789",
+    });
+    render(EditorPage);
+    await waitFor(() => screen.getByText(/invite editor/i));
+    await fireEvent.click(screen.getByText(/invite editor/i));
+    await waitFor(() => {
+      expect(screen.getByText(/tok789/)).toBeTruthy();
+    });
   });
 });

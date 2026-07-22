@@ -94,9 +94,10 @@ export async function fetchEditorLocations(
 
 export async function fetchPrStatuses(
   numbers: string[],
+  project: string,
 ): Promise<{ ok: boolean; statuses?: Record<string, string> }> {
   const res = await fetch(
-    `/editor/pr-status?numbers=${numbers.join(",")}`,
+    `/editor/pr-status?project=${encodeURIComponent(project)}&numbers=${numbers.join(",")}`,
   );
   return res.json() as Promise<{
     ok: boolean;
@@ -140,13 +141,126 @@ export async function postLogout(): Promise<void> {
 
 export interface AuthMeResponse {
   ok: boolean;
+  // Editor/user session
+  userId?: string;
+  email?: string;
+  username?: string;
+  capabilities?: string[];
+  // Participant session (unchanged)
   project?: string;
   teamName?: string;
   contact?: string;
   isAdmin?: boolean;
+  error?: string;
 }
 
 export async function fetchAuthMe(): Promise<AuthMeResponse> {
   const res = await fetch("/auth/me");
   return res.json() as Promise<AuthMeResponse>;
+}
+
+// ---------------------------------------------------------------------------
+// Auth — new user / invite endpoints
+// ---------------------------------------------------------------------------
+
+export interface SignupPayload {
+  email: string;
+  username: string;
+  password: string;
+  email_consent_results?: boolean;
+  email_consent_marketing?: boolean;
+}
+
+export interface SignupResponse {
+  ok: boolean;
+  userId?: string;
+  email?: string;
+  username?: string;
+  capabilities?: string[];
+  error?: string;
+}
+
+export async function postSignup(payload: SignupPayload): Promise<SignupResponse> {
+  const res = await fetch("/auth/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return res.json() as Promise<SignupResponse>;
+}
+
+export interface UserLoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface UserLoginResponse {
+  ok: boolean;
+  userId?: string;
+  email?: string;
+  username?: string;
+  capabilities?: string[];
+  isBootstrap?: boolean;
+  project?: string;
+  error?: string;
+}
+
+export async function postUserLogin(payload: UserLoginPayload): Promise<UserLoginResponse> {
+  const res = await fetch("/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return res.json() as Promise<UserLoginResponse>;
+}
+
+export interface InviteTokenInfo {
+  ok: boolean;
+  projectId?: string;
+  capability?: string;
+  expiresAt?: number;
+  error?: string;
+}
+
+export async function fetchInviteToken(token: string): Promise<InviteTokenInfo> {
+  const res = await fetch(`/auth/invite/${token}`);
+  return res.json() as Promise<InviteTokenInfo>;
+}
+
+export interface InviteAcceptResponse {
+  ok: boolean;
+  projectId?: string;
+  capabilities?: string[];
+  userId?: string;
+  email?: string;
+  username?: string;
+  error?: string;
+}
+
+export async function postInviteAccept(token: string): Promise<InviteAcceptResponse> {
+  const res = await fetch("/auth/invite/accept", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  return res.json() as Promise<InviteAcceptResponse>;
+}
+
+export interface InviteCreateResponse {
+  ok: boolean;
+  token?: string;
+  inviteUrl?: string;
+  error?: string;
+}
+
+export async function postInviteCreate(
+  projectId: string,
+  capability = "editor",
+): Promise<InviteCreateResponse> {
+  const res = await fetch("/auth/invite/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ project_id: projectId, capability }),
+  });
+  return res.json() as Promise<InviteCreateResponse>;
 }

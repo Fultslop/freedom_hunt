@@ -31,21 +31,30 @@ async function loadAndResolveLocation(
     return null;
   }
 
+  let resolvedForm: FormField[] | undefined;
+
   if (raw.challenge && typeof raw.challenge.form === "string") {
     const formFileName = raw.challenge.form;
     const dir = path.substring(0, path.lastIndexOf("/") + 1);
     const formPath = dir + formFileName.replace(/\.yaml$/, "");
-    raw.challenge.form = withValidatedFields(
+    resolvedForm = withValidatedFields(
       (await loadText<FormField[]>(lang, formPath)) ?? [],
     );
   } else if (raw.challenge && Array.isArray(raw.challenge.form)) {
-    raw.challenge.form = [
+    resolvedForm = [
       {
         id: "form",
         type: "inline_form" as FormFieldType,
         label: "challenge.form inline array — migrate to a *_form_*.yaml file",
       },
     ];
+  }
+
+  if (resolvedForm !== undefined) {
+    return {
+      ...raw,
+      challenge: { ...raw.challenge, form: resolvedForm },
+    } as Location;
   }
 
   return raw as Location;

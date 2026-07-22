@@ -131,7 +131,7 @@
         )
         .filter((n): n is string => Boolean(n));
       if (numbers.length > 0) {
-        fetchPrStatuses(numbers)
+        fetchPrStatuses(numbers, params.project)
           .then((data) => {
             if (data.ok && data.statuses) {
               let changed = false;
