@@ -23,6 +23,13 @@
       "id": "1ec42eaee97c489b83b1fdcef324a01e",
     },
   ],
+  "d1_databases": [
+    {
+      "binding": "AUTH_DB",
+      "database_name": "scavenger_hunt_auth",
+      "database_id": "cd5fcc35-7577-4295-986c-b690f03045d1",
+    },
+  ],
   "vars": {
     "GITHUB_REPO": "fultslop/freedom_hunt",
   },

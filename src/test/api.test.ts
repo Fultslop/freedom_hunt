@@ -109,11 +109,11 @@ test("fetchEditorLocations GETs /editor/locations", async () => {
   expect(result.ok).toBe(true);
 });
 
-test("fetchPrStatuses GETs /editor/pr-status with comma-joined numbers", async () => {
+test("fetchPrStatuses GETs /editor/pr-status with project and comma-joined numbers", async () => {
   mockFetch({ ok: true, statuses: { "42": "open" } });
-  const result = await fetchPrStatuses(["42", "43"]);
+  const result = await fetchPrStatuses(["42", "43"], "democrats_abroad");
   expect(fetch).toHaveBeenCalledWith(
-    "/editor/pr-status?numbers=42,43",
+    "/editor/pr-status?project=democrats_abroad&numbers=42,43",
   );
   expect(result.statuses).toEqual({ "42": "open" });
 });

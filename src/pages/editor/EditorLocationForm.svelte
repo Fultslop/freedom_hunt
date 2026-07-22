@@ -117,7 +117,7 @@
     if (!match) { return false; }
 
     try {
-      const data = await fetchPrStatuses([match[1]]);
+      const data = await fetchPrStatuses([match[1]], params.project);
       if (data.ok && data.statuses && data.statuses[match[1]] === "closed") {
         prWasClosed(namespace, filename);
         return true;

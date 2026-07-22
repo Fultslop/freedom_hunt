@@ -569,7 +569,7 @@ describe("/auth/login — admin tier", () => {
     AUTH_SECRET: TEST_SECRET,
   });
 
-  it("sets isAdmin true when admin password used", async () => {
+  it("issues bootstrap token when admin password used", async () => {
     const request = new Request("https://example.com/auth/login", {
       method: "POST",
       body: JSON.stringify({
@@ -586,7 +586,7 @@ describe("/auth/login — admin tier", () => {
     const response = await worker.fetch(request, makeAuthEnv());
     const data = await response.json();
     expect(data.ok).toBe(true);
-    expect(data.isAdmin).toBe(true);
+    expect(data.isBootstrap).toBe(true);
   });
 
   it("sets isAdmin false for participant password", async () => {

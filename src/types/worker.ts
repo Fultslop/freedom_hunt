@@ -2,6 +2,7 @@
 
 export interface Env {
   AUTH_STORE: KVNamespace;
+  AUTH_DB: D1Database;
   AUTH_SECRET: string;
   PHOTOS: R2Bucket;
   ASSETS: Fetcher;

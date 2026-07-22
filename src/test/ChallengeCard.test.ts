@@ -28,7 +28,7 @@ const location = {
 };
 
 beforeEach(() => {
-  authStore.login("test_project", "Team A", "team@test.com");
+  authStore.loginParticipant("test_project", "Team A", "team@test.com");
 });
 
 test("renders location title", () => {

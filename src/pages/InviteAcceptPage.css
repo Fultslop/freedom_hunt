@@ -1,0 +1,87 @@
+.invite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  min-height: 100vh;
+  background: var(--color-background);
+}
+
+.invite__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.invite__eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.invite__headline {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.invite__card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.invite__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.invite__row-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+}
+
+.invite__row-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.invite__error {
+  color: var(--color-error, #c0392b);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.invite__loading {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.invite__accept {
+  padding: 0.75rem;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+
+.invite__accept:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

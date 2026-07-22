@@ -96,3 +96,50 @@ describe("checkRateLimit", () => {
     expect(await checkRateLimit("10.0.0.3", env)).toBe(false);
   });
 });
+
+import { isUserToken, isBootstrapToken, isParticipantToken } from "../types/auth";
+import type { AnyTokenPayload } from "../types/auth";
+
+describe("token discrimination", () => {
+  const participantPayload: AnyTokenPayload = {
+    project: "p", teamName: "t", contact: "c", isAdmin: false, exp: 9999999999,
+  };
+  const userPayload: AnyTokenPayload = { user_id: "uuid-123", exp: 9999999999 };
+  const bootstrapPayload: AnyTokenPayload = {
+    user_id: null, isBootstrap: true, project: "p", exp: 9999999999,
+  };
+
+  it("identifies participant token", () => {
+    expect(isParticipantToken(participantPayload)).toBe(true);
+    expect(isUserToken(participantPayload)).toBe(false);
+    expect(isBootstrapToken(participantPayload)).toBe(false);
+  });
+
+  it("identifies user token", () => {
+    expect(isUserToken(userPayload)).toBe(true);
+    expect(isParticipantToken(userPayload)).toBe(false);
+    expect(isBootstrapToken(userPayload)).toBe(false);
+  });
+
+  it("identifies bootstrap token", () => {
+    expect(isBootstrapToken(bootstrapPayload)).toBe(true);
+    expect(isUserToken(bootstrapPayload)).toBe(false);
+    expect(isParticipantToken(bootstrapPayload)).toBe(false);
+  });
+
+  it("round-trips a user token payload", async () => {
+    const payload: AnyTokenPayload = { user_id: "abc", exp: 9999999999 };
+    const token = await createToken(payload as any, SECRET);
+    const result = await verifyToken(token, SECRET);
+    expect(result).not.toBeNull();
+    expect(isUserToken(result as AnyTokenPayload)).toBe(true);
+  });
+
+  it("round-trips a bootstrap token payload", async () => {
+    const payload: AnyTokenPayload = { user_id: null, isBootstrap: true, project: "p", exp: 9999999999 };
+    const token = await createToken(payload as any, SECRET);
+    const result = await verifyToken(token, SECRET);
+    expect(result).not.toBeNull();
+    expect(isBootstrapToken(result as AnyTokenPayload)).toBe(true);
+  });
+});

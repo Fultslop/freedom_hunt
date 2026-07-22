@@ -8,7 +8,8 @@
       "Bash(Select-String -Pattern \"PASS|FAIL|Tests|Error|passed|failed\" --SimpleMatch)",
       "Bash(npx svelte-check *)",
       "Bash(node -e \"import\\('undici'\\).then\\(m => console.log\\('undici Request available:', !!m.Request\\)\\).catch\\(e => console.log\\('undici import failed:', e.message\\)\\);\")",
-      "Bash(findstr \"×\")"
+      "Bash(findstr \"×\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}, indent=2\\)\\)\")"
     ]
   }
 }

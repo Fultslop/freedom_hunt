@@ -92,18 +92,20 @@
               <span class="titlebar__submenu-title">Profile</span>
             </button>
             <div class="titlebar__profile-body">
+              {#if $authStore.activeAuth?.kind === "participant"}
               <div class="titlebar__profile-field">
                 <div class="titlebar__profile-label">Team</div>
                 <div class="titlebar__profile-value">
-                  {$authStore.activeAuth?.teamName ?? "—"}
+                  {$authStore.activeAuth.teamName ?? "—"}
                 </div>
               </div>
               <div class="titlebar__profile-field titlebar__profile-field--last">
                 <div class="titlebar__profile-label">Contact</div>
                 <div class="titlebar__profile-value--contact">
-                  {$authStore.activeAuth?.contact ?? "—"}
+                  {$authStore.activeAuth.contact ?? "—"}
                 </div>
               </div>
+              {/if}
               <button
                 onclick={async () => {
                   await authStore.logout();

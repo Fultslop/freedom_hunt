@@ -2,25 +2,50 @@
   import { push, replace } from "svelte-spa-router";
   import { authStore } from "../../stores/authStore";
   import { titleBarStore } from "../../stores/titleBarStore";
+  import { postInviteCreate } from "../../utils/api";
   import "./EditorPage.css";
 
   titleBarStore.set({ title: "Editor", progress: null, backPath: null });
 
   $effect(() => {
     const { activeAuth, authLoading } = $authStore;
-    if (!authLoading && !activeAuth?.isAdmin) {
+    if (!authLoading && (!activeAuth || activeAuth.kind !== "editor")) {
       replace("/editor/login");
     }
   });
 
   let project = $derived(
-    $authStore.activeAuth?.projectId ?? "democrats_abroad",
+    ($authStore.activeAuth?.kind === "participant"
+      ? $authStore.activeAuth.projectId
+      : "democrats_abroad") ?? "democrats_abroad",
   );
+
+  let inviteUrl = $state<string | null>(null);
+  let inviteError = $state<string | null>(null);
+  let creatingInvite = $state(false);
 
   function handleLocationsClick() {
     const city =
       localStorage.getItem(`editor_last_city_${project}`) ?? "den_haag";
     push(`/editor/locations/${project}/${city}`);
+  }
+
+  async function handleInvite() {
+    creatingInvite = true;
+    inviteError = null;
+    inviteUrl = null;
+    try {
+      const data = await postInviteCreate(project, "editor");
+      if (data.ok && data.inviteUrl) {
+        inviteUrl = data.inviteUrl;
+      } else {
+        inviteError = data.error ?? "Failed to create invite.";
+      }
+    } catch {
+      inviteError = "Connection error.";
+    } finally {
+      creatingInvite = false;
+    }
   }
 </script>
 
@@ -52,5 +77,24 @@
         Add, edit, or hide individual hunt locations
       </div>
     </button>
+  </div>
+
+  <div class="editor-page__invite">
+    <button
+      class="editor-page__invite-btn"
+      disabled={creatingInvite}
+      onclick={handleInvite}
+    >
+      {creatingInvite ? "Generating…" : "Invite editor"}
+    </button>
+    {#if inviteUrl}
+      <div class="editor-page__invite-url">
+        <span>Share this link:</span>
+        <code>{inviteUrl}</code>
+      </div>
+    {/if}
+    {#if inviteError}
+      <div class="editor-page__invite-error">✕ {inviteError}</div>
+    {/if}
   </div>
 </div>

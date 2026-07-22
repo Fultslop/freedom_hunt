@@ -1,8 +1,9 @@
 import type { Env } from "../types/worker";
-import type { TokenPayload } from "../types/auth";
+import type { AnyTokenPayload } from "../types/auth";
 
 export const COOKIE_NAME = "freedom_hunt_auth";
 export const TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
+export const BOOTSTRAP_TTL_SECONDS = 60 * 60; // 1 hour
 export const AUTH_COOKIE_ATTRS = "HttpOnly; Secure; SameSite=Strict; Path=/";
 export const KV_PREFIX_ADMIN = "admin:";
 export const KV_PREFIX_PARTICIPANT = "auth:";
@@ -21,7 +22,7 @@ function b64urlDecode(str: string): string {
 }
 
 export async function createToken(
-  payload: TokenPayload,
+  payload: AnyTokenPayload,
   secret: string,
 ): Promise<string> {
   const encoded = b64urlEncode(JSON.stringify(payload));
@@ -33,25 +34,18 @@ export async function createToken(
     false,
     ["sign"],
   );
-  const sig = await crypto.subtle.sign(
-    AUTH_ALGO.name,
-    key,
-    enc.encode(encoded),
-  );
+  const sig = await crypto.subtle.sign(AUTH_ALGO.name, key, enc.encode(encoded));
   const sigB64 = b64urlEncode(String.fromCharCode(...new Uint8Array(sig)));
   return `${encoded}.${sigB64}`;
 }
 
-// Returns null instead of throwing so callers can treat any invalid token as unauthenticated.
 export async function verifyToken(
   token: string,
   secret: string,
-): Promise<TokenPayload | null> {
+): Promise<AnyTokenPayload | null> {
   try {
     const dot = token.lastIndexOf(".");
-    if (dot === -1) {
-      return null;
-    }
+    if (dot === -1) {return null;}
     const encoded = token.slice(0, dot);
     const sigB64 = token.slice(dot + 1);
     const enc = new TextEncoder();
@@ -71,11 +65,9 @@ export async function verifyToken(
       sigBytes,
       enc.encode(encoded),
     );
-    if (!valid) {
-      return null;
-    }
-    const payload = JSON.parse(b64urlDecode(encoded)) as TokenPayload;
-    if (payload.exp < Math.floor(Date.now() / 1000)) {
+    if (!valid) {return null;}
+    const payload = JSON.parse(b64urlDecode(encoded)) as AnyTokenPayload;
+    if ((payload as { exp: number }).exp < Math.floor(Date.now() / 1000)) {
       return null;
     }
     return payload;
@@ -89,8 +81,6 @@ interface RateLimitRecord {
   windowStart: number;
 }
 
-// Sliding window: resets the counter when more than RATE_LIMIT_WINDOW_MS has passed since windowStart.
-// Returns true if the request should be blocked.
 export async function checkRateLimit(ip: string, env: Env): Promise<boolean> {
   const key = `rl:${ip}`;
   const raw = await env.AUTH_STORE.get(key);
@@ -108,14 +98,17 @@ export async function checkRateLimit(ip: string, env: Env): Promise<boolean> {
   return record.count > RATE_LIMIT_MAX;
 }
 
+/** Returns the verified token payload from the request cookie, or null. */
 export async function requireAuth(
   request: Request,
   env: Env,
-): Promise<TokenPayload | null> {
+): Promise<AnyTokenPayload | null> {
   const cookie = request.headers.get("Cookie") ?? "";
   const match = cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]+)`));
-  if (!match) {
-    return null;
-  }
+  if (!match) {return null;}
   return verifyToken(match[1], env.AUTH_SECRET);
+}
+
+export function cookieHeader(token: string, ttl: number): string {
+  return `${COOKIE_NAME}=${token}; ${AUTH_COOKIE_ATTRS}; Max-Age=${ttl}`;
 }

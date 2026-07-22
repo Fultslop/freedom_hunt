@@ -28,7 +28,7 @@
         password,
       });
       if (data.ok) {
-        authStore.login(
+        authStore.loginParticipant(
           params.project,
           data.teamName ?? teamName,
           data.contact ?? contact,
