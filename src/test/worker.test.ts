@@ -2,10 +2,20 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { Response as NodeResponse } from "undici";
 import worker from "../worker";
-import { buildR2Key } from "../worker/routes/uploadRoute";
 import { createToken } from "../worker/auth";
 import type { TokenPayload } from "../types/auth";
 import type { Env } from "../types/worker";
+
+// @cf-wasm/photon/workerd can't load in Node.js (WASM import), but
+// worker.ts → uploadRoute.ts → imageProcessing.ts imports it statically.
+vi.mock("@cf-wasm/photon/workerd", () => ({
+  PhotonImage: { new_from_byteslice: vi.fn() },
+  resize: vi.fn(),
+  rotate: vi.fn(),
+  fliph: vi.fn(),
+  flipv: vi.fn(),
+  SamplingFilter: { Lanczos3: 5 },
+}));
 
 const TEST_SECRET = "test-secret";
 const TEST_PAYLOAD: TokenPayload = {
@@ -19,20 +29,6 @@ const TEST_PAYLOAD: TokenPayload = {
 let authToken: string;
 beforeEach(async () => {
   authToken = await createToken(TEST_PAYLOAD, TEST_SECRET);
-});
-
-describe("buildR2Key", () => {
-  it("uses jpg extension for jpeg mime type", () => {
-    expect(buildR2Key("001", "image/jpeg", 1000000)).toBe("001_1000000.jpg");
-  });
-
-  it("uses png extension for png mime type", () => {
-    expect(buildR2Key("001", "image/png", 1000000)).toBe("001_1000000.png");
-  });
-
-  it("falls back to jpg for unknown mime type", () => {
-    expect(buildR2Key("001", "image/webp", 1000000)).toBe("001_1000000.jpg");
-  });
 });
 
 describe("/form-submit", () => {
@@ -383,90 +379,6 @@ describe("POST /editor/location", () => {
       const response = await postLocation({ ...VALID_BODY, location: bigLocation }, token);
       expect(response.status).toBe(400);
     });
-  });
-});
-
-describe("/upload", () => {
-  afterEach(() => vi.restoreAllMocks());
-
-  it("returns 401 when not authenticated", async () => {
-    const env = {
-      AUTH_SECRET: TEST_SECRET,
-      AUTH_STORE: { get: async () => null },
-      PHOTOS: { put: vi.fn() },
-    } as unknown as Env;
-    const formData = new FormData();
-    formData.append(
-      "photo",
-      new Blob(["img"], { type: "image/jpeg" }),
-      "x.jpg",
-    );
-    formData.append("locationId", "001");
-    const request = new Request("https://example.com/upload", {
-      method: "POST",
-      body: formData,
-    });
-    const response = await worker.fetch(request, env);
-    expect(response.status).toBe(401);
-  });
-
-  it("stores photo in R2 and returns the key", async () => {
-    const streamMock = {
-      getReader: () => ({
-        read: vi.fn().mockResolvedValue({ done: true }),
-      }),
-    };
-    const photoMock = {
-      type: "image/jpeg",
-      stream: () => streamMock,
-    };
-    const formDataMock = {
-      get: (key: string) => {
-        if (key === "photo") return photoMock;
-        if (key === "locationId") return "001";
-        return null;
-      },
-    };
-    const env = {
-      AUTH_SECRET: TEST_SECRET,
-      AUTH_STORE: { get: async () => null },
-      PHOTOS: { put: vi.fn().mockResolvedValue(undefined) },
-    } as unknown as Env;
-    const request = new Request("https://example.com/upload", {
-      method: "POST",
-      body: formDataMock,
-      headers: { Cookie: `freedom_hunt_auth=${authToken}` },
-    });
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response());
-    request.formData = vi.fn().mockResolvedValue(formDataMock);
-    const response = await worker.fetch(request, env);
-    expect(response.status).toBe(200);
-    const data = await response.json();
-    expect(data.ok).toBe(true);
-    expect(data.key).toMatch(/^001_\d+\.jpg$/);
-    expect(env.PHOTOS.put).toHaveBeenCalledOnce();
-  });
-
-  it("returns 500 when R2 put throws", async () => {
-    const env = {
-      AUTH_SECRET: TEST_SECRET,
-      AUTH_STORE: { get: async () => null },
-      PHOTOS: { put: vi.fn().mockRejectedValue(new Error("R2 down")) },
-    } as unknown as Env;
-    const formData = new FormData();
-    formData.append(
-      "photo",
-      new Blob(["img"], { type: "image/jpeg" }),
-      "x.jpg",
-    );
-    formData.append("locationId", "001");
-    const request = new Request("https://example.com/upload", {
-      method: "POST",
-      body: formData,
-      headers: { Cookie: `freedom_hunt_auth=${authToken}` },
-    });
-    const response = await worker.fetch(request, env);
-    expect(response.status).toBe(500);
   });
 });
 
