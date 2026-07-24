@@ -6,22 +6,7 @@ import type { TokenPayload } from "../types/auth";
 import type { Env } from "../types/worker";
 
 // worker.ts → uploadRoute.ts → imageProcessing.ts → @cf-wasm/photon/workerd
-class FakePhotonImage {
-  width: number; height: number;
-  constructor(width: number, height: number) { this.width = width; this.height = height; }
-  get_width() { return this.width; }
-  get_height() { return this.height; }
-  get_bytes_jpeg(_quality: number) { return new Uint8Array([this.width, this.height]); }
-  free() {}
-}
-vi.mock("@cf-wasm/photon/workerd", () => ({
-  PhotonImage: { new_from_byteslice: vi.fn(() => new FakePhotonImage(4000, 3000)) },
-  resize: vi.fn((_img: unknown, w: number, h: number) => new FakePhotonImage(w, h)),
-  rotate: vi.fn((img: FakePhotonImage) => new FakePhotonImage(img.height, img.width)),
-  fliph: vi.fn(),
-  flipv: vi.fn(),
-  SamplingFilter: { Lanczos3: 5 },
-}));
+// is mocked globally in src/test/setup.ts.
 
 const TEST_SECRET = "test-secret";
 const TEST_PAYLOAD: TokenPayload = {

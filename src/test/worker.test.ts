@@ -6,24 +6,8 @@ import { createToken } from "../worker/auth";
 import type { TokenPayload } from "../types/auth";
 import type { Env } from "../types/worker";
 
-// @cf-wasm/photon/workerd can't load in Node.js (WASM import), but
-// worker.ts → uploadRoute.ts → imageProcessing.ts imports it statically.
-class FakePhotonImage {
-  width: number; height: number;
-  constructor(width: number, height: number) { this.width = width; this.height = height; }
-  get_width() { return this.width; }
-  get_height() { return this.height; }
-  get_bytes_jpeg(_quality: number) { return new Uint8Array([this.width, this.height]); }
-  free() {}
-}
-vi.mock("@cf-wasm/photon/workerd", () => ({
-  PhotonImage: { new_from_byteslice: vi.fn(() => new FakePhotonImage(4000, 3000)) },
-  resize: vi.fn((_img: unknown, w: number, h: number) => new FakePhotonImage(w, h)),
-  rotate: vi.fn((img: FakePhotonImage) => new FakePhotonImage(img.height, img.width)),
-  fliph: vi.fn(),
-  flipv: vi.fn(),
-  SamplingFilter: { Lanczos3: 5 },
-}));
+// @cf-wasm/photon/workerd (needed transitively via worker.ts → uploadRoute.ts
+// → imageProcessing.ts) is mocked globally in src/test/setup.ts.
 
 const TEST_SECRET = "test-secret";
 const TEST_PAYLOAD: TokenPayload = {

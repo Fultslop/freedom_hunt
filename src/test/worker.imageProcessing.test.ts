@@ -53,37 +53,7 @@ describe("readJpegOrientation", () => {
   });
 });
 
-vi.mock("@cf-wasm/photon/workerd", () => {
-  class FakePhotonImage {
-    width: number;
-    height: number;
-    freed = false;
-    constructor(width: number, height: number) {
-      this.width = width;
-      this.height = height;
-    }
-    get_width() { return this.width; }
-    get_height() { return this.height; }
-    get_bytes_jpeg(quality: number) {
-      return new Uint8Array([this.width, this.height, Math.round(quality * 100)]);
-    }
-    free() { this.freed = true; }
-  }
-  return {
-    PhotonImage: {
-      new_from_byteslice: vi.fn(() => new FakePhotonImage(4000, 3000)),
-    },
-    resize: vi.fn((image: FakePhotonImage, width: number, height: number) =>
-      new FakePhotonImage(width, height),
-    ),
-    rotate: vi.fn((image: FakePhotonImage, _angle: number) =>
-      new FakePhotonImage(image.height, image.width),
-    ),
-    fliph: vi.fn(),
-    flipv: vi.fn(),
-    SamplingFilter: { Lanczos3: 5 },
-  };
-});
+// @cf-wasm/photon/workerd is mocked globally in src/test/setup.ts.
 
 describe("generateVariants", () => {
   it("produces thumb/medium/full, all capped at their max long edge", async () => {

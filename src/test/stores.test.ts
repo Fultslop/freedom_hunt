@@ -4,7 +4,14 @@ import { fontSizeStore, FONT_SIZES } from "../stores/fontSizeStore";
 import { titleBarStore } from "../stores/titleBarStore";
 import { languageStore } from "../stores/languageStore";
 import { authStore } from "../stores/authStore";
+import { fetchAuthMe } from "../utils/api";
 import type { TitleBarState } from "../stores/titleBarStore";
+
+// Mock the module boundary authStore.init() actually depends on, rather than
+// spying on globalThis.fetch directly.
+vi.mock("../utils/api", () => ({
+  fetchAuthMe: vi.fn(),
+}));
 
 const TITLE_BAR_DEFAULT: TitleBarState = { title: "Freedom Hunt", progress: null, backPath: null };
 
@@ -87,15 +94,13 @@ describe("authStore", () => {
 
   describe("init() — editor session", () => {
     it("sets EditorAuthState when /auth/me returns userId", async () => {
-      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
-        json: async () => ({
-          ok: true,
-          userId: "u1",
-          email: "a@b.com",
-          username: "alice",
-          capabilities: ["editor"],
-        }),
-      } as Response);
+      vi.mocked(fetchAuthMe).mockResolvedValueOnce({
+        ok: true,
+        userId: "u1",
+        email: "a@b.com",
+        username: "alice",
+        capabilities: ["editor"],
+      });
       await authStore.init();
       const state = get(authStore);
       expect(state.authLoading).toBe(false);
@@ -109,9 +114,9 @@ describe("authStore", () => {
     });
 
     it("sets capabilities to empty array when /auth/me omits capabilities", async () => {
-      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
-        json: async () => ({ ok: true, userId: "u2", email: "b@c.com", username: "bob" }),
-      } as Response);
+      vi.mocked(fetchAuthMe).mockResolvedValueOnce({
+        ok: true, userId: "u2", email: "b@c.com", username: "bob",
+      });
       await authStore.init();
       const state = get(authStore);
       expect(state.activeAuth?.kind).toBe("editor");
@@ -123,15 +128,13 @@ describe("authStore", () => {
 
   describe("init() — participant session", () => {
     it("sets ParticipantAuthState when /auth/me returns project", async () => {
-      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
-        json: async () => ({
-          ok: true,
-          project: "democrats_abroad",
-          teamName: "Team A",
-          contact: "a@b.com",
-          isAdmin: false,
-        }),
-      } as Response);
+      vi.mocked(fetchAuthMe).mockResolvedValueOnce({
+        ok: true,
+        project: "democrats_abroad",
+        teamName: "Team A",
+        contact: "a@b.com",
+        isAdmin: false,
+      });
       await authStore.init();
       const state = get(authStore);
       expect(state.authLoading).toBe(false);
@@ -146,9 +149,7 @@ describe("authStore", () => {
 
   describe("init() — unauthenticated", () => {
     it("leaves activeAuth null when /auth/me returns ok: false", async () => {
-      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
-        json: async () => ({ ok: false, error: "Not authenticated" }),
-      } as Response);
+      vi.mocked(fetchAuthMe).mockResolvedValueOnce({ ok: false, error: "Not authenticated" });
       await authStore.init();
       const state = get(authStore);
       expect(state.authLoading).toBe(false);
@@ -156,7 +157,7 @@ describe("authStore", () => {
     });
 
     it("leaves activeAuth null and does not throw when fetch rejects", async () => {
-      vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("Network error"));
+      vi.mocked(fetchAuthMe).mockRejectedValueOnce(new Error("Network error"));
       await authStore.init();
       const state = get(authStore);
       expect(state.authLoading).toBe(false);

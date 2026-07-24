@@ -9,10 +9,48 @@ import { cleanup } from "@testing-library/svelte/svelte5";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).Request = NodeRequest;
 
-// With isolate: false, @testing-library/svelte's auto-cleanup doesn't run between
-// test files, so rendered components accumulate in document.body. Force cleanup after
-// every test to prevent DOM pollution across file boundaries.
+// Force DOM cleanup after every test (belt-and-suspenders alongside
+// @testing-library/svelte's own auto-cleanup).
 afterEach(cleanup);
+
+// @cf-wasm/photon/workerd can't load in plain Node (WASM import). Registered
+// once here (rather than duplicated per-file) since every Worker test file
+// that imports imageProcessing.ts, directly or transitively, needs it.
+class FakePhotonImage {
+  width: number;
+  height: number;
+  constructor(width: number, height: number) {
+    this.width = width;
+    this.height = height;
+  }
+  get_width() {
+    return this.width;
+  }
+  get_height() {
+    return this.height;
+  }
+  get_bytes_jpeg(_quality: number) {
+    return new Uint8Array([this.width, this.height, Math.round(_quality * 100)]);
+  }
+  free() {
+    /* no-op */
+  }
+}
+
+vi.mock("@cf-wasm/photon/workerd", () => ({
+  PhotonImage: {
+    new_from_byteslice: vi.fn(() => new FakePhotonImage(4000, 3000)),
+  },
+  resize: vi.fn(
+    (_image: FakePhotonImage, width: number, height: number) => new FakePhotonImage(width, height),
+  ),
+  rotate: vi.fn(
+    (image: FakePhotonImage, _angle: number) => new FakePhotonImage(image.height, image.width),
+  ),
+  fliph: vi.fn(),
+  flipv: vi.fn(),
+  SamplingFilter: { Lanczos3: 5 },
+}));
 
 const _store: Record<string, string> = {};
 
