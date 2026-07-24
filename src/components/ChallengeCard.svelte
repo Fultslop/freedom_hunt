@@ -13,12 +13,14 @@
     isLast = false,
     index = undefined,
     routeId = undefined,
+    cityId = undefined,
   }: {
     // TODO: move this to a separate type file, don't inline
     location: Location;
     isLast?: boolean;
     index?: number;
     routeId?: string;
+    cityId?: string;
   } = $props();
 
   let heroSrc = $state<string | null>(null);
@@ -135,6 +137,8 @@
         form={location.challenge.form}
         locationId={index ?? -1}
         {routeId}
+        {cityId}
+        taskTitle={location.challenge.name}
       />
     {/if}
   </div>

@@ -1,4 +1,5 @@
 import type { Location } from "../types/data";
+import type { GalleryPhoto } from "../types/gallery";
 
 // ---------------------------------------------------------------------------
 // Challenge
@@ -23,15 +24,27 @@ export async function postFormSubmit(
   return res.json() as Promise<{ ok: boolean }>;
 }
 
+export interface PhotoUploadPayload {
+  locationId: number;
+  cityId: string;
+  routeId?: string;
+  taskTitle: string;
+  file: File;
+}
+
 export async function postPhotoUpload(
-  locationId: number,
-  file: File,
-): Promise<{ ok: boolean; key?: string }> {
+  payload: PhotoUploadPayload,
+): Promise<{ ok: boolean; id?: string; key?: string }> {
   const body = new FormData();
-  body.append("photo", file);
-  body.append("locationId", String(locationId));
+  body.append("photo", payload.file);
+  body.append("locationId", String(payload.locationId));
+  body.append("cityId", payload.cityId);
+  if (payload.routeId) {
+    body.append("routeId", payload.routeId);
+  }
+  body.append("taskTitle", payload.taskTitle);
   const res = await fetch("/upload", { method: "POST", body });
-  return res.json() as Promise<{ ok: boolean; key?: string }>;
+  return res.json() as Promise<{ ok: boolean; id?: string; key?: string }>;
 }
 
 // ---------------------------------------------------------------------------
@@ -263,4 +276,39 @@ export async function postInviteCreate(
     body: JSON.stringify({ project_id: projectId, capability }),
   });
   return res.json() as Promise<InviteCreateResponse>;
+}
+
+// ---------------------------------------------------------------------------
+// Gallery
+// ---------------------------------------------------------------------------
+
+export interface GalleryPhotosResponse {
+  ok: boolean;
+  photos?: GalleryPhoto[];
+  error?: string;
+}
+
+export async function fetchGalleryPhotos(
+  project: string,
+  city: string,
+  filters?: { team?: string; task?: string },
+): Promise<GalleryPhotosResponse> {
+  const params = new URLSearchParams();
+  if (filters?.team) {
+    params.set("team", filters.team);
+  }
+  if (filters?.task) {
+    params.set("task", filters.task);
+  }
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const res = await fetch(`/gallery/${project}/${city}/photos${query}`);
+  return res.json() as Promise<GalleryPhotosResponse>;
+}
+
+export async function fetchRandomPhotos(
+  project: string,
+  city: string,
+): Promise<GalleryPhotosResponse> {
+  const res = await fetch(`/gallery/${project}/${city}/photos/random`);
+  return res.json() as Promise<GalleryPhotosResponse>;
 }

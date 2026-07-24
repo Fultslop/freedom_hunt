@@ -191,6 +191,7 @@
           isLast={currentIndex === locations.length - 1}
           index={currentIndex + 1}
           routeId={params.route}
+          cityId={params.city}
         />
       </div>
     {:else}
@@ -213,6 +214,7 @@
                 isLast={locIdx === locations.length - 1}
                 index={locIdx + 1}
                 routeId={params.route}
+                cityId={params.city}
               />
             </div>
           {:else}

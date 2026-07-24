@@ -105,3 +105,30 @@ test("photo field uses label as button text", () => {
     screen.getByRole("button", { name: /take a photo/i }),
   ).toBeInTheDocument();
 });
+
+test("photo upload sends cityId and taskTitle from props", async () => {
+  const { postPhotoUpload } = await import("../utils/api");
+  const photoForm = [
+    { id: "pic", type: "photo" as const, label: "Take a photo" },
+  ];
+  const { container } = render(ChallengeForm, {
+    props: {
+      form: photoForm,
+      locationId: 1,
+      routeId: "short_loop",
+      cityId: "den_haag",
+      taskTitle: "The Final Civic Act",
+    },
+  });
+  const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+  const input = container.querySelector(".af-photo-input") as HTMLInputElement;
+  await fireEvent.change(input, { target: { files: [file] } });
+  expect(postPhotoUpload).toHaveBeenCalledWith(
+    expect.objectContaining({
+      locationId: 1,
+      cityId: "den_haag",
+      routeId: "short_loop",
+      taskTitle: "The Final Civic Act",
+    }),
+  );
+});
