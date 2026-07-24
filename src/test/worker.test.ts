@@ -525,11 +525,16 @@ describe("/editor/pr-status", () => {
 describe("/auth/logout", () => {
   // happy-dom v20 blocks Set-Cookie from Response.headers.get(); use undici's
   // Response for this block so the cookie-clearing assertion can read the header.
+  // Plain assignment (not vi.stubGlobal/unstubAllGlobals) — with isolate:false,
+  // unstubAllGlobals reverts global state shared across the whole test run,
+  // not just this file, which broke jest-dom matcher registration for every
+  // test file that ran afterward in the same thread.
+  const originalResponse = globalThis.Response;
   beforeEach(() => {
-    vi.stubGlobal("Response", NodeResponse);
+    globalThis.Response = NodeResponse as unknown as typeof Response;
   });
   afterEach(() => {
-    vi.unstubAllGlobals();
+    globalThis.Response = originalResponse;
   });
 
   it("returns 200 with ok: true", async () => {

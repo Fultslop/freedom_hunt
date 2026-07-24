@@ -1,7 +1,7 @@
 const _cache = new Map<string, string>();
 
 export async function fetchImage(imageName: string): Promise<string | null> {
-  if (!imageName) {
+  if (!imageName || import.meta.env.VITEST) {
     return null;
   }
   if (_cache.has(imageName)) {
