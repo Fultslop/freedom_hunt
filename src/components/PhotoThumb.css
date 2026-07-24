@@ -1,0 +1,42 @@
+.photo-thumb {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  cursor: pointer;
+  overflow: hidden;
+  text-align: left;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.photo-thumb:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+}
+
+.photo-thumb__img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.photo-thumb__caption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+}
+
+.photo-thumb__team {
+  font-weight: 600;
+  font-size: var(--font-size-small);
+  color: var(--color-text);
+}
+
+.photo-thumb__task {
+  font-size: var(--font-size-small);
+  color: var(--color-text-secondary);
+}
