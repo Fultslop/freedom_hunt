@@ -103,6 +103,7 @@ doc/
 | `/:project`              | `ProjectPage` | City picker; loads `projects/<project>/cities.yaml` |
 | `/:project/:city`        | `CityPage`    | Route picker; loads `<city>/routes.yaml`            |
 | `/:project/:city/:route` | `RoutePage`   | Swipe-based challenge flow; loads location YAMLs    |
+| `/:project/:city/gallery` | `GalleryLandingPage` | Read-only post-event photo gallery; hero rotation + filterable grid + lightbox download |
 
 **RoutePage states:** loading → location cards rendered as a swipeable stack. Swipe left advances, swipe right retreats. Current index is persisted to `localStorage` keyed by project/city/route so reload resumes position.
 
@@ -200,6 +201,46 @@ Supported form field types: `boolean`, `string`, `number`, `radio`, `multiple`, 
 
 Reference: `src/data/text/en/projects/democrats_abroad/den_haag/001_loc_binnenhof.yaml` is the canonical complete example.
 
+### `projects/<projectId>/<projectId>.yaml` — Project metadata
+
+Free-form project-level YAML. The only field consumed by the app is the optional `organizer_url`:
+
+```yaml
+organizer_url: "https://your-organization.example.org"
+```
+
+If present, the gallery landing page (`/:project/:city/gallery`) renders a header link pointing to this URL (opens in a new tab). If absent, no link is shown.
+
+### `photos` table (D1, `AUTH_DB`)
+
+Populated by `POST /upload` (see API Layer below) and by the one-off `scripts/backfill-photos.ts` migration script for pre-existing event photos. Not derived from YAML — this is the only queryable link between an uploaded photo and the team/task/project/city that produced it.
+
+```sql
+CREATE TABLE photos (
+  id            TEXT PRIMARY KEY,
+  project_id    TEXT NOT NULL,
+  city_id       TEXT NOT NULL,
+  route_id      TEXT,
+  location_id   TEXT NOT NULL,
+  task_title    TEXT NOT NULL,   -- snapshot of challenge.name at upload time, not a live join
+  team_name     TEXT NOT NULL,
+  contact       TEXT,
+  r2_key        TEXT NOT NULL,   -- R2 key prefix; variants live at {r2_key}/{thumb,medium,full}.jpg
+  mime_type     TEXT NOT NULL,
+  uploaded_at   INTEGER NOT NULL
+);
+```
+
+**R2 image variants.** Each photo is stored as three capped JPEG variants under a shared key prefix, generated in the Worker via `@cf-wasm/photon` (WASM, no native bindings) since Cloudflare's URL-based Image Resizing isn't available on the current plan:
+
+| Variant | Cap | Purpose |
+|---|---|---|
+| `thumb` | 300px long edge, quality 0.75 | Hero rotation, gallery grid |
+| `medium` | 1200px long edge, quality 0.8 | Lightbox preview |
+| `full` | 2048px long edge, quality 0.85 | Download button — **not** the raw uploaded file; always re-encoded and capped so per-photo storage is bounded regardless of source camera resolution |
+
+EXIF orientation is corrected during this same resize step (`src/worker/imageProcessing.ts`), since Photon's resize/re-encode does not preserve EXIF and would otherwise produce sideways thumbnails.
+
 ## Theme System
 
 Three theme presets defined in `themes.ts`: `wireframe`, `app`, `GWC` (Democrats Abroad branding — DA navy `#002868` / flag red `#BF0A30`).
@@ -226,9 +267,10 @@ Functions are grouped by domain:
 
 | Group | Functions |
 |-------|-----------|
-| Challenge | `postFormSubmit(payload)` → `POST /form-submit`; `postPhotoUpload(locationId, file)` → `POST /upload` |
+| Challenge | `postFormSubmit(payload)` → `POST /form-submit`; `postPhotoUpload(payload)` → `POST /upload` |
 | Editor | `fetchEditorLocations(project, city)`, `fetchEditorLocation(project, city, file)`, `saveEditorLocation(payload)`, `fetchPrStatuses(numbers[])` |
 | Auth | `fetchAuthMe()`, `postLogin(payload)`, `postLogout()` |
+| Gallery | `fetchGalleryPhotos(project, city, filters?)` → `GET /gallery/:project/:city/photos`; `fetchRandomPhotos(project, city)` → `GET /gallery/:project/:city/photos/random`; photo bytes served via `GET /photos/:id/:variant` |
 
 Each function wraps a single endpoint, handles the request shape, and returns a typed response. Tests mock the function directly rather than mocking `globalThis.fetch`.
 

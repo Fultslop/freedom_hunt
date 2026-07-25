@@ -10,7 +10,15 @@
     form,
     locationId,
     routeId = undefined,
-  }: { form: FormField[]; locationId: number; routeId?: string } = $props();
+    cityId = "",
+    taskTitle = "",
+  }: {
+    form: FormField[];
+    locationId: number;
+    routeId?: string;
+    cityId?: string;
+    taskTitle?: string;
+  } = $props();
 
   let submitted = $state(false);
 
@@ -27,7 +35,7 @@
   }
 
   async function handlePhotoUpload(file: File): Promise<{ ok: boolean }> {
-    return postPhotoUpload(locationId, file);
+    return postPhotoUpload({ locationId, cityId, routeId, taskTitle, file });
   }
 </script>
 

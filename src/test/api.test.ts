@@ -8,6 +8,8 @@ import {
   postLogin,
   postLogout,
   fetchAuthMe,
+  fetchGalleryPhotos,
+  fetchRandomPhotos,
 } from "../utils/api";
 
 function mockFetch(response: unknown) {
@@ -54,14 +56,20 @@ test("postFormSubmit returns ok: false on server error", async () => {
 });
 
 test("postPhotoUpload POSTs to /upload with FormData", async () => {
-  mockFetch({ ok: true, key: "1_123.jpg" });
+  mockFetch({ ok: true, id: "photo-1", key: "1_123" });
   const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
-  const result = await postPhotoUpload(1, file);
+  const result = await postPhotoUpload({
+    locationId: 1,
+    cityId: "den_haag",
+    routeId: "short_loop",
+    taskTitle: "The Final Civic Act",
+    file,
+  });
   expect(fetch).toHaveBeenCalledWith(
     "/upload",
     expect.objectContaining({ method: "POST" }),
   );
-  expect(result).toEqual({ ok: true, key: "1_123.jpg" });
+  expect(result).toEqual({ ok: true, id: "photo-1", key: "1_123" });
 });
 
 // ---------------------------------------------------------------------------
@@ -170,4 +178,28 @@ test("fetchAuthMe returns ok: false when not logged in", async () => {
   mockFetch({ ok: false });
   const result = await fetchAuthMe();
   expect(result.ok).toBe(false);
+});
+
+// ---------------------------------------------------------------------------
+// Gallery
+// ---------------------------------------------------------------------------
+
+test("fetchGalleryPhotos GETs /gallery/:project/:city/photos", async () => {
+  mockFetch({ ok: true, photos: [] });
+  await fetchGalleryPhotos("democrats_abroad", "den_haag");
+  expect(fetch).toHaveBeenCalledWith("/gallery/democrats_abroad/den_haag/photos");
+});
+
+test("fetchGalleryPhotos appends team/task filters as query params", async () => {
+  mockFetch({ ok: true, photos: [] });
+  await fetchGalleryPhotos("democrats_abroad", "den_haag", { team: "Team A", task: "Plaque" });
+  expect(fetch).toHaveBeenCalledWith(
+    "/gallery/democrats_abroad/den_haag/photos?team=Team+A&task=Plaque",
+  );
+});
+
+test("fetchRandomPhotos GETs /gallery/:project/:city/photos/random", async () => {
+  mockFetch({ ok: true, photos: [] });
+  await fetchRandomPhotos("democrats_abroad", "den_haag");
+  expect(fetch).toHaveBeenCalledWith("/gallery/democrats_abroad/den_haag/photos/random");
 });

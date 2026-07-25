@@ -15,9 +15,11 @@
     "format": "prettier --write \"src/**/*.{ts,svelte,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,svelte,css,md}\"",
     "validate:yaml": "node scripts/validate-yaml.js",
+    "backfill-photos": "tsx scripts/backfill-photos.ts",
     "typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json"
   },
   "dependencies": {
+    "@cf-wasm/photon": "^0.3.7",
     "js-yaml": "^4.1.1",
     "leaflet": "^1.9.4",
     "lucide-svelte": "^0.475.0",
@@ -26,6 +28,7 @@
     "svelte-spa-router": "^4.0.1"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1095.0",
     "@cloudflare/vite-plugin": "^1.30.0",
     "@cloudflare/workers-types": "^4.20260504.1",
     "@eslint/js": "^9.39.4",
@@ -49,6 +52,7 @@
     "prettier-plugin-svelte": "^3.3.2",
     "svelte-check": "^4.1.4",
     "svelte-eslint-parser": "^0.42.0",
+    "tsx": "^4.23.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.1",
     "vite": "^6.0.1",

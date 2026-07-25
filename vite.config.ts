@@ -77,7 +77,7 @@ export default defineConfig(async () => {
       passWithNoTests: true,
       pool: "threads",
       singleThread: true,
-      isolate: false,
+      isolate: true,
       deps: {
         optimizer: {
           web: { enabled: true },
