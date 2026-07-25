@@ -17,7 +17,7 @@ beforeEach(() => {
 });
 
 describe("requireAuth", () => {
-  it("returns true when authenticated", () => {
+  it("returns true when authenticated for the same project", () => {
     authStore.loginParticipant("proj", "Team", "t@test.com");
     expect(requireAuth({ params: { project: "proj" } })).toBe(true);
   });
@@ -31,6 +31,13 @@ describe("requireAuth", () => {
     const result = requireAuth({ params: { project: "proj" } });
     expect(result).toBe(false);
     expect(replace).toHaveBeenCalledWith("/login/proj");
+  });
+
+  it("redirects to that project's login when authenticated for a different project", () => {
+    authStore.loginParticipant("demo", "Team", "t@test.com");
+    const result = requireAuth({ params: { project: "democrats_abroad" } });
+    expect(result).toBe(false);
+    expect(replace).toHaveBeenCalledWith("/login/democrats_abroad");
   });
 });
 

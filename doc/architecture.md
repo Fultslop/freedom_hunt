@@ -231,6 +231,24 @@ CREATE TABLE photos (
 );
 ```
 
+### `form_submissions` table (D1, `AUTH_DB`)
+
+Populated by `POST /form-submit` for every project except `democrats_abroad`, which still forwards to the Google Apps Script at `FORM_SCRIPT_URL` (unchanged, legacy path — see `doc/setup.md`). Project is always taken from the participant's auth token, never from the request body.
+
+```sql
+CREATE TABLE form_submissions (
+  id            TEXT PRIMARY KEY,
+  project_id    TEXT NOT NULL,
+  city_id       TEXT NOT NULL,
+  route_id      TEXT,
+  location_id   TEXT NOT NULL,
+  team_name     TEXT NOT NULL,
+  contact       TEXT,
+  answers       TEXT NOT NULL,   -- JSON-encoded field-id → value map
+  submitted_at  INTEGER NOT NULL
+);
+```
+
 **R2 image variants.** Each photo is stored as three capped JPEG variants under a shared key prefix, generated in the Worker via `@cf-wasm/photon` (WASM, no native bindings) since Cloudflare's URL-based Image Resizing isn't available on the current plan:
 
 | Variant | Cap | Purpose |
@@ -267,7 +285,7 @@ Functions are grouped by domain:
 
 | Group | Functions |
 |-------|-----------|
-| Challenge | `postFormSubmit(payload)` → `POST /form-submit`; `postPhotoUpload(payload)` → `POST /upload` |
+| Challenge | `postFormSubmit(payload)` → `POST /form-submit` (routes to Google Sheet for `democrats_abroad`, D1 `form_submissions` for every other project); `postPhotoUpload(payload)` → `POST /upload` |
 | Editor | `fetchEditorLocations(project, city)`, `fetchEditorLocation(project, city, file)`, `saveEditorLocation(payload)`, `fetchPrStatuses(numbers[])` |
 | Auth | `fetchAuthMe()`, `postLogin(payload)`, `postLogout()` |
 | Gallery | `fetchGalleryPhotos(project, city, filters?)` → `GET /gallery/:project/:city/photos`; `fetchRandomPhotos(project, city)` → `GET /gallery/:project/:city/photos/random`; photo bytes served via `GET /photos/:id/:variant` |

@@ -31,6 +31,7 @@ test("postFormSubmit POSTs to /form-submit with payload and returns response", a
   const payload = {
     locationId: 1,
     routeId: "short_loop",
+    cityId: "den_haag",
     teamName: "Team A",
     contact: "a@b.com",
     answers: { note: "yes" },
@@ -48,6 +49,7 @@ test("postFormSubmit returns ok: false on server error", async () => {
   mockFetch({ ok: false });
   const result = await postFormSubmit({
     locationId: 1,
+    cityId: "den_haag",
     teamName: "",
     contact: "",
     answers: {},

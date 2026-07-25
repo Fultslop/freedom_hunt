@@ -8,6 +8,7 @@ import type { GalleryPhoto } from "../types/gallery";
 export interface FormSubmitPayload {
   locationId: number;
   routeId?: string;
+  cityId: string;
   teamName: string;
   contact: string;
   answers: Record<string, unknown>;

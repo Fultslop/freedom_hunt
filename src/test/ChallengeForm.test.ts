@@ -51,7 +51,7 @@ test("shows confirmation dialog when all required fields are filled", async () =
 
 test("calls postFormSubmit with correct payload on confirm", async () => {
   render(ChallengeForm, {
-    props: { form, locationId: 1, routeId: "short_loop" },
+    props: { form, locationId: 1, routeId: "short_loop", cityId: "den_haag" },
   });
   await fireEvent.input(screen.getByLabelText("Your note"), {
     target: { value: "some text" },
@@ -62,6 +62,7 @@ test("calls postFormSubmit with correct payload on confirm", async () => {
     expect.objectContaining({
       locationId: 1,
       routeId: "short_loop",
+      cityId: "den_haag",
       teamName: "Team A",
       contact: "team@test.com",
     }),

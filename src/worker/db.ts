@@ -316,6 +316,40 @@ export async function listPhotos(
   return result.results;
 }
 
+// ---------------------------------------------------------------------------
+// Form submission queries
+// ---------------------------------------------------------------------------
+
+export interface DbFormSubmission {
+  id: string;
+  project_id: string;
+  city_id: string;
+  route_id: string | null;
+  location_id: string;
+  team_name: string;
+  contact: string | null;
+  answers: string; // JSON-encoded
+  submitted_at: number;
+}
+
+export async function insertFormSubmission(
+  database: D1Database,
+  submission: DbFormSubmission,
+): Promise<void> {
+  await database
+    .prepare(
+      `INSERT INTO form_submissions
+       (id, project_id, city_id, route_id, location_id, team_name, contact, answers, submitted_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      submission.id, submission.project_id, submission.city_id,
+      submission.route_id ?? null, submission.location_id, submission.team_name,
+      submission.contact ?? null, submission.answers, submission.submitted_at,
+    )
+    .run();
+}
+
 export async function randomPhotos(
   database: D1Database,
   projectId: string,
