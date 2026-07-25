@@ -1,0 +1,18 @@
+title: "The White Basilica on the Hill"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Sacré-Cœur Basilica"
+address: "35 Rue du Chevalier de la Barre, 75018 Paris"
+coordinates:
+  longitude: 2.3431
+  latitude: 48.8867
+storyline: |
+  Completed in 1914, this basilica sits atop Montmartre — the highest point in Paris — and offers a sweeping view over the whole city.
+challenge:
+  name: ""
+  description: |
+    Find the steps in front of the basilica and count how many people are sitting on them.
+  notes: ""
+breadcrumb: |
+  Walk into the small square just behind the basilica.

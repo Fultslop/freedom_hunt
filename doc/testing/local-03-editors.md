@@ -71,4 +71,4 @@ npx wrangler d1 execute scavenger_hunt_auth --local \
 
 ## Done
 
-All three local flows are verified. When ready to test against Cloudflare, continue with [deployed-00-setup.md](deployed-00-setup.md).
+All three local flows are verified. Continue with [local-04-demo.md](local-04-demo.md).

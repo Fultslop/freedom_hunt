@@ -10,6 +10,7 @@ import {
   fetchAuthMe,
   fetchGalleryPhotos,
   fetchRandomPhotos,
+  postDemoSignup,
 } from "../utils/api";
 
 function mockFetch(response: unknown) {
@@ -31,6 +32,7 @@ test("postFormSubmit POSTs to /form-submit with payload and returns response", a
   const payload = {
     locationId: 1,
     routeId: "short_loop",
+    cityId: "den_haag",
     teamName: "Team A",
     contact: "a@b.com",
     answers: { note: "yes" },
@@ -48,6 +50,7 @@ test("postFormSubmit returns ok: false on server error", async () => {
   mockFetch({ ok: false });
   const result = await postFormSubmit({
     locationId: 1,
+    cityId: "den_haag",
     teamName: "",
     contact: "",
     answers: {},
@@ -202,4 +205,20 @@ test("fetchRandomPhotos GETs /gallery/:project/:city/photos/random", async () =>
   mockFetch({ ok: true, photos: [] });
   await fetchRandomPhotos("democrats_abroad", "den_haag");
   expect(fetch).toHaveBeenCalledWith("/gallery/democrats_abroad/den_haag/photos/random");
+});
+
+// ---------------------------------------------------------------------------
+// Demo participant signup
+// ---------------------------------------------------------------------------
+
+test("postDemoSignup POSTs to /auth/participant-signup and returns the response", async () => {
+  mockFetch({ ok: true, teamName: "Team Test", contact: "t@test.com", isAdmin: false });
+  const result = await postDemoSignup({
+    project: "demo", email: "t@test.com", teamName: "Team Test", password: "password123",
+  });
+  expect(fetch).toHaveBeenCalledWith(
+    "/auth/participant-signup",
+    expect.objectContaining({ method: "POST" }),
+  );
+  expect(result).toEqual({ ok: true, teamName: "Team Test", contact: "t@test.com", isAdmin: false });
 });

@@ -1,7 +1,8 @@
 import type { Env } from "../../types/worker";
 import type { DbPhoto } from "../db";
 import type { GalleryPhoto } from "../../types/gallery";
-import { requireAuth } from "../auth";
+import { requireAuth, requireParticipantForProject } from "../auth";
+import { isParticipantToken } from "../../types/auth";
 import { json } from "../utils";
 import { listPhotos, randomPhotos, getPhotoById } from "../db";
 import { buildVariantKey, PHOTO_VARIANTS, type PhotoVariant } from "../photoKeys";
@@ -35,21 +36,21 @@ export async function handleGalleryRoutes(
   const photoMatch = url.pathname.match(/^\/photos\/([^/]+)\/([^/]+)$/);
 
   if (randomMatch) {
-    const authPayload = await requireAuth(request, env);
-    if (!authPayload) {
-      return json({ ok: false, error: "Unauthorized" }, 401);
-    }
     const [, project, city] = randomMatch;
+    const authPayload = await requireParticipantForProject(request, env, project);
+    if (!authPayload) {
+      return json({ ok: false, error: "Forbidden" }, 403);
+    }
     const photos = await randomPhotos(env.AUTH_DB, project, city, RANDOM_SAMPLE_SIZE);
     return json({ ok: true, photos: photos.map(toGalleryPhoto) });
   }
 
   if (listMatch) {
-    const authPayload = await requireAuth(request, env);
-    if (!authPayload) {
-      return json({ ok: false, error: "Unauthorized" }, 401);
-    }
     const [, project, city] = listMatch;
+    const authPayload = await requireParticipantForProject(request, env, project);
+    if (!authPayload) {
+      return json({ ok: false, error: "Forbidden" }, 403);
+    }
     let photos = await listPhotos(env.AUTH_DB, project, city);
     const team = url.searchParams.get("team");
     const task = url.searchParams.get("task");
@@ -75,6 +76,9 @@ export async function handleGalleryRoutes(
     const photo = await getPhotoById(env.AUTH_DB, id);
     if (!photo) {
       return json({ ok: false, error: "Not found" }, 404);
+    }
+    if (!isParticipantToken(authPayload) || authPayload.project !== photo.project_id) {
+      return json({ ok: false, error: "Forbidden" }, 403);
     }
     const key = buildVariantKey(photo.r2_key, variant);
     const object = await env.PHOTOS.get(key);

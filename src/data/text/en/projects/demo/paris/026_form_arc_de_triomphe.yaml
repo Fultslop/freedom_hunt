@@ -1,0 +1,15 @@
+- id: photo
+  type: photo
+  label: Take a photo of the arch
+- id: visible_avenues
+  type: multiple
+  label: How many avenues can you count radiating from the circle?
+  min: 1
+  max: 3
+  options:
+    - "Fewer than 6"
+    - "6 to 10"
+    - "More than 10"
+- id: arch_notes
+  type: textarea
+  label: Describe the carvings on the arch in a sentence or two.

@@ -1,0 +1,9 @@
+- id: photo
+  type: photo
+  label: Take a photo of the plaza
+- id: rink_open
+  type: boolean
+  label: Is the ice rink open/in use right now?
+- id: statue_figure
+  type: string
+  label: Who does the golden statue depict?

@@ -1,0 +1,19 @@
+title: "Where France Buries Its Great"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Panthéon"
+address: "Place du Panthéon, 75005 Paris"
+coordinates:
+  longitude: 2.3464
+  latitude: 48.8462
+storyline: |
+  Originally a church, the Panthéon now serves as a mausoleum for figures like Voltaire, Rousseau, and Marie Curie.
+challenge:
+  name: ""
+  description: |
+    Find the dome from outside and estimate its height in stories.
+  notes: ""
+  form: "014_form_pantheon.yaml"
+breadcrumb: |
+  Head downhill toward one of the world's oldest universities.

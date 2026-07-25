@@ -1,0 +1,13 @@
+- id: photo
+  type: photo
+  label: Take a photo of the garden
+- id: garden_plant_count
+  type: number
+  label: Roughly how many distinct types of plants can you see?
+- id: garden_season
+  type: radio
+  label: How would you describe the garden right now?
+  options:
+    - In full bloom
+    - Green but not flowering
+    - Bare/wintering

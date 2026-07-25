@@ -1,0 +1,19 @@
+title: "The Artists' Square"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Place du Tertre"
+address: "Place du Tertre, 75018 Paris"
+coordinates:
+  longitude: 2.3407
+  latitude: 48.8867
+storyline: |
+  This small square has been a gathering place for painters since the late 1800s and is still full of working artists today.
+challenge:
+  name: ""
+  description: |
+    Find an artist at work and note what they're painting or drawing.
+  notes: ""
+  form: "022_form_place_du_tertre.yaml"
+breadcrumb: |
+  Head downhill toward a famous red windmill.

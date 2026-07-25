@@ -1,0 +1,18 @@
+title: "A Train Station Turned Museum"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Musée d'Orsay"
+address: "1 Rue de la Légion d'Honneur, 75007 Paris"
+coordinates:
+  longitude: 2.3266
+  latitude: 48.8600
+storyline: |
+  Once a railway station, the Musée d'Orsay now holds one of the world's largest collections of Impressionist and Post-Impressionist art.
+challenge:
+  name: ""
+  description: |
+    Find the giant station clock inside and note what time it shows.
+  notes: ""
+breadcrumb: |
+  Cross into the neighborhood of cafés and bookshops just south of here.

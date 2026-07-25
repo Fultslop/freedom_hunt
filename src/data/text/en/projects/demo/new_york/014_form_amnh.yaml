@@ -1,0 +1,12 @@
+- id: photo
+  type: photo
+  label: Take a photo of the entrance
+- id: statue_out_front
+  type: number
+  label: How many statues can you count near the entrance?
+- id: entrance_side
+  type: radio
+  label: Which entrance are you at?
+  options:
+    - Central Park West (main)
+    - Columbus Avenue

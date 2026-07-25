@@ -1,0 +1,13 @@
+- id: photo
+  type: photo
+  label: Take a photo of the statue or market
+- id: market_present
+  type: string
+  label: Is the greenmarket set up today? Describe what's for sale if so.
+- id: square_activity
+  type: radio
+  label: What's the square mostly being used for right now?
+  options:
+    - Market/shopping
+    - Skateboarding/recreation
+    - Just passing through

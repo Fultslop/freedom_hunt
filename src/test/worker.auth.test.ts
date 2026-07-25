@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from "vitest";
-import { createToken, verifyToken, checkRateLimit } from "../worker/auth";
+import { createToken, verifyToken, checkRateLimit, requireParticipantForProject } from "../worker/auth";
 import type { TokenPayload } from "../types/auth";
 
 const SECRET = "test-secret";
@@ -141,5 +141,40 @@ describe("token discrimination", () => {
     const result = await verifyToken(token, SECRET);
     expect(result).not.toBeNull();
     expect(isBootstrapToken(result as AnyTokenPayload)).toBe(true);
+  });
+});
+
+describe("requireParticipantForProject", () => {
+  it("returns the payload when the token's project matches", async () => {
+    const token = await createToken(
+      { project: "demo", teamName: "Team A", contact: "a@b.com", isAdmin: false, exp: Math.floor(Date.now() / 1000) + 3600 },
+      SECRET,
+    );
+    const request = new Request("https://example.com/x", { headers: { Cookie: `freedom_hunt_auth=${token}` } });
+    const result = await requireParticipantForProject(request, { AUTH_SECRET: SECRET } as any, "demo");
+    expect(result?.project).toBe("demo");
+  });
+
+  it("returns null when the token's project does not match", async () => {
+    const token = await createToken(
+      { project: "demo", teamName: "Team A", contact: "a@b.com", isAdmin: false, exp: Math.floor(Date.now() / 1000) + 3600 },
+      SECRET,
+    );
+    const request = new Request("https://example.com/x", { headers: { Cookie: `freedom_hunt_auth=${token}` } });
+    const result = await requireParticipantForProject(request, { AUTH_SECRET: SECRET } as any, "democrats_abroad");
+    expect(result).toBeNull();
+  });
+
+  it("returns null when there is no token", async () => {
+    const request = new Request("https://example.com/x");
+    const result = await requireParticipantForProject(request, { AUTH_SECRET: SECRET } as any, "demo");
+    expect(result).toBeNull();
+  });
+
+  it("returns null for a non-participant (editor) token", async () => {
+    const token = await createToken({ user_id: "u1", exp: Math.floor(Date.now() / 1000) + 3600 }, SECRET);
+    const request = new Request("https://example.com/x", { headers: { Cookie: `freedom_hunt_auth=${token}` } });
+    const result = await requireParticipantForProject(request, { AUTH_SECRET: SECRET } as any, "demo");
+    expect(result).toBeNull();
   });
 });

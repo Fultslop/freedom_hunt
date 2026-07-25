@@ -1,0 +1,13 @@
+- id: photo
+  type: photo
+  label: Take a photo of the ceiling mural
+- id: clock_faces_visible
+  type: number
+  label: How many of the clock's four faces can you see from where you're standing?
+- id: concourse_busy
+  type: radio
+  label: How busy is the main concourse right now?
+  options:
+    - Very crowded
+    - Moderately busy
+    - Nearly empty

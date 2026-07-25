@@ -1,0 +1,19 @@
+title: "Glass and Steel"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Grand Palais"
+address: "3 Avenue du Général Eisenhower, 75008 Paris"
+coordinates:
+  longitude: 2.3125
+  latitude: 48.8661
+storyline: |
+  The Grand Palais's iron-and-glass roof was, when built in 1900, the largest of its kind in the world.
+challenge:
+  name: ""
+  description: |
+    Find the main entrance and look up at the glass roof from directly underneath it.
+  notes: ""
+  form: "004_form_grand_palais.yaml"
+breadcrumb: |
+  Head toward the wide square to the south — you're looking for an obelisk.

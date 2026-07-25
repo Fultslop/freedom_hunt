@@ -1,0 +1,13 @@
+- id: photo
+  type: photo
+  label: Take a photo of the framed bridge view
+- id: bridge_visible
+  type: number
+  label: How many bridge towers/pillars can you count in the framed view?
+- id: street_surface
+  type: radio
+  label: What's the street surface like?
+  options:
+    - Cobblestone
+    - Paved
+    - Mixed

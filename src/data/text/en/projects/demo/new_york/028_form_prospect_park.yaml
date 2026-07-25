@@ -1,0 +1,13 @@
+- id: photo
+  type: photo
+  label: Take a photo of the Long Meadow
+- id: meadow_activity
+  type: string
+  label: What are people doing on the meadow?
+- id: crowd_level
+  type: radio
+  label: How busy is the park right now?
+  options:
+    - Very busy
+    - Moderately busy
+    - Quiet

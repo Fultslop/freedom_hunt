@@ -1,0 +1,41 @@
+riverside_route:
+  description: "A route along the Seine through the Eiffel Tower, Louvre, and Notre-Dame — 10 stops."
+  locations:
+    - 001_loc_eiffel_tower
+    - 002_loc_trocadero
+    - 003_loc_pont_alexandre
+    - 004_loc_grand_palais
+    - 005_loc_place_concorde
+    - 006_loc_tuileries
+    - 007_loc_louvre_pyramid
+    - 008_loc_pont_neuf
+    - 009_loc_notre_dame
+    - 010_loc_ile_saint_louis
+
+left_bank_route:
+  description: "A route through the Left Bank's museums, university quarter, and bookshops — 10 stops."
+  locations:
+    - 011_loc_musee_orsay
+    - 012_loc_saint_germain
+    - 013_loc_luxembourg_gardens
+    - 014_loc_pantheon
+    - 015_loc_sorbonne
+    - 016_loc_shakespeare_co
+    - 017_loc_rue_mouffetard
+    - 018_loc_arenes_lutece
+    - 019_loc_jardin_des_plantes
+    - 020_loc_institut_monde_arabe
+
+montmartre_route:
+  description: "A route up to Montmartre's hilltop basilica and back down the Champs-Élysées — 10 stops."
+  locations:
+    - 021_loc_sacre_coeur
+    - 022_loc_place_du_tertre
+    - 023_loc_moulin_rouge
+    - 024_loc_musee_montmartre
+    - 025_loc_cimetiere_montmartre
+    - 026_loc_arc_de_triomphe
+    - 027_loc_champs_elysees
+    - 028_loc_place_vendome
+    - 029_loc_opera_garnier
+    - 030_loc_galeries_lafayette

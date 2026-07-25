@@ -1,0 +1,19 @@
+title: "A Building That Breathes"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Institut du Monde Arabe"
+address: "1 Rue des Fossés Saint-Bernard, 75005 Paris"
+coordinates:
+  longitude: 2.3568
+  latitude: 48.8467
+storyline: |
+  This building's south facade is covered in hundreds of mechanical apertures inspired by traditional lattice screens, which open and close to control light.
+challenge:
+  name: ""
+  description: |
+    Find the mechanical facade and describe the pattern it makes.
+  notes: ""
+  form: "020_form_institut_monde_arabe.yaml"
+breadcrumb: |
+  This is the end of the Left Bank Route.

@@ -1,0 +1,19 @@
+title: "Shopping Under a Dome"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Galeries Lafayette rooftop"
+address: "40 Boulevard Haussmann, 75009 Paris"
+coordinates:
+  longitude: 2.3323
+  latitude: 48.8737
+storyline: |
+  This department store's stained-glass dome is a Paris landmark in its own right, and its rooftop terrace offers a free view over the city.
+challenge:
+  name: ""
+  description: |
+    Ride to the rooftop terrace and note which landmark from earlier in this route you can spot from up here.
+  notes: ""
+  form: "030_form_galeries_lafayette.yaml"
+breadcrumb: |
+  This is the end of the Montmartre Route — and of all three Paris routes.

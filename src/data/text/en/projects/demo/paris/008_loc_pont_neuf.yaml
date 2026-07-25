@@ -1,0 +1,19 @@
+title: "The 'New' Bridge"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Pont Neuf"
+address: "Pont Neuf, 75001 Paris"
+coordinates:
+  longitude: 2.3412
+  latitude: 48.8566
+storyline: |
+  Despite the name ("New Bridge"), this is the oldest standing bridge across the Seine, completed in 1607.
+challenge:
+  name: ""
+  description: |
+    Find one of the carved stone faces (mascarons) along the bridge's side and describe its expression.
+  notes: ""
+  form: "008_form_pont_neuf.yaml"
+breadcrumb: |
+  Continue downstream toward the cathedral on the island ahead.

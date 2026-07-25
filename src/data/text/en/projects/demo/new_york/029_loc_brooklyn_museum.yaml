@@ -1,0 +1,18 @@
+title: "One of the Largest Art Museums in the Country"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Brooklyn Museum"
+address: "200 Eastern Pkwy, Brooklyn, NY 11238"
+coordinates:
+  longitude: -73.9636
+  latitude: 40.6712
+storyline: |
+  This museum's collection spans ancient Egyptian artifacts to contemporary art, and its front steps and fountain are a popular local gathering spot.
+challenge:
+  name: ""
+  description: |
+    Find the fountain in front of the museum and note whether it's running.
+  notes: ""
+breadcrumb: |
+  Finish this route at the boardwalk, a longer trip south by subway.

@@ -1,0 +1,18 @@
+title: "Paris's Most Ornate Bridge"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Pont Alexandre III"
+address: "Pont Alexandre III, 75008 Paris"
+coordinates:
+  longitude: 2.3134
+  latitude: 48.8639
+storyline: |
+  Named for a Russian tsar, this bridge was built for the 1900 World's Fair and is covered in gilded statues and lamps.
+challenge:
+  name: ""
+  description: |
+    Count the gilded statues on the four corner pillars.
+  notes: ""
+breadcrumb: |
+  Follow the river east toward the Grand Palais's glass roof.

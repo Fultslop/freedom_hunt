@@ -1,5 +1,6 @@
 import type { Env } from "../types/worker";
-import type { AnyTokenPayload } from "../types/auth";
+import type { AnyTokenPayload, ParticipantTokenPayload } from "../types/auth";
+import { isParticipantToken } from "../types/auth";
 
 export const COOKIE_NAME = "freedom_hunt_auth";
 export const TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
@@ -107,6 +108,21 @@ export async function requireAuth(
   const match = cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]+)`));
   if (!match) {return null;}
   return verifyToken(match[1], env.AUTH_SECRET);
+}
+
+export async function requireParticipantForProject(
+  request: Request,
+  env: Env,
+  project: string,
+): Promise<ParticipantTokenPayload | null> {
+  const payload = await requireAuth(request, env);
+  if (!payload || !isParticipantToken(payload)) {
+    return null;
+  }
+  if (payload.project !== project) {
+    return null;
+  }
+  return payload;
 }
 
 export function cookieHeader(token: string, ttl: number): string {

@@ -1,0 +1,19 @@
+title: "Brooklyn's Central Park"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Prospect Park"
+address: "Prospect Park, Brooklyn, NY 11225"
+coordinates:
+  longitude: -73.9690
+  latitude: 40.6602
+storyline: |
+  Designed by the same architects behind Central Park, many New Yorkers consider Prospect Park's landscape design to be even better.
+challenge:
+  name: ""
+  description: |
+    Find the Long Meadow and note what people are doing on it.
+  notes: ""
+  form: "028_form_prospect_park.yaml"
+breadcrumb: |
+  Head to the art museum near the park's entrance.

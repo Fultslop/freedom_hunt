@@ -1,0 +1,18 @@
+title: "Patience and Fortitude"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "New York Public Library"
+address: "476 5th Ave, New York, NY 10018"
+coordinates:
+  longitude: -73.9822
+  latitude: 40.7532
+storyline: |
+  The two marble lions guarding the library's entrance are nicknamed "Patience" and "Fortitude," names given by Mayor Fiorello La Guardia during the Great Depression.
+challenge:
+  name: ""
+  description: |
+    Find the two lion statues and note which one is on the north side.
+  notes: ""
+breadcrumb: |
+  Head toward the tallest building on this route.

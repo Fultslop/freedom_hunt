@@ -1,0 +1,18 @@
+title: "The Most Beautiful Avenue in the World"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Champs-Élysées"
+address: "Avenue des Champs-Élysées, 75008 Paris"
+coordinates:
+  longitude: 2.3078
+  latitude: 48.8698
+storyline: |
+  This avenue has been a place for parades, protests, and shopping since the 19th century, and hosts the finish line of the Tour de France.
+challenge:
+  name: ""
+  description: |
+    Find a flagship store you recognize and note its name.
+  notes: ""
+breadcrumb: |
+  Turn toward a square known for its jewelers.

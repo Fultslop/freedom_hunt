@@ -1,0 +1,19 @@
+title: "The People's Playground"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Coney Island boardwalk"
+address: "Riegelmann Boardwalk, Brooklyn, NY 11224"
+coordinates:
+  longitude: -73.9846
+  latitude: 40.5749
+storyline: |
+  Coney Island has been a beachside amusement destination since the late 1800s and is home to the historic Wonder Wheel and Cyclone roller coaster.
+challenge:
+  name: ""
+  description: |
+    Find the Wonder Wheel and note whether it's running.
+  notes: ""
+  form: "030_form_coney_island.yaml"
+breadcrumb: |
+  This is the end of the Brooklyn Route — and of all three New York routes.

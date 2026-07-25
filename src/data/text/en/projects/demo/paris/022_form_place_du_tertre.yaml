@@ -1,0 +1,9 @@
+- id: photo
+  type: photo
+  label: Take a photo of an artist at work
+- id: artist_present
+  type: boolean
+  label: Was at least one artist actively painting?
+- id: subject_matter
+  type: string
+  label: What were they painting or drawing?

@@ -1,0 +1,15 @@
+- id: photo
+  type: photo
+  label: Take a photo of the view from the castle
+- id: visible_landmarks
+  type: multiple
+  label: What can you see from up here?
+  min: 0
+  max: 3
+  options:
+    - The lake/pond below
+    - Skyscrapers beyond the park
+    - The Great Lawn
+- id: view_notes
+  type: textarea
+  label: Describe the view in a sentence or two.

@@ -1,0 +1,18 @@
+title: "The Crossroads of the World"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Times Square"
+address: "Times Square, Manhattan, NY 10036"
+coordinates:
+  longitude: -73.9855
+  latitude: 40.7580
+storyline: |
+  Named for the New York Times building that once stood here, Times Square is famous for its towering electronic billboards and New Year's Eve ball drop.
+challenge:
+  name: ""
+  description: |
+    Count how many electronic billboards you can see from where you're standing.
+  notes: ""
+breadcrumb: |
+  Walk a few blocks to a plaza with a golden statue and a famous skating rink.

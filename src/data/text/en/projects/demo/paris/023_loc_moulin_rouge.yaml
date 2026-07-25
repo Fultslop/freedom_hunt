@@ -1,0 +1,18 @@
+title: "The Red Windmill"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Moulin Rouge"
+address: "82 Boulevard de Clichy, 75018 Paris"
+coordinates:
+  longitude: 2.3322
+  latitude: 48.8841
+storyline: |
+  Opened in 1889, this cabaret is famous for popularizing the modern form of the can-can dance.
+challenge:
+  name: ""
+  description: |
+    Find the red windmill sails and note how many blades you can count.
+  notes: ""
+breadcrumb: |
+  Head back uphill toward a small museum dedicated to the neighborhood's artists.

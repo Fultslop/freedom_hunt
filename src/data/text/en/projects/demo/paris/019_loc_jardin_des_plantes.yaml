@@ -1,0 +1,18 @@
+title: "Paris's Botanical Garden"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Jardin des Plantes"
+address: "57 Rue Cuvier, 75005 Paris"
+coordinates:
+  longitude: 2.3590
+  latitude: 48.8440
+storyline: |
+  Founded in 1626 as a royal medicinal garden, it now includes a botanical garden, several museums, and a small zoo.
+challenge:
+  name: ""
+  description: |
+    Find the garden's oldest tree, planted in the 1600s, if you can locate its marker.
+  notes: ""
+breadcrumb: |
+  End this route at a striking modern building along the river.

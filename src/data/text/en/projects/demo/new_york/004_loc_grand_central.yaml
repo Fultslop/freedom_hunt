@@ -1,0 +1,19 @@
+title: "A Ceiling Full of Stars"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Grand Central Terminal"
+address: "89 E 42nd St, New York, NY 10017"
+coordinates:
+  longitude: -73.9772
+  latitude: 40.7527
+storyline: |
+  Grand Central's main concourse ceiling is painted with a mural of the night sky — though famously painted backwards, showing the constellations mirror-reversed.
+challenge:
+  name: ""
+  description: |
+    Stand in the main concourse and look up — find the famous four-faced clock above the information booth.
+  notes: ""
+  form: "004_form_grand_central.yaml"
+breadcrumb: |
+  Walk a few blocks to a library guarded by two stone lions.

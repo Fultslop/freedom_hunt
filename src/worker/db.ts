@@ -316,6 +316,93 @@ export async function listPhotos(
   return result.results;
 }
 
+// ---------------------------------------------------------------------------
+// Form submission queries
+// ---------------------------------------------------------------------------
+
+export interface DbFormSubmission {
+  id: string;
+  project_id: string;
+  city_id: string;
+  route_id: string | null;
+  location_id: string;
+  team_name: string;
+  contact: string | null;
+  answers: string; // JSON-encoded
+  submitted_at: number;
+}
+
+export async function insertFormSubmission(
+  database: D1Database,
+  submission: DbFormSubmission,
+): Promise<void> {
+  await database
+    .prepare(
+      `INSERT INTO form_submissions
+       (id, project_id, city_id, route_id, location_id, team_name, contact, answers, submitted_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      submission.id, submission.project_id, submission.city_id,
+      submission.route_id ?? null, submission.location_id, submission.team_name,
+      submission.contact ?? null, submission.answers, submission.submitted_at,
+    )
+    .run();
+}
+
+// ---------------------------------------------------------------------------
+// Participant whitelist / individual account queries
+// ---------------------------------------------------------------------------
+
+export interface DbParticipantAccount {
+  id: string;
+  email: string;
+  project_id: string;
+  team_name: string;
+  contact: string | null;
+  password_hash: string;
+  created_at: number;
+}
+
+export async function getWhitelistEntry(
+  database: D1Database,
+  email: string,
+  projectId: string,
+): Promise<{ email: string; project_id: string } | null> {
+  return database
+    .prepare("SELECT * FROM participant_whitelist WHERE email = ? AND project_id = ?")
+    .bind(email, projectId)
+    .first();
+}
+
+export async function getParticipantAccountByEmail(
+  database: D1Database,
+  email: string,
+  projectId: string,
+): Promise<DbParticipantAccount | null> {
+  return database
+    .prepare("SELECT * FROM participant_accounts WHERE email = ? AND project_id = ?")
+    .bind(email, projectId)
+    .first<DbParticipantAccount>();
+}
+
+export async function insertParticipantAccount(
+  database: D1Database,
+  account: DbParticipantAccount,
+): Promise<void> {
+  await database
+    .prepare(
+      `INSERT INTO participant_accounts
+       (id, email, project_id, team_name, contact, password_hash, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      account.id, account.email, account.project_id, account.team_name,
+      account.contact ?? null, account.password_hash, account.created_at,
+    )
+    .run();
+}
+
 export async function randomPhotos(
   database: D1Database,
   projectId: string,

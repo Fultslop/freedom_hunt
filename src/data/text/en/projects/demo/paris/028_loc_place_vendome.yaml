@@ -1,0 +1,19 @@
+title: "The Jewelers' Square"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Place Vendôme"
+address: "Place Vendôme, 75001 Paris"
+coordinates:
+  longitude: 2.3291
+  latitude: 48.8683
+storyline: |
+  This elegant square is home to some of the world's most famous jewelry and watch houses, and a column built from melted-down cannons.
+challenge:
+  name: ""
+  description: |
+    Find the central column and note what statue stands on top of it.
+  notes: ""
+  form: "028_form_place_vendome.yaml"
+breadcrumb: |
+  Head toward the ornate opera house nearby.

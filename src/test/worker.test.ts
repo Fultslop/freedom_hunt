@@ -11,7 +11,7 @@ import type { Env } from "../types/worker";
 
 const TEST_SECRET = "test-secret";
 const TEST_PAYLOAD: TokenPayload = {
-  project: "test_project",
+  project: "democrats_abroad",
   teamName: "Team A",
   contact: "a@b.com",
   isAdmin: false,
@@ -109,6 +109,53 @@ describe("/form-submit", () => {
     expect(response.status).toBe(500);
     const data = await response.json();
     expect(data.ok).toBe(false);
+  });
+
+  it("writes to form_submissions D1 table for non-DA projects instead of calling fetch", async () => {
+    const demoToken = await createToken(
+      { project: "demo", teamName: "Team A", contact: "a@b.com", isAdmin: false, exp: Math.floor(Date.now() / 1000) + 3600 },
+      TEST_SECRET,
+    );
+    const fetchSpy = vi.fn();
+    globalThis.fetch = fetchSpy;
+    const inserted: unknown[] = [];
+    const env: Env = {
+      FORM_SCRIPT_URL: "https://script.google.com/fake",
+      AUTH_STORE: { get: async () => null },
+      AUTH_SECRET: TEST_SECRET,
+      AUTH_DB: {
+        prepare: () => ({
+          bind: (...args: unknown[]) => {
+            inserted.push(args);
+            return { run: async () => {} };
+          },
+        }),
+      },
+    } as unknown as Env;
+    const request = new Request("https://example.com/form-submit", {
+      method: "POST",
+      body: JSON.stringify({ locationId: 1, cityId: "paris", answers: { q1: "a" } }),
+      headers: { "Content-Type": "application/json", Cookie: `freedom_hunt_auth=${demoToken}` },
+    });
+
+    const response = await worker.fetch(request, env);
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.ok).toBe(true);
+    expect(inserted[0]).toContain("demo");
+    expect(inserted[0]).toContain("Team A");
+  });
+
+  it("returns 401 for /form-submit when not authenticated", async () => {
+    const env: Env = { AUTH_SECRET: TEST_SECRET } as unknown as Env;
+    const request = new Request("https://example.com/form-submit", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    const response = await worker.fetch(request, env);
+    expect(response.status).toBe(401);
   });
 });
 

@@ -1,0 +1,13 @@
+- id: photo
+  type: photo
+  label: Take a photo of the column
+- id: column_top
+  type: string
+  label: What's on top of the column?
+- id: storefronts
+  type: radio
+  label: What kind of storefronts dominate the square?
+  options:
+    - Jewelry/watches
+    - Fashion
+    - Hotels

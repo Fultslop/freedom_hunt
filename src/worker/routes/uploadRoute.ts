@@ -19,6 +19,9 @@ export async function handleUploadRoute(
     return null;
   }
 
+  // No project to check against here (project always comes from the token
+  // itself, per requireParticipantForProject's contract, but this route has
+  // nothing else to compare it to) — requireAuth + isParticipantToken is correct as-is.
   const authPayload = await requireAuth(request, env);
   if (!authPayload || !isParticipantToken(authPayload)) {
     return json({ ok: false, error: "Unauthorized" }, 401);

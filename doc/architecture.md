@@ -100,6 +100,8 @@ doc/
 | Path                     | Component     | Notes                                               |
 | ------------------------ | ------------- | --------------------------------------------------- |
 | `/`                      | `AppPage`     | Lists projects from `projects/projects.yaml`        |
+| `/login/demo`            | `DemoLoginPage` | Email+password login for the `demo` project only — matched before the `/login/:project` wildcard |
+| `/signup/demo`           | `DemoSignupPage` | Email+password signup for the `demo` project only — matched before the `/signup` route |
 | `/:project`              | `ProjectPage` | City picker; loads `projects/<project>/cities.yaml` |
 | `/:project/:city`        | `CityPage`    | Route picker; loads `<city>/routes.yaml`            |
 | `/:project/:city/:route` | `RoutePage`   | Swipe-based challenge flow; loads location YAMLs    |
@@ -231,6 +233,28 @@ CREATE TABLE photos (
 );
 ```
 
+### `participant_whitelist` / `participant_accounts` tables (D1, `AUTH_DB`)
+
+Used only by the `demo` project's participant auth. `participant_whitelist` gates who may sign up (`email`, `project_id`, `added_at` — managed manually via `wrangler d1 execute`, no admin UI). `participant_accounts` holds individual email+password participant accounts (`id`, `email`, `project_id`, `team_name`, `contact`, `password_hash`, `created_at`), scoped per-project. Login/signup both issue the same `ParticipantTokenPayload` shape as the shared-team-password flow used by every other project — the rest of the app (forms, uploads, gallery, route guards) can't tell the two auth modes apart.
+
+### `form_submissions` table (D1, `AUTH_DB`)
+
+Populated by `POST /form-submit` for every project except `democrats_abroad`, which still forwards to the Google Apps Script at `FORM_SCRIPT_URL` (unchanged, legacy path — see `doc/setup.md`). Project is always taken from the participant's auth token, never from the request body.
+
+```sql
+CREATE TABLE form_submissions (
+  id            TEXT PRIMARY KEY,
+  project_id    TEXT NOT NULL,
+  city_id       TEXT NOT NULL,
+  route_id      TEXT,
+  location_id   TEXT NOT NULL,
+  team_name     TEXT NOT NULL,
+  contact       TEXT,
+  answers       TEXT NOT NULL,   -- JSON-encoded field-id → value map
+  submitted_at  INTEGER NOT NULL
+);
+```
+
 **R2 image variants.** Each photo is stored as three capped JPEG variants under a shared key prefix, generated in the Worker via `@cf-wasm/photon` (WASM, no native bindings) since Cloudflare's URL-based Image Resizing isn't available on the current plan:
 
 | Variant | Cap | Purpose |
@@ -267,7 +291,7 @@ Functions are grouped by domain:
 
 | Group | Functions |
 |-------|-----------|
-| Challenge | `postFormSubmit(payload)` → `POST /form-submit`; `postPhotoUpload(payload)` → `POST /upload` |
+| Challenge | `postFormSubmit(payload)` → `POST /form-submit` (routes to Google Sheet for `democrats_abroad`, D1 `form_submissions` for every other project); `postPhotoUpload(payload)` → `POST /upload` |
 | Editor | `fetchEditorLocations(project, city)`, `fetchEditorLocation(project, city, file)`, `saveEditorLocation(payload)`, `fetchPrStatuses(numbers[])` |
 | Auth | `fetchAuthMe()`, `postLogin(payload)`, `postLogout()` |
 | Gallery | `fetchGalleryPhotos(project, city, filters?)` → `GET /gallery/:project/:city/photos`; `fetchRandomPhotos(project, city)` → `GET /gallery/:project/:city/photos/random`; photo bytes served via `GET /photos/:id/:variant` |

@@ -1,0 +1,18 @@
+title: "One of Paris's Oldest Streets"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Rue Mouffetard"
+address: "Rue Mouffetard, 75005 Paris"
+coordinates:
+  longitude: 2.3499
+  latitude: 48.8434
+storyline: |
+  This winding market street follows a Roman road and has been a marketplace for centuries.
+challenge:
+  name: ""
+  description: |
+    Find a food stall or shop selling something you don't recognize and note what it is.
+  notes: ""
+breadcrumb: |
+  Look for a hidden Roman ruin a few streets away.

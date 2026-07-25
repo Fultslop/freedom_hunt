@@ -1,0 +1,18 @@
+title: "The Phantom's Opera House"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Opéra Garnier"
+address: "Place de l'Opéra, 75009 Paris"
+coordinates:
+  longitude: 2.3316
+  latitude: 48.8719
+storyline: |
+  Completed in 1875, this opulent opera house inspired the setting for "The Phantom of the Opera" and still hosts ballet and opera performances.
+challenge:
+  name: ""
+  description: |
+    Find the facade's sculptures and note one figure you can identify.
+  notes: ""
+breadcrumb: |
+  Finish this route at a department store with a famous rooftop view.

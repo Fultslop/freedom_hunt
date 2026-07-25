@@ -56,10 +56,10 @@ function makeDb(photos = SAMPLE_PHOTOS) {
 }
 
 describe("GET /gallery/:project/:city/photos", () => {
-  it("returns 401 when not authenticated", async () => {
+  it("returns 403 when not authenticated", async () => {
     const request = new Request("https://example.com/gallery/democrats_abroad/den_haag/photos");
     const response = await worker.fetch(request, { AUTH_SECRET: TEST_SECRET, AUTH_DB: makeDb() } as unknown as Env);
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
   });
 
   it("returns all photos for the project+city with derived variant URLs", async () => {
@@ -92,10 +92,10 @@ describe("GET /gallery/:project/:city/photos", () => {
 });
 
 describe("GET /gallery/:project/:city/photos/random", () => {
-  it("returns 401 when not authenticated", async () => {
+  it("returns 403 when not authenticated", async () => {
     const request = new Request("https://example.com/gallery/democrats_abroad/den_haag/photos/random");
     const response = await worker.fetch(request, { AUTH_SECRET: TEST_SECRET, AUTH_DB: makeDb() } as unknown as Env);
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
   });
 
   it("returns photos for the project+city", async () => {
@@ -152,5 +152,41 @@ describe("GET /photos/:id/:variant", () => {
     expect(getMock).toHaveBeenCalledWith("1_1000/full.jpg");
     expect(response.headers.get("Content-Type")).toBe("image/jpeg");
     expect(response.headers.get("Cache-Control")).toContain("immutable");
+  });
+});
+
+describe("cross-project access", () => {
+  let otherProjectToken: string;
+  beforeEach(async () => {
+    otherProjectToken = await createToken(
+      { ...TEST_PAYLOAD, project: "demo" },
+      TEST_SECRET,
+    );
+  });
+
+  it("returns 403 when the token's project doesn't match the gallery list URL", async () => {
+    const request = new Request("https://example.com/gallery/democrats_abroad/den_haag/photos", {
+      headers: { Cookie: `freedom_hunt_auth=${otherProjectToken}` },
+    });
+    const response = await worker.fetch(request, { AUTH_SECRET: TEST_SECRET, AUTH_DB: makeDb() } as unknown as Env);
+    expect(response.status).toBe(403);
+  });
+
+  it("returns 403 when the token's project doesn't match the random-photos URL", async () => {
+    const request = new Request("https://example.com/gallery/democrats_abroad/den_haag/photos/random", {
+      headers: { Cookie: `freedom_hunt_auth=${otherProjectToken}` },
+    });
+    const response = await worker.fetch(request, { AUTH_SECRET: TEST_SECRET, AUTH_DB: makeDb() } as unknown as Env);
+    expect(response.status).toBe(403);
+  });
+
+  it("returns 403 when requesting a photo belonging to a different project", async () => {
+    const request = new Request("https://example.com/photos/p1/thumb", {
+      headers: { Cookie: `freedom_hunt_auth=${otherProjectToken}` },
+    });
+    const response = await worker.fetch(request, {
+      AUTH_SECRET: TEST_SECRET, AUTH_DB: makeDb(), PHOTOS: { get: vi.fn() },
+    } as unknown as Env);
+    expect(response.status).toBe(403);
   });
 });

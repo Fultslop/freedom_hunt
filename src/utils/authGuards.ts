@@ -9,8 +9,11 @@ export function requireAuth(detail: {
   if (authLoading || isLoggingOut) {
     return true;
   }
-  if (!activeAuth) {
-    replace(`/login/${detail.params?.project ?? ""}`);
+  const project = detail.params?.project ?? "";
+  const wrongProject =
+    activeAuth?.kind === "participant" && activeAuth.projectId !== project;
+  if (!activeAuth || wrongProject) {
+    replace(`/login/${project}`);
     return false;
   }
   return true;

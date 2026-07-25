@@ -1,0 +1,19 @@
+title: "A Roman Arena Hidden in Plain Sight"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Arènes de Lutèce"
+address: "49 Rue Monge, 75005 Paris"
+coordinates:
+  longitude: 2.3532
+  latitude: 48.8447
+storyline: |
+  This 1st-century Roman amphitheater once seated 15,000 people and was rediscovered — partly buried — in the 19th century.
+challenge:
+  name: ""
+  description: |
+    Stand in the center of the arena and note what it's being used for today.
+  notes: ""
+  form: "018_form_arenes_lutece.yaml"
+breadcrumb: |
+  Head toward the botanical garden nearby.

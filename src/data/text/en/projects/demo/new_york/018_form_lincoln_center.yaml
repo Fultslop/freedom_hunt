@@ -1,0 +1,13 @@
+- id: photo
+  type: photo
+  label: Take a photo of the plaza fountain
+- id: fountain_state
+  type: string
+  label: Describe the fountain's current state (running, still, decorated, etc).
+- id: buildings_visible
+  type: radio
+  label: How many performance halls can you see from the plaza?
+  options:
+    - "1"
+    - "2"
+    - "3 or more"

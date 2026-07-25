@@ -1,0 +1,9 @@
+- id: photo
+  type: photo
+  label: Take a photo of a docked ship
+- id: ship_present
+  type: boolean
+  label: Is a historic ship docked at the pier right now?
+- id: ship_name
+  type: string
+  label: What is the ship's name (if visible)?

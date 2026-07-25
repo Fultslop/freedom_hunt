@@ -1,0 +1,18 @@
+title: "A Cemetery of Artists"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Cimetière de Montmartre"
+address: "20 Avenue Rachel, 75018 Paris"
+coordinates:
+  longitude: 2.3297
+  latitude: 48.8867
+storyline: |
+  This cemetery is the resting place of many painters, writers, and musicians who once lived in Montmartre.
+challenge:
+  name: ""
+  description: |
+    Find the cemetery's entrance gate and note what's carved or written on it.
+  notes: ""
+breadcrumb: |
+  Head south toward a monumental arch.

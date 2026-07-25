@@ -1,0 +1,19 @@
+title: "Where the Painters Lived"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Musée de Montmartre"
+address: "12 Rue Cortot, 75018 Paris"
+coordinates:
+  longitude: 2.3407
+  latitude: 48.8875
+storyline: |
+  Housed in the oldest building in Montmartre, this museum occupies a former studio used by Renoir and other painters.
+challenge:
+  name: ""
+  description: |
+    Find the museum's garden and note what's growing in it.
+  notes: ""
+  form: "024_form_musee_montmartre.yaml"
+breadcrumb: |
+  Head to the cemetery a short walk downhill.

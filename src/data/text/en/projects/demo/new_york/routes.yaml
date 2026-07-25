@@ -1,0 +1,41 @@
+manhattan_route:
+  description: "A route through Midtown Manhattan's biggest landmarks — 10 stops."
+  locations:
+    - 001_loc_times_square
+    - 002_loc_rockefeller_center
+    - 003_loc_st_patricks
+    - 004_loc_grand_central
+    - 005_loc_nypl
+    - 006_loc_empire_state
+    - 007_loc_flatiron
+    - 008_loc_union_square
+    - 009_loc_washington_square
+    - 010_loc_one_wtc
+
+museums_parks_route:
+  description: "A route through Central Park and its surrounding museums — 10 stops."
+  locations:
+    - 011_loc_central_park_mall
+    - 012_loc_bethesda_terrace
+    - 013_loc_met
+    - 014_loc_amnh
+    - 015_loc_strawberry_fields
+    - 016_loc_belvedere_castle
+    - 017_loc_columbus_circle
+    - 018_loc_lincoln_center
+    - 019_loc_moma
+    - 020_loc_bryant_park
+
+brooklyn_route:
+  description: "A route across the Brooklyn Bridge and along the waterfront to Coney Island — 10 stops."
+  locations:
+    - 021_loc_brooklyn_bridge
+    - 022_loc_south_street_seaport
+    - 023_loc_brooklyn_bridge_park
+    - 024_loc_dumbo
+    - 025_loc_brooklyn_heights_promenade
+    - 026_loc_domino_park
+    - 027_loc_williamsburg_waterfront
+    - 028_loc_prospect_park
+    - 029_loc_brooklyn_museum
+    - 030_loc_coney_island

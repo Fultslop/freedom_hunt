@@ -1,0 +1,18 @@
+title: "MoMA"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Museum of Modern Art (MoMA)"
+address: "11 W 53rd St, New York, NY 10019"
+coordinates:
+  longitude: -73.9776
+  latitude: 40.7614
+storyline: |
+  MoMA's collection includes some of the most famous works of modern art in the world, including van Gogh's "The Starry Night."
+challenge:
+  name: ""
+  description: |
+    Find the museum's entrance and note the color and material of its facade.
+  notes: ""
+breadcrumb: |
+  Finish this route at a quiet park behind the public library.

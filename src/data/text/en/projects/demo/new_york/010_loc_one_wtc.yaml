@@ -1,0 +1,19 @@
+title: "Freedom Tower"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "One World Trade Center"
+address: "285 Fulton St, New York, NY 10007"
+coordinates:
+  longitude: -74.0134
+  latitude: 40.7127
+storyline: |
+  Standing 1,776 feet tall — a height chosen to reference the year of American independence — One World Trade Center is the tallest building in the Western Hemisphere.
+challenge:
+  name: ""
+  description: |
+    Look up at the building's spire and note its shape compared to the rest of the tower.
+  notes: ""
+  form: "010_form_one_wtc.yaml"
+breadcrumb: |
+  This is the end of the Manhattan Route.

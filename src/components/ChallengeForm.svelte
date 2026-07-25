@@ -27,6 +27,7 @@
     const data = await postFormSubmit({
       locationId,
       routeId,
+      cityId,
       teamName: auth?.kind === "participant" ? auth.teamName : "",
       contact: auth?.kind === "participant" ? (auth.contact ?? "") : "",
       answers: values,

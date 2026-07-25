@@ -1,0 +1,13 @@
+- id: photo
+  type: photo
+  label: Take a photo of the glass roof from below
+- id: entrance_count
+  type: number
+  label: How many entrance doors can you count on the main facade?
+- id: current_use
+  type: radio
+  label: What does the building look like it's being used for right now?
+  options:
+    - An exhibition or art event
+    - Renovation/construction
+    - Nothing visible — closed

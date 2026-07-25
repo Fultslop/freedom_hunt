@@ -1,0 +1,18 @@
+title: "The Iron Lady"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Eiffel Tower"
+address: "Champ de Mars, 5 Avenue Anatole France, 75007 Paris"
+coordinates:
+  longitude: 2.2945
+  latitude: 48.8584
+storyline: |
+  Built for the 1889 World's Fair, the tower was meant to stand for twenty years and then be torn down. It's still here.
+challenge:
+  name: ""
+  description: |
+    Find the base of one of the tower's four legs and note which one you're standing at (North, South, East, or West).
+  notes: ""
+breadcrumb: |
+  Cross toward the river and look back — the best view of the tower isn't from underneath it.

@@ -1,0 +1,18 @@
+title: "The Senate's Garden"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Luxembourg Gardens"
+address: "Rue de Médicis - Rue de Vaugirard, 75006 Paris"
+coordinates:
+  longitude: 2.3372
+  latitude: 48.8462
+storyline: |
+  These formal gardens surround the Luxembourg Palace, now home to the French Senate.
+challenge:
+  name: ""
+  description: |
+    Find the central octagonal pond and note what people are doing around it.
+  notes: ""
+breadcrumb: |
+  Walk east toward a domed building on a hill.

@@ -15,11 +15,13 @@ function makeKv(data: Record<string, string> = {}) {
   };
 }
 
-// Minimal D1 mock (users + user_project_caps tables)
-function makeDb(users: any[] = [], caps: any[] = [], tokens: any[] = []) {
+// Minimal D1 mock (users + user_project_caps + participant_whitelist + participant_accounts)
+function makeDb(users: any[] = [], caps: any[] = [], tokens: any[] = [], whitelist: any[] = [], participants: any[] = []) {
   const u = [...users];
   const c = [...caps];
   const t = [...tokens];
+  const w = [...whitelist];
+  const p = [...participants];
   return {
     prepare: (sql: string) => {
       const args: any[] = [];
@@ -28,6 +30,8 @@ function makeDb(users: any[] = [], caps: any[] = [], tokens: any[] = []) {
         first: async () => {
           if (sql.includes("FROM users WHERE email")) return u.find((x) => x.email === args[0]) ?? null;
           if (sql.includes("FROM users WHERE id")) return u.find((x) => x.id === args[0]) ?? null;
+          if (sql.includes("FROM participant_whitelist")) return w.find((x) => x.email === args[0] && x.project_id === args[1]) ?? null;
+          if (sql.includes("FROM participant_accounts")) return p.find((x) => x.email === args[0] && x.project_id === args[1]) ?? null;
           return null;
         },
         run: async () => {
@@ -39,6 +43,10 @@ function makeDb(users: any[] = [], caps: any[] = [], tokens: any[] = []) {
             const exists = c.find((x) => x.user_id === args[0] && x.project_id === args[1] && x.capability === args[2]);
             if (!exists) c.push({ user_id: args[0], project_id: args[1], capability: args[2], granted_at: args[3], granted_by_user_id: args[4], revoked_at: null });
             return { meta: { changes: exists ? 0 : 1 } };
+          }
+          if (sql.startsWith("INSERT INTO participant_accounts")) {
+            p.push({ id: args[0], email: args[1], project_id: args[2], team_name: args[3], contact: args[4], password_hash: args[5], created_at: args[6] });
+            return { meta: { changes: 1 } };
           }
           return { meta: { changes: 0 } };
         },
@@ -275,5 +283,124 @@ describe("POST /auth/bootstrap/promote", () => {
     );
     const res = await handleAuthRoutes(req, new URL(req.url), env);
     expect(res?.status).toBe(404);
+  });
+});
+
+describe("POST /auth/login with project + email (individual participant account)", () => {
+  it("logs in with correct email + password", async () => {
+    const passwordHash = await hashPassword("password123");
+    const env = makeEnv({
+      AUTH_DB: makeDb([], [], [], [],
+        [{ id: "p1", email: "tester@example.com", project_id: "demo", team_name: "Team Test", contact: "tester@example.com", password_hash: passwordHash, created_at: now() }],
+      ),
+    });
+    const request = makeRequest("POST", "/auth/login", {
+      project: "demo", email: "tester@example.com", password: "password123",
+    });
+    const response = await handleAuthRoutes(request, new URL(request.url), env);
+    expect(response?.status).toBe(200);
+    const data = await response!.json();
+    expect(data.ok).toBe(true);
+    expect(data.teamName).toBe("Team Test");
+  });
+
+  it("returns 401 for wrong password", async () => {
+    const passwordHash = await hashPassword("password123");
+    const env = makeEnv({
+      AUTH_DB: makeDb([], [], [], [],
+        [{ id: "p1", email: "tester@example.com", project_id: "demo", team_name: "Team Test", contact: null, password_hash: passwordHash, created_at: now() }],
+      ),
+    });
+    const request = makeRequest("POST", "/auth/login", {
+      project: "demo", email: "tester@example.com", password: "wrong-password",
+    });
+    const response = await handleAuthRoutes(request, new URL(request.url), env);
+    expect(response?.status).toBe(401);
+  });
+
+  it("returns 401 for an unregistered email", async () => {
+    const env = makeEnv({ AUTH_DB: makeDb([], [], [], [], []) });
+    const request = makeRequest("POST", "/auth/login", {
+      project: "demo", email: "nobody@example.com", password: "password123",
+    });
+    const response = await handleAuthRoutes(request, new URL(request.url), env);
+    expect(response?.status).toBe(401);
+  });
+
+  it("does not affect the existing KV shared-password login (no email field)", async () => {
+    const env = makeEnv();
+    const request = makeRequest("POST", "/auth/login", {
+      project: "proj", teamName: "Team A", contact: "a@b.com", password: "teampass",
+    });
+    const response = await handleAuthRoutes(request, new URL(request.url), env);
+    expect(response?.status).toBe(200);
+    const data = await response!.json();
+    expect(data.ok).toBe(true);
+  });
+});
+
+describe("POST /auth/participant-signup", () => {
+  it("creates an account and returns a session for a whitelisted email", async () => {
+    const env = makeEnv({
+      AUTH_DB: makeDb([], [], [], [{ email: "tester@example.com", project_id: "demo", added_at: now() }], []),
+    });
+    const request = makeRequest("POST", "/auth/participant-signup", {
+      project: "demo", email: "tester@example.com", teamName: "Team Test",
+      contact: "tester@example.com", password: "password123",
+    });
+    const response = await handleAuthRoutes(request, new URL(request.url), env);
+    expect(response?.status).toBe(200);
+    const data = await response!.json();
+    expect(data.ok).toBe(true);
+    expect(data.teamName).toBe("Team Test");
+  });
+
+  it("returns 403 for a non-whitelisted email", async () => {
+    const env = makeEnv({ AUTH_DB: makeDb([], [], [], [], []) });
+    const request = makeRequest("POST", "/auth/participant-signup", {
+      project: "demo", email: "nobody@example.com", teamName: "Team X", password: "password123",
+    });
+    const response = await handleAuthRoutes(request, new URL(request.url), env);
+    expect(response?.status).toBe(403);
+  });
+
+  it("returns 409 when already registered", async () => {
+    const env = makeEnv({
+      AUTH_DB: makeDb([], [], [],
+        [{ email: "tester@example.com", project_id: "demo", added_at: now() }],
+        [{ id: "p1", email: "tester@example.com", project_id: "demo", team_name: "Team Test", contact: null, password_hash: "x", created_at: now() }],
+      ),
+    });
+    const request = makeRequest("POST", "/auth/participant-signup", {
+      project: "demo", email: "tester@example.com", teamName: "Team Test", password: "password123",
+    });
+    const response = await handleAuthRoutes(request, new URL(request.url), env);
+    expect(response?.status).toBe(409);
+  });
+
+  it("returns 400 for a short password", async () => {
+    const env = makeEnv({
+      AUTH_DB: makeDb([], [], [], [{ email: "tester@example.com", project_id: "demo", added_at: now() }], []),
+    });
+    const request = makeRequest("POST", "/auth/participant-signup", {
+      project: "demo", email: "tester@example.com", teamName: "Team Test", password: "short",
+    });
+    const response = await handleAuthRoutes(request, new URL(request.url), env);
+    expect(response?.status).toBe(400);
+  });
+
+  it("succeeds without teamName/contact, defaulting team_name to empty and contact to the email", async () => {
+    const env = makeEnv({
+      AUTH_DB: makeDb([], [], [], [{ email: "tester@example.com", project_id: "demo", added_at: now() }], []),
+    });
+    const request = makeRequest("POST", "/auth/participant-signup", {
+      project: "demo", email: "tester@example.com", password: "password123",
+    });
+    const response = await handleAuthRoutes(request, new URL(request.url), env);
+    expect(response?.status).toBe(200);
+    const data = await response!.json();
+    expect(data.ok).toBe(true);
+    expect(data.teamName).toBe("");
+    expect(data.contact).toBe("tester@example.com");
   });
 });

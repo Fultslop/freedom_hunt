@@ -1,0 +1,18 @@
+title: "Where Manhattan's Streets Meet"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Columbus Circle"
+address: "Columbus Circle, New York, NY 10019"
+coordinates:
+  longitude: -73.9819
+  latitude: 40.7681
+storyline: |
+  This traffic circle, marking the official center point from which distances to New York City are measured, is topped by a statue of Christopher Columbus.
+challenge:
+  name: ""
+  description: |
+    Find the column and note how tall the statue on top looks compared to the buildings around it.
+  notes: ""
+breadcrumb: |
+  Head to the performing arts complex a short walk north.

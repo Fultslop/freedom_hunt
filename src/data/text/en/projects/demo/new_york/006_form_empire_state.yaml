@@ -1,0 +1,15 @@
+- id: photo
+  type: photo
+  label: Take a photo looking straight up at the building
+- id: visible_features
+  type: multiple
+  label: What can you see from the base?
+  min: 0
+  max: 3
+  options:
+    - The antenna/spire
+    - Setback terraces
+    - Lit-up windows
+- id: building_notes
+  type: textarea
+  label: Describe the building's facade in a sentence or two.

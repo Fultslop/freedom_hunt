@@ -1,0 +1,18 @@
+title: "The Village's Living Room"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Washington Square Park"
+address: "Washington Square, New York, NY 10012"
+coordinates:
+  longitude: -73.9973
+  latitude: 40.7308
+storyline: |
+  This park's marble arch, modeled after the Arc de Triomphe, has marked the entrance to Greenwich Village since 1892.
+challenge:
+  name: ""
+  description: |
+    Find the central fountain and note whether it's running.
+  notes: ""
+breadcrumb: |
+  Finish this route downtown, at the tallest building in the city.

@@ -13,6 +13,8 @@
   import TitleBar from "./components/TitleBar.svelte";
   import AppPage from "./pages/AppPage.svelte";
   import LoginPage from "./pages/LoginPage.svelte";
+  import DemoLoginPage from "./pages/DemoLoginPage.svelte";
+  import DemoSignupPage from "./pages/DemoSignupPage.svelte";
   import SignupPage from "./pages/SignupPage.svelte";
   import InviteAcceptPage from "./pages/InviteAcceptPage.svelte";
   import ProjectPage from "./pages/ProjectPage.svelte";
@@ -34,7 +36,9 @@
   // wildcard route that would otherwise match the same URL and win first.
   const routes = {
     "/": asRoute(AppPage),
+    "/login/demo": asRoute(DemoLoginPage),
     "/login/:project": asRoute(LoginPage),
+    "/signup/demo": asRoute(DemoSignupPage),
     "/signup": asRoute(SignupPage),
     "/invite/:token": asRoute(InviteAcceptPage),
     "/editor/login": asRoute(EditorLoginPage),
