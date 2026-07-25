@@ -252,3 +252,83 @@ export async function acceptInviteToken(
     .run();
   return result.meta.changes > 0;
 }
+
+// ---------------------------------------------------------------------------
+// Photo queries
+// ---------------------------------------------------------------------------
+
+export interface DbPhoto {
+  id: string;
+  project_id: string;
+  city_id: string;
+  route_id: string | null;
+  location_id: string;
+  task_title: string;
+  team_name: string;
+  contact: string | null;
+  r2_key: string;
+  mime_type: string;
+  uploaded_at: number;
+}
+
+export async function insertPhoto(
+  database: D1Database,
+  photo: DbPhoto,
+): Promise<void> {
+  await database
+    .prepare(
+      `INSERT INTO photos
+       (id, project_id, city_id, route_id, location_id, task_title,
+        team_name, contact, r2_key, mime_type, uploaded_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      photo.id, photo.project_id, photo.city_id, photo.route_id ?? null,
+      photo.location_id, photo.task_title, photo.team_name,
+      photo.contact ?? null, photo.r2_key, photo.mime_type, photo.uploaded_at,
+    )
+    .run();
+}
+
+export async function getPhotoById(
+  database: D1Database,
+  id: string,
+): Promise<DbPhoto | null> {
+  return database
+    .prepare("SELECT * FROM photos WHERE id = ?")
+    .bind(id)
+    .first<DbPhoto>();
+}
+
+export async function listPhotos(
+  database: D1Database,
+  projectId: string,
+  cityId: string,
+): Promise<DbPhoto[]> {
+  const result = await database
+    .prepare(
+      `SELECT * FROM photos
+       WHERE project_id = ? AND city_id = ?
+       ORDER BY uploaded_at DESC`,
+    )
+    .bind(projectId, cityId)
+    .all<DbPhoto>();
+  return result.results;
+}
+
+export async function randomPhotos(
+  database: D1Database,
+  projectId: string,
+  cityId: string,
+  limit: number,
+): Promise<DbPhoto[]> {
+  const result = await database
+    .prepare(
+      `SELECT * FROM photos
+       WHERE project_id = ? AND city_id = ?
+       ORDER BY RANDOM() LIMIT ?`,
+    )
+    .bind(projectId, cityId, limit)
+    .all<DbPhoto>();
+  return result.results;
+}

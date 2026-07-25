@@ -18,6 +18,7 @@
   import ProjectPage from "./pages/ProjectPage.svelte";
   import CityPage from "./pages/CityPage.svelte";
   import RoutePage from "./pages/RoutePage.svelte";
+  import GalleryLandingPage from "./pages/GalleryLandingPage.svelte";
   import EditorLoginPage from "./pages/editor/EditorLoginPage.svelte";
   import EditorPage from "./pages/editor/EditorPage.svelte";
   import EditorLocationList from "./pages/editor/EditorLocationList.svelte";
@@ -27,6 +28,10 @@
     return comp;
   }
 
+  // Order matters: svelte-spa-router matches the first route whose pattern
+  // fits the URL. Wildcard segments (e.g. :route) match any string, so a
+  // more specific literal path (e.g. .../gallery) must be declared before a
+  // wildcard route that would otherwise match the same URL and win first.
   const routes = {
     "/": asRoute(AppPage),
     "/login/:project": asRoute(LoginPage),
@@ -55,6 +60,10 @@
     }),
     "/:project/:city": wrap({
       component: asRoute(CityPage),
+      conditions: [requireAuth],
+    }),
+    "/:project/:city/gallery": wrap({
+      component: asRoute(GalleryLandingPage),
       conditions: [requireAuth],
     }),
     "/:project/:city/:route": wrap({

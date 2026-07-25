@@ -3,6 +3,7 @@ import { handleAuthRoutes } from "./worker/routes/authRoutes";
 import { handleInviteRoutes } from "./worker/routes/inviteRoutes";
 import { handleUploadRoute } from "./worker/routes/uploadRoute";
 import { handleFormSubmitRoute } from "./worker/routes/formSubmitRoute";
+import { handleGalleryRoutes } from "./worker/routes/galleryRoutes";
 import { handleEditorRoutes } from "./worker/routes/editorRoutes";
 
 export default {
@@ -13,6 +14,7 @@ export default {
       (await handleInviteRoutes(request, url, env)) ??
       (await handleUploadRoute(request, url, env)) ??
       (await handleFormSubmitRoute(request, url, env)) ??
+      (await handleGalleryRoutes(request, url, env)) ??
       (await handleEditorRoutes(request, url, env)) ??
       (env.ASSETS
         ? env.ASSETS.fetch(request)
