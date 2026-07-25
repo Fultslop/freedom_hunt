@@ -135,6 +135,7 @@ export interface DemoSignupPayload {
   project: string;
   email: string;
   password: string;
+  teamName?: string;
 }
 
 export async function postDemoSignup(payload: DemoSignupPayload): Promise<LoginResponse> {
