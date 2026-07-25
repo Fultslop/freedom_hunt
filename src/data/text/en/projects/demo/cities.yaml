@@ -20,3 +20,25 @@ items:
     coordinates:
       longitude: -73.9857
       latitude: 40.7484
+  - id: den_haag
+    name: "Den Haag"
+    image: den-haag-logo.jpg
+    country: "Netherlands"
+    description: "The seat of Dutch government and international justice. (Real Democrats Abroad content, shown here for testing.)"
+    coordinates:
+      longitude: 4.3133
+      latitude: 52.0799
+  # disabled: oslo's card image and all 7 of its location images
+  # (oslo-hero.jpg, oslo-akershus.jpg, oslo-city-hall.jpg, oslo-national-theatre.jpg,
+  # oslo-nobel-center.jpg, oslo-resistance-museum.jpg, oslo-royal-palace.jpg,
+  # oslo-stortinget.jpg) don't exist in src/data/img/ — dormant in democrats_abroad's
+  # own (also-disabled) cities.yaml entry, surfaced by enabling it here. Re-enable
+  # once real images are sourced.
+  # - id: oslo
+  #   name: "Oslo"
+  #   image: oslo-hero.jpg
+  #   country: "Norway"
+  #   description: "Where democracy was tested, resistance was born, and peace is celebrated every December. (Real Democrats Abroad content, shown here for testing.)"
+  #   coordinates:
+  #     latitude: 59.9169
+  #     longitude: 10.7274

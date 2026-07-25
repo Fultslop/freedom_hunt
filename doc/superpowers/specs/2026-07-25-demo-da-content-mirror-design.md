@@ -35,7 +35,7 @@ The app's content loader (`src/utils/loadText.ts`) resolves every YAML file thro
 
 ### `demo/cities.yaml` additions
 
-Small metadata entries, copied from `democrats_abroad/cities.yaml`'s existing `den_haag` entry (same `name`, `image`, `country`, `description`, `coordinates` — this is index metadata, not bulk content, so duplicating a handful of lines here doesn't reintroduce the drift problem a full content copy would). `oslo` is included and enabled here even though it's commented out (disabled) in DA's real `cities.yaml` — `demo` exists to exercise the app's full feature surface, and Oslo's content is fully authored and complete, so there's no reason to leave it inert in the one project meant for testing.
+Small metadata entries, copied from `democrats_abroad/cities.yaml`'s existing `den_haag` entry (same `name`, `image`, `country`, `description`, `coordinates` — this is index metadata, not bulk content, so duplicating a handful of lines here doesn't reintroduce the drift problem a full content copy would). `oslo` was initially planned as included and enabled here even though it's commented out (disabled) in DA's real `cities.yaml` — but its card image and all 7 of its location images don't exist anywhere in `src/data/img/` (a dormant gap in DA's own content, never visible while Oslo stayed disabled there). Enabling it here would have surfaced broken images throughout. `demo/cities.yaml`'s Oslo entry is commented out to match, with a note on what's missing — re-enable once real images are sourced.
 
 ## Out of Scope
 
