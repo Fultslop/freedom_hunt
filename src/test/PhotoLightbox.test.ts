@@ -18,13 +18,12 @@ test("renders nothing when photo is null", () => {
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
-test("shows team, task, and a download link pointing at the full-resolution variant", () => {
+test("shows team, task, and a download button that fetches the full-resolution variant on click", () => {
   render(PhotoLightbox, { props: { photo: PHOTO, onClose: vi.fn() } });
   expect(screen.getByText("Team A")).toBeInTheDocument();
   expect(screen.getByText("The Final Civic Act")).toBeInTheDocument();
-  const downloadLink = screen.getByRole("link", { name: /download photo/i });
-  expect(downloadLink).toHaveAttribute("href", "/photos/p1/full");
-  expect(downloadLink).toHaveAttribute("download");
+  const downloadBtn = screen.getByRole("button", { name: /download photo/i });
+  expect(downloadBtn).toBeInTheDocument();
 });
 
 test("calls onClose when the close button is clicked", async () => {

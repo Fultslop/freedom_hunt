@@ -9,6 +9,19 @@
       onClose();
     }
   }
+
+  async function handleDownload() {
+    if (!photo) return;
+    const res = await fetch(photo.fullUrl);
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${photo.teamName} - ${photo.taskTitle}.jpg`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -27,7 +40,7 @@
         <div class="photo-lightbox__team">{photo.teamName}</div>
         <div class="photo-lightbox__task">{photo.taskTitle}</div>
       </div>
-      <a href={photo.fullUrl} download class="photo-lightbox__download">Download Photo</a>
+      <button class="photo-lightbox__download" onclick={handleDownload}>Download Photo</button>
     </div>
   </div>
 {/if}

@@ -28,6 +28,10 @@
     return comp;
   }
 
+  // Order matters: svelte-spa-router matches the first route whose pattern
+  // fits the URL. Wildcard segments (e.g. :route) match any string, so a
+  // more specific literal path (e.g. .../gallery) must be declared before a
+  // wildcard route that would otherwise match the same URL and win first.
   const routes = {
     "/": asRoute(AppPage),
     "/login/:project": asRoute(LoginPage),
@@ -58,12 +62,12 @@
       component: asRoute(CityPage),
       conditions: [requireAuth],
     }),
-    "/:project/:city/:route": wrap({
-      component: asRoute(RoutePage),
-      conditions: [requireAuth],
-    }),
     "/:project/:city/gallery": wrap({
       component: asRoute(GalleryLandingPage),
+      conditions: [requireAuth],
+    }),
+    "/:project/:city/:route": wrap({
+      component: asRoute(RoutePage),
       conditions: [requireAuth],
     }),
   };
