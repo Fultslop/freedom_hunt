@@ -29,8 +29,10 @@ class FakePhotonImage {
   get_height() {
     return this.height;
   }
-  get_bytes_jpeg(_quality: number) {
-    return new Uint8Array([this.width, this.height, Math.round(_quality * 100)]);
+  get_bytes_jpeg(quality: number) {
+    // Real quality range is 0-100; encoded here (not the actual output byte
+    // count) purely so tests can assert on it if needed.
+    return new Uint8Array([this.width, this.height, Math.round(quality)]);
   }
   free() {
     /* no-op */

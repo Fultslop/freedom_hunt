@@ -62,9 +62,14 @@ import { PhotonImage, SamplingFilter, resize, rotate, fliph, flipv } from "@cf-w
 const THUMB_MAX_DIMENSION = 300;
 const MEDIUM_MAX_DIMENSION = 1200;
 const FULL_MAX_DIMENSION = 2048;
-const THUMB_QUALITY = 0.75;
-const MEDIUM_QUALITY = 0.8;
-const FULL_QUALITY = 0.85;
+// get_bytes_jpeg's quality parameter is 0-100, not 0-1 — verified empirically
+// against the real WASM module (photon_rs's underlying JPEG encoder uses the
+// same 1-100 scale as most JPEG libraries). Any value <=1 silently floors to
+// the minimum quality, which is why every uploaded photo looked heavily
+// compressed until this was caught.
+const THUMB_QUALITY = 75;
+const MEDIUM_QUALITY = 80;
+const FULL_QUALITY = 85;
 
 /** Cloudflare Workers has a ~128MB memory cap; reject absurdly large uploads
  * before decoding rather than risk exceeding it mid-resize. */

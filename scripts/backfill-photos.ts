@@ -19,9 +19,11 @@ const BUCKET_NAME = "gwc-2026-photos";
 const THUMB_MAX_DIMENSION = 300;
 const MEDIUM_MAX_DIMENSION = 1200;
 const FULL_MAX_DIMENSION = 2048;
-const THUMB_QUALITY = 0.75;
-const MEDIUM_QUALITY = 0.8;
-const FULL_QUALITY = 0.85;
+// get_bytes_jpeg's quality parameter is 0-100, not 0-1 — see the matching
+// comment in src/worker/imageProcessing.ts for how this was verified.
+const THUMB_QUALITY = 75;
+const MEDIUM_QUALITY = 80;
+const FULL_QUALITY = 85;
 
 const DRY_RUN = process.argv.includes("--dry-run");
 

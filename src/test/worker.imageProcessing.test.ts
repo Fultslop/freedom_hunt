@@ -63,10 +63,16 @@ describe("generateVariants", () => {
     expect(result.full).toBeInstanceOf(Uint8Array);
     expect(result.medium).toBeInstanceOf(Uint8Array);
     expect(result.thumb).toBeInstanceOf(Uint8Array);
-    // FakePhotonImage encodes [width, height, quality*100] into get_bytes_jpeg output
+    // FakePhotonImage encodes [width, height, quality] into get_bytes_jpeg output
     expect(result.full[0]).toBeLessThanOrEqual(2048);
     expect(result.medium[0]).toBeLessThanOrEqual(1200);
     expect(result.thumb[0]).toBeLessThanOrEqual(300);
+    // get_bytes_jpeg's quality scale is 0-100, not 0-1 — a value <=1 silently
+    // floors to the minimum (worst) quality with no error, which is exactly
+    // what shipped originally. Assert real percentages, not fractions.
+    expect(result.full[2]).toBe(85);
+    expect(result.medium[2]).toBe(80);
+    expect(result.thumb[2]).toBe(75);
   });
 
   it("applies a 90-degree rotate for EXIF orientation 6", async () => {
