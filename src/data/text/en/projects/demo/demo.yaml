@@ -1,0 +1,5 @@
+style: "app"
+project.title: "Demo"
+project.description: "A sample scavenger hunt covering Paris and New York, used to test the app's full feature set — every question type, photo upload, and the photo gallery — without touching real event data."
+project.cta: "Choose a city to start exploring."
+project.image: placeholder.jpg

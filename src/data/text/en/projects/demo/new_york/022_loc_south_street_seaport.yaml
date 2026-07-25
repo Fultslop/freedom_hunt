@@ -1,0 +1,19 @@
+title: "Tall Ships and Cobblestones"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "South Street Seaport"
+address: "19 Fulton St, New York, NY 10038"
+coordinates:
+  longitude: -74.0021
+  latitude: 40.7075
+storyline: |
+  This historic district preserves some of Manhattan's oldest cobblestone streets and once served as the city's main seaport in the 1800s.
+challenge:
+  name: ""
+  description: |
+    Find a historic ship docked at the pier and note its name.
+  notes: ""
+  form: "022_form_south_street_seaport.yaml"
+breadcrumb: |
+  Cross the bridge into Brooklyn and head to the park underneath it.

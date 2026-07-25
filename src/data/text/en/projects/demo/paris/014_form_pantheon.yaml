@@ -1,0 +1,13 @@
+- id: photo
+  type: photo
+  label: Take a photo of the dome
+- id: dome_height_guess
+  type: number
+  label: How many stories tall would you guess the dome is?
+- id: weather
+  type: radio
+  label: What's the weather like right now?
+  options:
+    - Clear/sunny
+    - Cloudy
+    - Rainy

@@ -1,0 +1,12 @@
+- id: photo
+  type: photo
+  label: Take a photo of one of the carved stone faces
+- id: face_expression
+  type: string
+  label: How would you describe the face's expression?
+- id: bridge_side
+  type: radio
+  label: Which side of the bridge are you on?
+  options:
+    - Left Bank side
+    - Right Bank side

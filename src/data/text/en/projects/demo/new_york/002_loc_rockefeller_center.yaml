@@ -1,0 +1,19 @@
+title: "Skating Under Gold"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Rockefeller Center"
+address: "45 Rockefeller Plaza, New York, NY 10111"
+coordinates:
+  longitude: -73.9787
+  latitude: 40.7587
+storyline: |
+  Built during the Great Depression, this complex hosts the city's famous Christmas tree and an ice rink that's open most of the year.
+challenge:
+  name: ""
+  description: |
+    Find the golden statue overlooking the plaza and note who it depicts, if you can tell.
+  notes: ""
+  form: "002_form_rockefeller_center.yaml"
+breadcrumb: |
+  Head a block east to a cathedral with twin spires.

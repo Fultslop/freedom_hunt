@@ -1,0 +1,18 @@
+title: "A Park Built on Old Piers"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Brooklyn Bridge Park"
+address: "334 Furman St, Brooklyn, NY 11201"
+coordinates:
+  longitude: -73.9967
+  latitude: 40.7024
+storyline: |
+  Built on a series of former shipping piers, this park offers some of the best views of the Manhattan skyline from across the river.
+challenge:
+  name: ""
+  description: |
+    Find a spot with a clear view of Manhattan and count how many bridges you can see.
+  notes: ""
+breadcrumb: |
+  Walk into the cobblestone neighborhood just north of here.

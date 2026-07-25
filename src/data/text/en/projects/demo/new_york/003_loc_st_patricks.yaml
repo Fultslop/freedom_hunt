@@ -1,0 +1,18 @@
+title: "Twin Spires on Fifth Avenue"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "St. Patrick's Cathedral"
+address: "5th Ave, New York, NY 10022"
+coordinates:
+  longitude: -73.9759
+  latitude: 40.7585
+storyline: |
+  Completed in 1878, this is the largest Gothic Revival Catholic cathedral in North America, wedged between Fifth Avenue's shops.
+challenge:
+  name: ""
+  description: |
+    Find the cathedral's front doors and count how many steps lead up to them.
+  notes: ""
+breadcrumb: |
+  Head south toward a train station with a famous ceiling.

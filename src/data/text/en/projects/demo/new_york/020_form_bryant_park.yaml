@@ -1,0 +1,12 @@
+- id: photo
+  type: photo
+  label: Take a photo of the central lawn
+- id: route_recap
+  type: section
+  label: Route recap
+- id: enjoyed_route
+  type: boolean
+  label: Did you enjoy the Museums & Parks Route?
+- id: stops_completed
+  type: number
+  label: How many of the 10 stops did you actually visit in person?

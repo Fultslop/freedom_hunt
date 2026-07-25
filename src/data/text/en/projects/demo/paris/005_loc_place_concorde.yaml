@@ -1,0 +1,18 @@
+title: "The Square That Changed Names Five Times"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Place de la Concorde"
+address: "Place de la Concorde, 75008 Paris"
+coordinates:
+  longitude: 2.3212
+  latitude: 48.8656
+storyline: |
+  This square has been renamed five times since the 1755. Its Egyptian obelisk is over 3,000 years old — far older than the square itself.
+challenge:
+  name: ""
+  description: |
+    Find the obelisk and note the hieroglyphs carved into its base.
+  notes: ""
+breadcrumb: |
+  Walk into the garden ahead of you — it's the oldest formal garden in Paris.

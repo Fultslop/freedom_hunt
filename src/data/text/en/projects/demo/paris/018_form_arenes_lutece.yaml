@@ -1,0 +1,12 @@
+- id: photo
+  type: photo
+  label: Take a photo of the arena
+- id: current_activity
+  type: string
+  label: What is the arena being used for right now (sports, sitting, nothing)?
+- id: arena_side
+  type: radio
+  label: Which part of the arena are you standing in?
+  options:
+    - The stands (seating area)
+    - The central floor

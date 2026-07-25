@@ -1,0 +1,19 @@
+title: "A Sugar Factory Turned Park"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Domino Park"
+address: "300 Kent Ave, Brooklyn, NY 11249"
+coordinates:
+  longitude: -73.9635
+  latitude: 40.7150
+storyline: |
+  Built on the site of the former Domino Sugar Refinery, this waterfront park keeps some of the old factory's machinery as public art.
+challenge:
+  name: ""
+  description: |
+    Find a piece of old factory equipment on display and describe what it looks like.
+  notes: ""
+  form: "026_form_domino_park.yaml"
+breadcrumb: |
+  Continue north along the waterfront.

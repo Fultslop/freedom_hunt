@@ -1,0 +1,19 @@
+title: "The Library's Backyard"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Bryant Park"
+address: "Bryant Park, New York, NY 10018"
+coordinates:
+  longitude: -73.9832
+  latitude: 40.7536
+storyline: |
+  Once a run-down and unsafe park in the 1970s and 80s, Bryant Park was redesigned in the 1990s and is now one of the city's most popular green spaces.
+challenge:
+  name: ""
+  description: |
+    Find the park's central lawn and note what people are doing on it.
+  notes: ""
+  form: "020_form_bryant_park.yaml"
+breadcrumb: |
+  This is the end of the Museums & Parks Route.

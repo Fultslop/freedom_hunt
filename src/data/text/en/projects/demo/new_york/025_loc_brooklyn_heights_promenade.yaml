@@ -1,0 +1,18 @@
+title: "Brooklyn's Balcony"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Brooklyn Heights Promenade"
+address: "Brooklyn Heights Promenade, Brooklyn, NY 11201"
+coordinates:
+  longitude: -73.9967
+  latitude: 40.6969
+storyline: |
+  This elevated walkway offers unobstructed views of the Manhattan skyline and sits above a highway that runs underneath it.
+challenge:
+  name: ""
+  description: |
+    Find a bench along the promenade and note what's directly across the water from it.
+  notes: ""
+breadcrumb: |
+  Head north along the water to a park known for its sunset views.

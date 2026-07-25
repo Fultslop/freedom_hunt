@@ -1,0 +1,16 @@
+- id: photo
+  type: photo
+  label: Take a photo of the window display
+- id: window_books
+  type: multiple
+  label: What kind of books do you see in the window?
+  min: 0
+  max: 3
+  options:
+    - Fiction
+    - Poetry
+    - History
+    - Something else
+- id: shop_notes
+  type: textarea
+  label: Describe the shopfront in a sentence or two.

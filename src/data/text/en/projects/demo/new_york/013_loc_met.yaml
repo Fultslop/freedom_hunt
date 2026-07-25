@@ -1,0 +1,18 @@
+title: "The Met"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Metropolitan Museum of Art"
+address: "1000 5th Ave, New York, NY 10028"
+coordinates:
+  longitude: -73.9632
+  latitude: 40.7794
+storyline: |
+  One of the largest art museums in the world, the Met's collection spans 5,000 years of human creativity.
+challenge:
+  name: ""
+  description: |
+    Find the museum's front steps and note how many people are sitting on them.
+  notes: ""
+breadcrumb: |
+  Cross the park to a museum famous for its dinosaurs and blue whale.

@@ -1,0 +1,9 @@
+- id: photo
+  type: photo
+  label: Take a photo of the view
+- id: saw_tower_lit
+  type: boolean
+  label: Was the tower sparkling/lit when you arrived?
+- id: photo_takers_count
+  type: string
+  label: Roughly how many other people were photographing the tower?

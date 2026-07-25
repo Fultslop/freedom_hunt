@@ -1,0 +1,19 @@
+title: "Down Under the Manhattan Bridge Overpass"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "DUMBO"
+address: "Washington St, Brooklyn, NY 11201"
+coordinates:
+  longitude: -73.9903
+  latitude: 40.7033
+storyline: |
+  DUMBO's name is an acronym for its location, and its cobblestone streets frame one of the most photographed views of the Manhattan Bridge in the city.
+challenge:
+  name: ""
+  description: |
+    Stand on Washington Street and find the famous framed view of the bridge between the buildings.
+  notes: ""
+  form: "024_form_dumbo.yaml"
+breadcrumb: |
+  Walk south along the water to a quiet promenade.

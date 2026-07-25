@@ -1,0 +1,18 @@
+title: "The Building Shaped Like an Iron"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Flatiron Building"
+address: "175 5th Ave, New York, NY 10010"
+coordinates:
+  longitude: -73.9897
+  latitude: 40.7411
+storyline: |
+  Completed in 1902, this triangular building's unusual shape comes from the sharp intersection of Fifth Avenue and Broadway.
+challenge:
+  name: ""
+  description: |
+    Find the building's narrowest point and estimate how wide it is.
+  notes: ""
+breadcrumb: |
+  Continue south to a park with a famous farmers market.

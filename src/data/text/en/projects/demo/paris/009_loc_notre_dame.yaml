@@ -1,0 +1,18 @@
+title: "Still Standing"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Notre-Dame de Paris (exterior)"
+address: "6 Parvis Notre-Dame - Place Jean-Paul II, 75004 Paris"
+coordinates:
+  longitude: 2.3499
+  latitude: 48.8530
+storyline: |
+  Construction began in 1163. A 2019 fire destroyed the spire and roof, but the cathedral's towers and facade survived — this stop is exterior-only while restoration work continues nearby.
+challenge:
+  name: ""
+  description: |
+    Find the row of carved kings along the west facade and estimate how many there are.
+  notes: ""
+breadcrumb: |
+  Cross to the small island just downstream — the last stop on this route.

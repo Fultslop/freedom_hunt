@@ -1,0 +1,15 @@
+- id: photo
+  type: photo
+  label: Take a photo of the old factory equipment
+- id: equipment_types
+  type: multiple
+  label: What kind of old equipment do you see on display?
+  min: 0
+  max: 3
+  options:
+    - Cranes or gantries
+    - Pipes or tanks
+    - Gears/mechanical parts
+- id: equipment_notes
+  type: textarea
+  label: Describe the equipment in a sentence or two.

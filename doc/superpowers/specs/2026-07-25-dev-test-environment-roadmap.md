@@ -47,7 +47,7 @@ Today `/form-submit` always forwards to `env.FORM_SCRIPT_URL` — DA's real Goog
 
 - **Spec:** [2026-07-25-form-submit-routing-safety-design.md](2026-07-25-form-submit-routing-safety-design.md)
 - **Plan:** `doc/superpowers/plans/2026-07-25-form-submit-routing-safety.md`
-- **Status:** Spec and plan written, ready for review. No dependencies — can be implemented first.
+- **Status:** Implemented and reviewed against the plan (2026-07-25) — no deficiencies found.
 
 ### 2. DA content by reference in the Demo project
 

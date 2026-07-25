@@ -1,0 +1,19 @@
+title: "The King's Garden"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Tuileries Garden"
+address: "Jardin des Tuileries, 75001 Paris"
+coordinates:
+  longitude: 2.3275
+  latitude: 48.8634
+storyline: |
+  Laid out in the 1560s for Catherine de' Medici, this garden was the model for formal French gardens everywhere after it.
+challenge:
+  name: ""
+  description: |
+    Find one of the garden's octagonal ponds and describe what's floating or swimming in it, if anything.
+  notes: ""
+  form: "006_form_tuileries.yaml"
+breadcrumb: |
+  Continue east toward a glass pyramid — you can't miss it.

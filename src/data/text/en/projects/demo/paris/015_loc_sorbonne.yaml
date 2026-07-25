@@ -1,0 +1,18 @@
+title: "800 Years of Students"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Sorbonne University"
+address: "47 Rue des Écoles, 75005 Paris"
+coordinates:
+  longitude: 2.3438
+  latitude: 48.8480
+storyline: |
+  Founded in 1257, the Sorbonne is one of the oldest universities in the world and gave its name to the surrounding student quarter.
+challenge:
+  name: ""
+  description: |
+    Find the main courtyard entrance and note what's carved above the door.
+  notes: ""
+breadcrumb: |
+  Look for a famous English-language bookshop nearby.

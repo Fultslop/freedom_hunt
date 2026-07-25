@@ -1,0 +1,19 @@
+title: "A Park With a Market"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Union Square"
+address: "Union Square, New York, NY 10003"
+coordinates:
+  longitude: -73.9911
+  latitude: 40.7359
+storyline: |
+  Union Square has long been a gathering place for protests, markets, and public speeches, and still hosts a large greenmarket several days a week.
+challenge:
+  name: ""
+  description: |
+    Find the statue of George Washington on horseback in the square.
+  notes: ""
+  form: "008_form_union_square.yaml"
+breadcrumb: |
+  Head further south to a park with a famous arch.

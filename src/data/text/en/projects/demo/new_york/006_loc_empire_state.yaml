@@ -1,0 +1,19 @@
+title: "King of the Skyline"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Empire State Building"
+address: "20 W 34th St, New York, NY 10001"
+coordinates:
+  longitude: -73.9857
+  latitude: 40.7484
+storyline: |
+  Completed in 1931 in just over a year, the Empire State Building held the title of world's tallest building for nearly 40 years.
+challenge:
+  name: ""
+  description: |
+    Stand at the base and look straight up — describe what the top of the building looks like from here.
+  notes: ""
+  form: "006_form_empire_state.yaml"
+breadcrumb: |
+  Head south toward a triangular building.

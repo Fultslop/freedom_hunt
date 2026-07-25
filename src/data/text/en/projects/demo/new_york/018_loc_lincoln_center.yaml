@@ -1,0 +1,19 @@
+title: "Fountains and the Arts"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Lincoln Center"
+address: "10 Lincoln Center Plaza, New York, NY 10023"
+coordinates:
+  longitude: -73.9835
+  latitude: 40.7725
+storyline: |
+  This performing arts complex is home to the Metropolitan Opera, New York Philharmonic, and New York City Ballet, arranged around a central plaza fountain.
+challenge:
+  name: ""
+  description: |
+    Find the central plaza fountain and note whether it's running.
+  notes: ""
+  form: "018_form_lincoln_center.yaml"
+breadcrumb: |
+  Head south to a museum known simply by its initials.

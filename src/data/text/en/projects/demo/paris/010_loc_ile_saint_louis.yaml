@@ -1,0 +1,19 @@
+title: "The Quiet Island"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Île Saint-Louis"
+address: "Île Saint-Louis, 75004 Paris"
+coordinates:
+  longitude: 2.3565
+  latitude: 48.8514
+storyline: |
+  Unlike its busier neighbor Île de la Cité, this island has stayed mostly residential since the 17th century — narrow streets, quiet quays, and a famous ice cream shop.
+challenge:
+  name: ""
+  description: |
+    Walk the length of the island's main street and note the name of any shop that catches your eye.
+  notes: ""
+  form: "010_form_ile_saint_louis.yaml"
+breadcrumb: |
+  This is the end of the Riverside Route — well done.

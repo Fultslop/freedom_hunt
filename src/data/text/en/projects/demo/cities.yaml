@@ -1,0 +1,22 @@
+page.title: "Demo"
+page.text: |
+  A test project covering two cities. Use it to try out every question type, photo upload, and the photo gallery.
+page.selectCity: "Choose a city"
+page.image: placeholder.jpg
+items:
+  - id: paris
+    name: "Paris"
+    image: placeholder.jpg
+    country: "France"
+    description: "Three routes through the city's best-known landmarks."
+    coordinates:
+      longitude: 2.3522
+      latitude: 48.8566
+  - id: new_york
+    name: "New York"
+    image: placeholder.jpg
+    country: "United States"
+    description: "Three routes through Manhattan and Brooklyn."
+    coordinates:
+      longitude: -73.9857
+      latitude: 40.7484

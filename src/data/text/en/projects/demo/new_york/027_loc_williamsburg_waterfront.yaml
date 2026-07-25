@@ -1,0 +1,18 @@
+title: "Brooklyn's Waterfront Neighborhood"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Williamsburg waterfront"
+address: "Kent Ave, Brooklyn, NY 11249"
+coordinates:
+  longitude: -73.9626
+  latitude: 40.7181
+storyline: |
+  Once an industrial waterfront, Williamsburg has become one of Brooklyn's most popular neighborhoods for its views, restaurants, and nightlife.
+challenge:
+  name: ""
+  description: |
+    Find a spot with a clear view across the river and note which Manhattan landmarks you can identify.
+  notes: ""
+breadcrumb: |
+  Head south to the borough's largest park.

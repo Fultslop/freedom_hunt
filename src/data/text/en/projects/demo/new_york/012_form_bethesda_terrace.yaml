@@ -1,0 +1,9 @@
+- id: photo
+  type: photo
+  label: Take a photo of the fountain
+- id: fountain_running
+  type: boolean
+  label: Is the fountain running?
+- id: angel_holding
+  type: string
+  label: What is the angel statue holding?

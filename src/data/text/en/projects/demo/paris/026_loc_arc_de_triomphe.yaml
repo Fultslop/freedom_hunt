@@ -1,0 +1,19 @@
+title: "Napoleon's Arch"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Arc de Triomphe"
+address: "Place Charles de Gaulle, 75008 Paris"
+coordinates:
+  longitude: 2.2950
+  latitude: 48.8738
+storyline: |
+  Commissioned by Napoleon in 1806, the arch honors those who fought for France and now sits at the center of twelve converging avenues.
+challenge:
+  name: ""
+  description: |
+    Count how many avenues you can see radiating out from the arch's traffic circle.
+  notes: ""
+  form: "026_form_arc_de_triomphe.yaml"
+breadcrumb: |
+  Walk down the wide avenue leading away from the arch.

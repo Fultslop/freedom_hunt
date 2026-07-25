@@ -1,0 +1,16 @@
+- id: photo
+  type: photo
+  label: Take a photo of the pond
+- id: pond_life
+  type: multiple
+  label: What do you see in or around the pond?
+  min: 0
+  max: 3
+  options:
+    - Ducks or swans
+    - People sailing toy boats
+    - Fountains running
+    - Nothing but water
+- id: garden_notes
+  type: textarea
+  label: Describe the garden's layout in a sentence or two.

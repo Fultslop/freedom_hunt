@@ -1,0 +1,19 @@
+title: "A Tiny Castle in the Park"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Belvedere Castle"
+address: "Central Park, New York, NY 10024"
+coordinates:
+  longitude: -73.9691
+  latitude: 40.7794
+storyline: |
+  This small Victorian folly, built in 1869, sits atop the park's second-highest natural point and houses an official weather station.
+challenge:
+  name: ""
+  description: |
+    Climb to the highest point you can reach and describe the view.
+  notes: ""
+  form: "016_form_belvedere_castle.yaml"
+breadcrumb: |
+  Exit the park at the traffic circle to the southwest.

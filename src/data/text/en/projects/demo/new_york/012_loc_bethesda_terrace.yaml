@@ -1,0 +1,19 @@
+title: "The Angel of the Waters"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Bethesda Terrace"
+address: "Central Park, New York, NY 10024"
+coordinates:
+  longitude: -73.9701
+  latitude: 40.7735
+storyline: |
+  This terrace's fountain, topped by the "Angel of the Waters" statue, was one of the first public artworks by a woman in New York City.
+challenge:
+  name: ""
+  description: |
+    Find the fountain and note what the angel statue is holding.
+  notes: ""
+  form: "012_form_bethesda_terrace.yaml"
+breadcrumb: |
+  Head to the museum with the grand staircase, on the park's east side.

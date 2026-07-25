@@ -1,0 +1,19 @@
+title: "Existentialists and Espresso"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Saint-Germain-des-Prés"
+address: "Place Saint-Germain-des-Prés, 75006 Paris"
+coordinates:
+  longitude: 2.3340
+  latitude: 48.8539
+storyline: |
+  This neighborhood's cafés were once meeting places for philosophers and writers like Sartre and de Beauvoir.
+challenge:
+  name: ""
+  description: |
+    Find one of the neighborhood's famous cafés and note its name.
+  notes: ""
+  form: "012_form_saint_germain.yaml"
+breadcrumb: |
+  Head south toward the largest park on this side of the river.

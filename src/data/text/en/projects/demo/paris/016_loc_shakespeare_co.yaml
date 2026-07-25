@@ -1,0 +1,19 @@
+title: "A Bookshop With a Story"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Shakespeare and Company"
+address: "37 Rue de la Bûcherie, 75005 Paris"
+coordinates:
+  longitude: 2.3470
+  latitude: 48.8524
+storyline: |
+  This English-language bookshop has hosted generations of writers and still lets travelers sleep among the shelves in exchange for helping out.
+challenge:
+  name: ""
+  description: |
+    Find a book in the window display and note its title.
+  notes: ""
+  form: "016_form_shakespeare_co.yaml"
+breadcrumb: |
+  Wander into the market street just south of here.

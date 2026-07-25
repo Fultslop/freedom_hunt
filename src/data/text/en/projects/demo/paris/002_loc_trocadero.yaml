@@ -1,0 +1,19 @@
+title: "The Best View in Paris"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Trocadéro Gardens"
+address: "Place du Trocadéro, 75016 Paris"
+coordinates:
+  longitude: 2.2893
+  latitude: 48.8620
+storyline: |
+  The Trocadéro terrace looks straight across the Seine at the Eiffel Tower — the classic postcard shot, and the best place in the city to see the whole tower at once.
+challenge:
+  name: ""
+  description: |
+    Stand on the terrace and count how many people you can see also taking a photo of the tower at the same time.
+  notes: ""
+  form: "002_form_trocadero.yaml"
+breadcrumb: |
+  Cross the river toward the tower itself — you'll want to see it from underneath next.

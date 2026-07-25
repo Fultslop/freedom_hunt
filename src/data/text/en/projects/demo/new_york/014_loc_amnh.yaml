@@ -1,0 +1,19 @@
+title: "Dinosaurs and a Blue Whale"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "American Museum of Natural History"
+address: "200 Central Park West, New York, NY 10024"
+coordinates:
+  longitude: -73.9740
+  latitude: 40.7813
+storyline: |
+  This museum's Hall of Ocean Life features a 94-foot model of a blue whale suspended from the ceiling.
+challenge:
+  name: ""
+  description: |
+    Find the museum's main entrance on Central Park West and note what statue stands in front.
+  notes: ""
+  form: "014_form_amnh.yaml"
+breadcrumb: |
+  Head back into the park toward a memorial for a famous musician.

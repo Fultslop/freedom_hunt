@@ -5,3 +5,7 @@ items:
     image: da_abroad_logo.png
     name: "Democrats Abroad / Global Women's Caucus"
     description: "Democrats Abroad is the official arm of the US Democratic Party for Americans living outside the U.S."
+  - id: demo
+    image: placeholder.jpg
+    name: "Demo"
+    description: "Sample content for testing — Paris and New York, with every question type and photo upload."

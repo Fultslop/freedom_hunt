@@ -1,0 +1,18 @@
+title: "The Park's Grand Promenade"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Central Park (The Mall)"
+address: "The Mall, Central Park, New York, NY 10024"
+coordinates:
+  longitude: -73.9724
+  latitude: 40.7712
+storyline: |
+  This straight, tree-lined promenade is one of the only formal, symmetrical parts of Central Park's otherwise naturalistic design.
+challenge:
+  name: ""
+  description: |
+    Walk the length of the Mall and count how many street performers or musicians you pass.
+  notes: ""
+breadcrumb: |
+  Head north toward a terrace overlooking a lake.

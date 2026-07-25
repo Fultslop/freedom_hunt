@@ -1,0 +1,18 @@
+title: "Glass Among Stone"
+image: placeholder.jpg
+name:
+  label: ""
+  value: "Louvre Pyramid"
+address: "Rue de Rivoli, 75001 Paris"
+coordinates:
+  longitude: 2.3376
+  latitude: 48.8606
+storyline: |
+  I. M. Pei's glass pyramid, completed in 1989, was controversial at the time for standing in front of a 12th-century palace. It's now one of the most photographed structures in Paris.
+challenge:
+  name: ""
+  description: |
+    Count how many smaller pyramids surround the main one.
+  notes: ""
+breadcrumb: |
+  Follow the river downstream to the oldest bridge in Paris — despite its name.
