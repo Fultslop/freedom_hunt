@@ -100,6 +100,8 @@ doc/
 | Path                     | Component     | Notes                                               |
 | ------------------------ | ------------- | --------------------------------------------------- |
 | `/`                      | `AppPage`     | Lists projects from `projects/projects.yaml`        |
+| `/login/demo`            | `DemoLoginPage` | Email+password login for the `demo` project only — matched before the `/login/:project` wildcard |
+| `/signup/demo`           | `DemoSignupPage` | Email+password signup for the `demo` project only — matched before the `/signup` route |
 | `/:project`              | `ProjectPage` | City picker; loads `projects/<project>/cities.yaml` |
 | `/:project/:city`        | `CityPage`    | Route picker; loads `<city>/routes.yaml`            |
 | `/:project/:city/:route` | `RoutePage`   | Swipe-based challenge flow; loads location YAMLs    |
@@ -230,6 +232,10 @@ CREATE TABLE photos (
   uploaded_at   INTEGER NOT NULL
 );
 ```
+
+### `participant_whitelist` / `participant_accounts` tables (D1, `AUTH_DB`)
+
+Used only by the `demo` project's participant auth. `participant_whitelist` gates who may sign up (`email`, `project_id`, `added_at` — managed manually via `wrangler d1 execute`, no admin UI). `participant_accounts` holds individual email+password participant accounts (`id`, `email`, `project_id`, `team_name`, `contact`, `password_hash`, `created_at`), scoped per-project. Login/signup both issue the same `ParticipantTokenPayload` shape as the shared-team-password flow used by every other project — the rest of the app (forms, uploads, gallery, route guards) can't tell the two auth modes apart.
 
 ### `form_submissions` table (D1, `AUTH_DB`)
 

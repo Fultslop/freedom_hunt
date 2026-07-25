@@ -1,5 +1,5 @@
 import type { Env } from "../../types/worker";
-import type { UserTokenPayload, BootstrapTokenPayload } from "../../types/auth";
+import type { UserTokenPayload, BootstrapTokenPayload, ParticipantTokenPayload } from "../../types/auth";
 import { isUserToken, isBootstrapToken } from "../../types/auth";
 import {
   checkRateLimit,
@@ -21,6 +21,9 @@ import {
   insertCap,
   hashPassword,
   verifyPassword,
+  getWhitelistEntry,
+  getParticipantAccountByEmail,
+  insertParticipantAccount,
 } from "../db";
 import { json, checkOrigin } from "../utils";
 
@@ -91,6 +94,68 @@ export async function handleAuthRoutes(
   }
 
   // -------------------------------------------------------------------------
+  // POST /auth/participant-signup
+  // -------------------------------------------------------------------------
+  if (request.method === "POST" && url.pathname === "/auth/participant-signup") {
+    if (!checkOrigin(request)) {
+      return json({ ok: false, error: "Forbidden" }, 403);
+    }
+    try {
+      const { project, email, teamName, contact, password } = (await request.json()) as {
+        project?: string;
+        email?: string;
+        teamName?: string;
+        contact?: string;
+        password?: string;
+      };
+
+      if (!project || !email || !teamName || !password) {
+        return json({ ok: false, error: "Missing required fields" }, 400);
+      }
+      if (password.length < 8) {
+        return json({ ok: false, error: "Password must be at least 8 characters" }, 400);
+      }
+
+      const normalEmail = email.toLowerCase();
+      const whitelisted = await getWhitelistEntry(env.AUTH_DB, normalEmail, project);
+      if (!whitelisted) {
+        return json(
+          { ok: false, error: "This email hasn't been approved for this project yet. Contact the organizer." },
+          403,
+        );
+      }
+
+      const existing = await getParticipantAccountByEmail(env.AUTH_DB, normalEmail, project);
+      if (existing) {
+        return json({ ok: false, error: "Already registered — log in instead." }, 409);
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      await insertParticipantAccount(env.AUTH_DB, {
+        id: generateId(),
+        email: normalEmail,
+        project_id: project,
+        team_name: teamName,
+        contact: contact || null,
+        password_hash: await hashPassword(password),
+        created_at: now,
+      });
+
+      const payload: ParticipantTokenPayload = {
+        project, teamName, contact: contact || "", isAdmin: false, exp: now + TOKEN_TTL_SECONDS,
+      };
+      const token = await createToken(payload, env.AUTH_SECRET);
+      return json(
+        { ok: true, teamName, contact: contact || "", isAdmin: false },
+        200,
+        { "Set-Cookie": cookieHeader(token, TOKEN_TTL_SECONDS) },
+      );
+    } catch {
+      return json({ ok: false, error: "Signup failed" }, 500);
+    }
+  }
+
+  // -------------------------------------------------------------------------
   // POST /auth/login
   // -------------------------------------------------------------------------
   if (request.method === "POST" && url.pathname === "/auth/login") {
@@ -113,8 +178,26 @@ export async function handleAuthRoutes(
 
       // ----- Participant / KV-admin path (project field present) -----
       if (body.project) {
-        const { project, teamName = "", contact = "", password = "" } = body;
+        const { project, teamName = "", contact = "", password = "", email } = body;
         if (!password) {return json({ ok: false, error: "Missing password" }, 400);}
+
+        if (email) {
+          const account = await getParticipantAccountByEmail(env.AUTH_DB, email.toLowerCase(), project);
+          if (!account || !(await verifyPassword(password, account.password_hash))) {
+            return json({ ok: false, error: "Incorrect email or password" }, 401);
+          }
+          const now = Math.floor(Date.now() / 1000);
+          const payload: ParticipantTokenPayload = {
+            project, teamName: account.team_name, contact: account.contact || "",
+            isAdmin: false, exp: now + TOKEN_TTL_SECONDS,
+          };
+          const token = await createToken(payload, env.AUTH_SECRET);
+          return json(
+            { ok: true, teamName: account.team_name, contact: account.contact || "", isAdmin: false },
+            200,
+            { "Set-Cookie": cookieHeader(token, TOKEN_TTL_SECONDS) },
+          );
+        }
 
         const adminPw = await env.AUTH_STORE.get(`${KV_PREFIX_ADMIN}${project}`);
         const participantPw = await env.AUTH_STORE.get(`${KV_PREFIX_PARTICIPANT}${project}`);

@@ -71,4 +71,4 @@ npx wrangler d1 execute scavenger_hunt_auth \
 
 ## Done
 
-All deployed flows verified. The auth system is working end-to-end in production.
+Continue with [deployed-03-demo.md](deployed-03-demo.md).

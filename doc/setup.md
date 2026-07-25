@@ -228,6 +228,23 @@ After that, organizers manage passwords entirely through the Cloudflare dashboar
 
 ---
 
+## Part 4: Demo Participant Whitelist
+
+`demo` uses individual email+password accounts instead of a shared password. Before someone can sign up at `/signup/demo`, their email must be added to the whitelist:
+
+```
+wrangler d1 execute scavenger_hunt_auth --command "INSERT INTO participant_whitelist (email, project_id, added_at) VALUES ('tester@example.com', 'demo', strftime('%s','now'))"
+```
+
+For local development:
+```
+wrangler d1 execute scavenger_hunt_auth --local --command "INSERT INTO participant_whitelist (email, project_id, added_at) VALUES ('tester@example.com', 'demo', strftime('%s','now'))"
+```
+
+There is currently no admin UI for this — whitelisting is a manual, one-off action per tester.
+
+---
+
 ## Part 5: Location Editor Setup
 
 The location editor at `/editor` lets organisers add, edit, and hide hunt locations without touching code. Each change creates a GitHub pull request for review before going live. Two one-time setup steps are required: a GitHub Personal Access Token and an admin password.

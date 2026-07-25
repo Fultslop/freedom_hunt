@@ -128,6 +128,24 @@ export interface LoginPayload {
   teamName: string;
   contact: string;
   password: string;
+  email?: string;
+}
+
+export interface DemoSignupPayload {
+  project: string;
+  email: string;
+  teamName: string;
+  contact?: string;
+  password: string;
+}
+
+export async function postDemoSignup(payload: DemoSignupPayload): Promise<LoginResponse> {
+  const res = await fetch("/auth/participant-signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return res.json() as Promise<LoginResponse>;
 }
 
 export interface LoginResponse {
