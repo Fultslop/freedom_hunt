@@ -14,6 +14,6 @@ beforeEach(() => {
 test("renders email + password login form with a link to sign up", () => {
   render(DemoLoginPage);
   expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-  expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+  expect(screen.getByLabelText("Password")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: /create an account/i })).toHaveAttribute("href", "#/signup/demo");
 });
