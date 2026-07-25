@@ -11,16 +11,18 @@
   }
 
   async function handleDownload() {
-    if (!photo) return;
-    const res = await fetch(photo.fullUrl);
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${photo.teamName} - ${photo.taskTitle}.jpg`;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (photo) {
+      const res = await fetch(photo.fullUrl);
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${photo.teamName} - ${photo.taskTitle}.jpg`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    }
   }
 </script>
 
