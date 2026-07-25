@@ -78,6 +78,28 @@
   cursor: default;
 }
 
+.demo-login__password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.demo-login__input--with-eye {
+  padding-right: 40px;
+}
+
+.demo-login__eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  color: var(--color-text-muted);
+}
+
 .demo-login__footer {
   margin-top: 24px;
   font-size: 14px;

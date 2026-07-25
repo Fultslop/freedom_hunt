@@ -388,4 +388,19 @@ describe("POST /auth/participant-signup", () => {
     const response = await handleAuthRoutes(request, new URL(request.url), env);
     expect(response?.status).toBe(400);
   });
+
+  it("succeeds without teamName/contact, defaulting team_name to empty and contact to the email", async () => {
+    const env = makeEnv({
+      AUTH_DB: makeDb([], [], [], [{ email: "tester@example.com", project_id: "demo", added_at: now() }], []),
+    });
+    const request = makeRequest("POST", "/auth/participant-signup", {
+      project: "demo", email: "tester@example.com", password: "password123",
+    });
+    const response = await handleAuthRoutes(request, new URL(request.url), env);
+    expect(response?.status).toBe(200);
+    const data = await response!.json();
+    expect(data.ok).toBe(true);
+    expect(data.teamName).toBe("");
+    expect(data.contact).toBe("tester@example.com");
+  });
 });

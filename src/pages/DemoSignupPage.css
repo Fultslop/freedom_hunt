@@ -44,6 +44,8 @@
 }
 
 .demo-signup__input {
+  width: 100%;
+  box-sizing: border-box;
   padding: 0.625rem 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: 6px;
@@ -71,6 +73,28 @@
 .demo-signup__submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.demo-signup__password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.demo-signup__input--with-eye {
+  padding-right: 40px;
+}
+
+.demo-signup__eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  color: var(--color-text-muted);
 }
 
 .demo-signup__footer {

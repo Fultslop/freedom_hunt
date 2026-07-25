@@ -42,8 +42,9 @@ Go to `http://localhost:8787`
 Click the **Demo** card → redirected to `#/login/demo` (an email+password form, not DA's shared-password form) → click **Create an account** → fill in:
 
 - Email: `demo-tester@example.com` (must match what you whitelisted in step 2)
-- Team name: anything
 - Password: at least 8 characters
+
+(That's it — no team name or contact field at signup. Team name is set later, when a participant actually joins a project/city; contact defaults to the signup email.)
 
 Click **Create account**.
 

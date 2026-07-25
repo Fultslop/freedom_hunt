@@ -109,7 +109,7 @@ export async function handleAuthRoutes(
         password?: string;
       };
 
-      if (!project || !email || !teamName || !password) {
+      if (!project || !email || !password) {
         return json({ ok: false, error: "Missing required fields" }, 400);
       }
       if (password.length < 8) {
@@ -130,23 +130,28 @@ export async function handleAuthRoutes(
         return json({ ok: false, error: "Already registered — log in instead." }, 409);
       }
 
+      // teamName isn't collected at signup — it's set later when the
+      // participant actually joins a project/city. Empty for now.
+      const resolvedTeamName = teamName || "";
+      const resolvedContact = contact || normalEmail;
+
       const now = Math.floor(Date.now() / 1000);
       await insertParticipantAccount(env.AUTH_DB, {
         id: generateId(),
         email: normalEmail,
         project_id: project,
-        team_name: teamName,
-        contact: contact || null,
+        team_name: resolvedTeamName,
+        contact: resolvedContact,
         password_hash: await hashPassword(password),
         created_at: now,
       });
 
       const payload: ParticipantTokenPayload = {
-        project, teamName, contact: contact || "", isAdmin: false, exp: now + TOKEN_TTL_SECONDS,
+        project, teamName: resolvedTeamName, contact: resolvedContact, isAdmin: false, exp: now + TOKEN_TTL_SECONDS,
       };
       const token = await createToken(payload, env.AUTH_SECRET);
       return json(
-        { ok: true, teamName, contact: contact || "", isAdmin: false },
+        { ok: true, teamName: resolvedTeamName, contact: resolvedContact, isAdmin: false },
         200,
         { "Set-Cookie": cookieHeader(token, TOKEN_TTL_SECONDS) },
       );

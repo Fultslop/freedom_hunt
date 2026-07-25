@@ -134,8 +134,6 @@ export interface LoginPayload {
 export interface DemoSignupPayload {
   project: string;
   email: string;
-  teamName: string;
-  contact?: string;
   password: string;
 }
 

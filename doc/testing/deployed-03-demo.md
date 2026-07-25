@@ -43,7 +43,7 @@ Go to `https://your-app.workers.dev`
 
 **4. Sign up for Demo**
 
-Click **Demo** → redirected to `#/login/demo` → click **Create an account** → fill in the whitelisted email, a team name, and a password (8+ characters) → **Create account**.
+Click **Demo** → redirected to `#/login/demo` → click **Create an account** → fill in the whitelisted email and a password (8+ characters) → **Create account**. (No team name or contact field — team name is set later when a participant joins a project/city; contact defaults to the signup email.)
 
 **Expected:** Redirected into `#/demo`. City picker shows **3 cities**: Den Haag, Paris, New York.
 
