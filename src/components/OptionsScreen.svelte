@@ -1,32 +1,62 @@
 <script lang="ts">
   import { push } from "svelte-spa-router";
   import ScreenHero from "./ScreenHero.svelte";
+  import MarkdownText from "./MarkdownText.svelte";
+  import { authStore } from "../stores/authStore";
+  import { postFormSubmit } from "../utils/api";
   import type { OptionTarget } from "../types/data";
   import "./OptionsScreen.css";
 
   let {
     image,
     title,
+    text,
     options,
+    index,
     project,
     city,
     route,
+    onContinue = undefined,
   }: {
     image?: string;
     title: string;
-    options: Array<{ text: string; target: OptionTarget }>;
+    text?: string;
+    options: Array<{ text: string; target: OptionTarget; track?: boolean }>;
+    index: number;
     project: string;
     city: string;
     route: string;
+    onContinue?: () => void;
   } = $props();
 
-  function handlePageSelect(value: "title" | "project" | "start_route" | "gallery") {
+  // Best-effort only: fires the same postFormSubmit path challenge forms use so
+  // organizers can see which teams clicked a tracked button (e.g. an EULA's "I
+  // understand"), but never blocks navigation on the network call succeeding.
+  async function trackSelection(optionText: string) {
+    const auth = $authStore.activeAuth;
+    try {
+      await postFormSubmit({
+        locationId: index,
+        routeId: route,
+        cityId: city,
+        teamName: auth?.kind === "participant" ? auth.teamName : "",
+        contact: auth?.kind === "participant" ? (auth.contact ?? "") : "",
+        answers: { selected: optionText },
+      });
+    } catch {
+      /* tracking is best-effort — never block navigation on it */
+    }
+  }
+
+  function handlePageSelect(value: "title" | "project" | "start_route" | "gallery" | "continue") {
     if (value === "title") {
       push(`/${project}/${city}`);
     } else if (value === "project") {
       push(`/${project}`);
     } else if (value === "gallery") {
       push(`/${project}/${city}/gallery`);
+    } else if (value === "continue") {
+      onContinue?.();
     } else {
       localStorage.removeItem(`${project}/${city}/${route}`);
       push(`/${project}/${city}/${route}`);
@@ -36,6 +66,11 @@
 
 <div class="options-screen">
   <ScreenHero {image} {title} />
+  {#if text}
+    <div class="options-screen__text">
+      <MarkdownText {text} />
+    </div>
+  {/if}
   <div class="options-screen__buttons">
     {#each options as option, i (i)}
       {#if option.target.type === "link"}
@@ -44,6 +79,11 @@
           href={option.target.value}
           target="_blank"
           rel="noopener noreferrer"
+          onclick={() => {
+            if (option.track) {
+              void trackSelection(option.text);
+            }
+          }}
         >
           {option.text}
         </a>
@@ -51,7 +91,12 @@
         <button
           class="options-screen__button"
           type="button"
-          onclick={() => handlePageSelect(option.target.value as "title" | "project" | "start_route" | "gallery")}
+          onclick={() => {
+            if (option.track) {
+              void trackSelection(option.text);
+            }
+            handlePageSelect(option.target.value as "title" | "project" | "start_route" | "gallery" | "continue");
+          }}
         >
           {option.text}
         </button>

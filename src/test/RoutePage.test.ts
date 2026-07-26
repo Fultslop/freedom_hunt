@@ -4,7 +4,14 @@ import { themeStore } from "../stores/themeStore";
 import RoutePage from "../pages/RoutePage.svelte";
 import type { RouteEntry } from "../types/data";
 
-const { mockLocations, mockMixedEntries, huntSettingsFixture } = vi.hoisted(() => ({
+const {
+  mockLocations,
+  mockMixedEntries,
+  mockEulaEntries,
+  mockCompletionEntries,
+  mockRepeatSplashEntries,
+  huntSettingsFixture,
+} = vi.hoisted(() => ({
   mockLocations: [
     {
       locationId: 1,
@@ -53,8 +60,73 @@ const { mockLocations, mockMixedEntries, huntSettingsFixture } = vi.hoisted(() =
       options: [{ text: "Start over", target: { type: "page", value: "start_route" } }],
     },
   ],
+  mockEulaEntries: [
+    {
+      "template-type": "options",
+      "nav-bar": { visible: false },
+      title: "Before You Begin",
+      options: [
+        { text: "I understand", target: { type: "page", value: "continue" }, track: true },
+      ],
+    },
+    {
+      title: "Loc 1",
+      name: { value: "Location 1" },
+      coordinates: { latitude: 52.0, longitude: 4.0 },
+      storyline: "Story 1",
+      breadcrumb: "Step 1",
+      challenge: { name: "Challenge 1", description: "Desc 1", form: [] },
+    },
+  ],
+  mockCompletionEntries: [
+    {
+      "template-type": "splash",
+      image: "celebration.png",
+      effect: { type: "confetti" },
+      title: "Congratulations!",
+    },
+  ],
+  mockRepeatSplashEntries: [
+    {
+      title: "Loc A",
+      name: { value: "Location A" },
+      coordinates: { latitude: 1, longitude: 1 },
+      storyline: "s",
+      breadcrumb: "b",
+      challenge: { name: "", description: "d", form: [] },
+    },
+    {
+      "template-type": "splash",
+      image: "x.jpg",
+      title: "Congrats",
+      effect: { type: "confetti", cooldown: { min: 0, max: 0 }, max: 3 },
+    },
+    {
+      title: "Loc B",
+      name: { value: "Location B" },
+      coordinates: { latitude: 2, longitude: 2 },
+      storyline: "s",
+      breadcrumb: "b",
+      challenge: { name: "", description: "d", form: [] },
+    },
+  ],
   huntSettingsFixture: {} as Record<string, unknown>,
 }));
+
+// happy-dom's TransitionEvent constructor doesn't honor the `propertyName` init
+// option (always undefined), so `fireEvent.transitionEnd(...)` can't be used to
+// simulate the carousel's real CSS transition completing. Force it directly.
+function fireRealTransitionEnd(element: Element) {
+  const event = new Event("transitionend", { bubbles: true });
+  Object.defineProperty(event, "propertyName", { value: "transform" });
+  element.dispatchEvent(event);
+}
+
+function completeCarouselTransition(container: HTMLElement) {
+  container
+    .querySelectorAll(".route-page__slot--animating")
+    .forEach((element) => fireRealTransitionEnd(element));
+}
 
 vi.mock("../utils/loadText", () => ({
   loadText: vi.fn().mockImplementation(async (_lang: string, path: string) => {
@@ -305,4 +377,87 @@ test("does not render a numbered badge for template-type screens", async () => {
   await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
   await screen.findByText("Between Stops");
   expect(screen.queryByTestId("location-badge")).not.toBeInTheDocument();
+});
+
+test("hides the nav bar for an entry with nav-bar.visible: false", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockEulaEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Before You Begin");
+  expect(screen.queryByRole("button", { name: "Exit" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /next stop/i })).not.toBeInTheDocument();
+});
+
+test("clicking a tracked 'continue' option advances and submits a form even with the nav bar hidden", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  const { postFormSubmit } = await import("../utils/api");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockEulaEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Before You Begin");
+  await fireEvent.click(screen.getByText("I understand"));
+  expect(await screen.findByText("Location 1")).toBeInTheDocument();
+  expect(postFormSubmit).toHaveBeenCalledWith(
+    expect.objectContaining({ locationId: 1, answers: { selected: "I understand" } }),
+  );
+  expect(screen.getByRole("button", { name: "Exit" })).toBeInTheDocument();
+});
+
+test("regression: a one-shot splash effect stays visible instead of firing and immediately un-firing itself", async () => {
+  // Root cause this guards against: SplashScreen's effect used to read `playEffect`
+  // as a normal (tracked) dependency. Firing calls onEffectPlayed, which records
+  // fire-history in RoutePage's splashEffectHistory state, which flows back down
+  // through RouteScreen as a freshly recomputed `playEffect` (now false, since
+  // there's no repeat-effect). That prop change re-ran the tracked effect and its
+  // `else` branch flipped the effect back off before the browser ever painted it —
+  // confetti fired and un-fired within the same reactive tick and was never
+  // visible. This must stay true even after everything settles.
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockCompletionEntries as RouteEntry[]);
+  const { container } = render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Congratulations!");
+  await waitFor(() => {
+    expect(container.querySelector(".confetti-effect")).toBeInTheDocument();
+  });
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  expect(container.querySelector(".confetti-effect")).toBeInTheDocument();
+});
+
+test("regression: repeat-effect re-fires in carousel swipe mode after leaving and returning one step", async () => {
+  // Root cause this guards against: the carousel/peek 3-slot layout keeps
+  // neighboring cards pre-mounted and only slides them between roles
+  // (prev/current/next) as the participant swipes one step at a time — the
+  // SAME SplashScreen instance, showing the SAME entry, just changes role.
+  // Triggering re-evaluation off entry/array identity (which never changes in
+  // this scenario) meant leaving a repeat-effect splash screen and coming back
+  // one step later never turned the effect off, and never fired it again.
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockRepeatSplashEntries as RouteEntry[]);
+  themeStore.setThemeName("app"); // carousel mode — the actual production default
+  const { container } = render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location A");
+
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  completeCarouselTransition(container);
+  await screen.findByText("Congrats");
+  await waitFor(() => expect(container.querySelector(".confetti-effect")).toBeInTheDocument());
+
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  completeCarouselTransition(container);
+  await screen.findByText("Location B");
+  // Left the splash screen — it must turn off, not just keep showing forever.
+  expect(container.querySelector(".confetti-effect")).not.toBeInTheDocument();
+
+  await fireEvent.click(await screen.findByRole("button", { name: /previous stop/i }));
+  completeCarouselTransition(container);
+  await screen.findByText("Congrats");
+  // Back on the splash screen with repeat-effect budget remaining — must re-fire.
+  await waitFor(() => expect(container.querySelector(".confetti-effect")).toBeInTheDocument());
 });

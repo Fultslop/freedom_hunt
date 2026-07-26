@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/svelte/svelte5";
+import { render, screen, fireEvent } from "@testing-library/svelte/svelte5";
 import RouteScreen from "../components/RouteScreen.svelte";
 import type { RouteEntry } from "../types/data";
 
@@ -55,31 +55,42 @@ test("renders OptionsScreen for an options entry", () => {
   expect(screen.getByText("Go")).toBeInTheDocument();
 });
 
-test("renders SplashScreen for a splash entry and reports the effect firing", () => {
-  const onSplashEffectPlayed = vi.fn();
+test("forwards onContinue to OptionsScreen for a 'continue' target", async () => {
+  const onContinue = vi.fn();
+  render(RouteScreen, {
+    props: {
+      entry: {
+        "template-type": "options",
+        title: "Before You Begin",
+        options: [{ text: "I understand", target: { type: "page", value: "continue" } }],
+      } as RouteEntry,
+      index: 1,
+      onContinue,
+    },
+  });
+  await fireEvent.click(screen.getByText("I understand"));
+  expect(onContinue).toHaveBeenCalledTimes(1);
+});
+
+test("renders SplashScreen for a splash entry with the effect visible", () => {
   const { container } = render(RouteScreen, {
     props: {
-      entry: { "template-type": "splash", image: "x.jpg", title: "Yay", effect: "confetti" } as RouteEntry,
+      entry: { "template-type": "splash", image: "x.jpg", title: "Yay", effect: { type: "confetti" } } as RouteEntry,
       index: 4,
-      splashEffectHistory: {},
-      onSplashEffectPlayed,
+      isCurrent: true,
     },
   });
   expect(screen.getByText("Yay")).toBeInTheDocument();
   expect(container.querySelector(".confetti-effect")).toBeInTheDocument();
-  expect(onSplashEffectPlayed).toHaveBeenCalledWith(4);
 });
 
-test("does not re-report a splash effect that history says already fired without repeat-effect", () => {
-  const onSplashEffectPlayed = vi.fn();
+test("does not show the effect on a splash entry when isCurrent is false", () => {
   const { container } = render(RouteScreen, {
     props: {
-      entry: { "template-type": "splash", image: "x.jpg", title: "Yay", effect: "confetti" } as RouteEntry,
+      entry: { "template-type": "splash", image: "x.jpg", title: "Yay", effect: { type: "confetti" } } as RouteEntry,
       index: 4,
-      splashEffectHistory: { 4: { count: 1, lastFiredAt: Date.now() } },
-      onSplashEffectPlayed,
+      isCurrent: false,
     },
   });
   expect(container.querySelector(".confetti-effect")).not.toBeInTheDocument();
-  expect(onSplashEffectPlayed).not.toHaveBeenCalled();
 });

@@ -1,4 +1,4 @@
-import { isLocationEntry, locationTotal, locationOrdinalAt } from "../utils/routeEntries";
+import { isLocationEntry, locationTotal, locationOrdinalAt, isNavBarVisible } from "../utils/routeEntries";
 import type { RouteEntry } from "../types/data";
 
 const location: RouteEntry = {
@@ -43,4 +43,16 @@ test("locationOrdinalAt returns the 1-based count of locations up to and includi
   expect(locationOrdinalAt(mixed, 2)).toBe(2); // loc
   expect(locationOrdinalAt(mixed, 3)).toBe(2); // splash — still holds
   expect(locationOrdinalAt(mixed, 5)).toBe(3); // loc
+});
+
+test("isNavBarVisible defaults to true when nav-bar is absent", () => {
+  expect(isNavBarVisible(location)).toBe(true);
+});
+
+test("isNavBarVisible is true when nav-bar.visible is true", () => {
+  expect(isNavBarVisible({ ...location, "nav-bar": { visible: true } })).toBe(true);
+});
+
+test("isNavBarVisible is false when nav-bar.visible is false", () => {
+  expect(isNavBarVisible({ ...location, "nav-bar": { visible: false } })).toBe(false);
 });

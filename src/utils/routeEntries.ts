@@ -11,3 +11,7 @@ export function locationTotal(entries: RouteEntry[]): number {
 export function locationOrdinalAt(entries: RouteEntry[], index: number): number {
   return entries.slice(0, index + 1).filter(isLocationEntry).length;
 }
+
+export function isNavBarVisible(entry: RouteEntry): boolean {
+  return entry["nav-bar"]?.visible ?? true;
+}

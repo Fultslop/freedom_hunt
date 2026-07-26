@@ -17,8 +17,7 @@
   } from "../utils/routeNav";
   import { getHuntSettings } from "../utils/huntSettings";
   import { buildFormStorageKey, loadFormState, saveFormState } from "../utils/formStorage";
-  import { isLocationEntry, locationTotal, locationOrdinalAt } from "../utils/routeEntries";
-  import { recordEffectFired, type EffectHistory } from "../utils/splashEffectHistory";
+  import { isLocationEntry, locationTotal, locationOrdinalAt, isNavBarVisible } from "../utils/routeEntries";
   import { swipe } from "../actions/swipe";
   import { preloadImages } from "../assets/AssetManager";
   import RouteScreen from "../components/RouteScreen.svelte";
@@ -194,12 +193,16 @@
   }
 
   let currentEntry = $derived(entries[currentIndex]);
+  // Hiding the nav bar also disables swipe on this screen — nav-bar.visible: false
+  // means the entry's own content controls navigation, not the generic route
+  // chrome, so a tracked action (e.g. an EULA's "I understand") can't be bypassed
+  // by swiping past it.
+  let navBarVisible = $derived(currentEntry === undefined || isNavBarVisible(currentEntry));
 
   let formStatusByIndex = $state<Record<number, { submitted: boolean; missingLabels: string[] }>>({});
   let skippedIndices = $state<Set<number>>(new Set());
   let showToast = $state(false);
   let toastMissingLabels = $state<string[]>([]);
-  let splashEffectHistory = $state<EffectHistory>({});
 
   $effect(() => {
     if (entries.length > 0 && huntSettings.storeFormsInLocalStorage) {
@@ -237,13 +240,6 @@
     // attributed to whichever effect is currently running up the call stack.
     const current = untrack(() => formStatusByIndex);
     formStatusByIndex = { ...current, [locationId]: status };
-  }
-
-  function handleSplashEffectPlayed(index: number) {
-    // Same untrack() reasoning as handleFormStatusChange above — this fires
-    // synchronously from SplashScreen's own $effect.
-    const current = untrack(() => splashEffectHistory);
-    splashEffectHistory = recordEffectFired(current, index, Date.now());
   }
 
   function computeBadgeStatus(locationId: number, hasForm: boolean): "submitted" | "skipped" | undefined {
@@ -315,7 +311,10 @@
   class="route-page"
   role="region"
   aria-label="Hunt route"
-  use:swipe={{ onDragMove: handleDragMove, onDragEnd: handleDragEnd }}
+  use:swipe={{
+    onDragMove: (delta) => { if (navBarVisible) { handleDragMove(delta); } },
+    onDragEnd: (delta) => { if (navBarVisible) { handleDragEnd(delta); } },
+  }}
 >
   {#if entries.length > 0 && currentEntry}
     {#if swipeMode === "snap"}
@@ -334,8 +333,8 @@
           allowResubmit={huntSettings.allowResubmit}
           onFormStatusChange={handleFormStatusChange}
           badgeStatus={computeBadgeStatus(currentIndex + 1, currentHasForm)}
-          {splashEffectHistory}
-          onSplashEffectPlayed={handleSplashEffectPlayed}
+          onContinue={() => handleDragEnd(-cardWidth)}
+          isCurrent={true}
         />
       </div>
     {:else}
@@ -364,8 +363,8 @@
                 allowResubmit={huntSettings.allowResubmit}
                 onFormStatusChange={handleFormStatusChange}
                 badgeStatus={computeBadgeStatus(locIdx + 1, isLocationEntry(slotEntry) && (slotEntry.challenge.form?.length ?? 0) > 0)}
-                {splashEffectHistory}
-                onSplashEffectPlayed={handleSplashEffectPlayed}
+                onContinue={() => handleDragEnd(-cardWidth)}
+                isCurrent={role === 0}
               />
             </div>
           {:else}
@@ -381,63 +380,65 @@
     <p class="route-page__loading">Loading…</p>
   {/if}
 
-  <div class="route-page__nav">
-    <div class="route-page__nav-slot">
-      {#if currentIndex > 0}
-        <button
-          aria-label="Previous stop"
-          onclick={() => handleDragEnd(cardWidth)}
-          class="route-page__prev-btn"
-        >
-          <!-- ChevronLeft -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg
+  {#if navBarVisible}
+    <div class="route-page__nav">
+      <div class="route-page__nav-slot">
+        {#if currentIndex > 0}
+          <button
+            aria-label="Previous stop"
+            onclick={() => handleDragEnd(cardWidth)}
+            class="route-page__prev-btn"
           >
-          Prev
-        </button>
-      {/if}
-    </div>
+            <!-- ChevronLeft -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg
+            >
+            Prev
+          </button>
+        {/if}
+      </div>
 
-    <button
-      onclick={() => push(`/${params.project}/${params.city}`)}
-      class="route-page__exit-btn"
-    >
-      Exit
-    </button>
+      <button
+        onclick={() => push(`/${params.project}/${params.city}`)}
+        class="route-page__exit-btn"
+      >
+        Exit
+      </button>
 
-    <div class="route-page__nav-slot--right">
-      {#if currentIndex < entries.length - 1}
-        <button
-          aria-label="Next stop"
-          onclick={() => handleDragEnd(-cardWidth)}
-          class="route-page__next-btn"
-          class:route-page__next-btn--pending={!canAdvance}
-        >
-          Next
-          <!-- ChevronRight -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg
+      <div class="route-page__nav-slot--right">
+        {#if currentIndex < entries.length - 1}
+          <button
+            aria-label="Next stop"
+            onclick={() => handleDragEnd(-cardWidth)}
+            class="route-page__next-btn"
+            class:route-page__next-btn--pending={!canAdvance}
           >
-        </button>
-      {/if}
+            Next
+            <!-- ChevronRight -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg
+            >
+          </button>
+        {/if}
+      </div>
     </div>
-  </div>
+  {/if}
 
   {#if showToast}
     <Toast

@@ -8,13 +8,20 @@
     "template-type": { "const": "splash" },
     "image": { "type": "string" },
     "shader": { "enum": ["none", "grayscale", "duotone", "vignette", "darken"] },
-    "effect": { "enum": ["confetti", "shooting-stars", "fireworks"] },
-    "repeat-effect": {
+    "effect": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["cooldown", "max"],
+      "required": ["type"],
       "properties": {
-        "cooldown": { "type": "number" },
+        "type": { "enum": ["confetti", "shooting-stars", "fireworks"] },
+        "cooldown": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "min": { "type": "number" },
+            "max": { "type": "number" }
+          }
+        },
         "max": { "type": "number" }
       }
     },
@@ -27,6 +34,11 @@
         "horizontal": { "enum": ["left", "center", "right"] },
         "vertical": { "enum": ["top", "center", "bottom"] }
       }
+    },
+    "nav-bar": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "visible": { "type": "boolean" } }
     }
   }
 }

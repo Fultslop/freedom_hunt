@@ -1,0 +1,15 @@
+template-type: options
+nav-bar:
+  visible: false
+title: "Before You Begin"
+text: |
+  A few things to keep in mind before you head out:
+
+  - You'll be asked to take photos during the hunt — please be respectful and mindful of the people around you.
+  - Stay aware of your surroundings, especially near traffic and busy streets.
+  - You'll need an internet connection to load clues and upload your photos.
+  - This is a self-paced activity — take breaks whenever you like, and feel free to skip any challenge you're not comfortable with.
+options:
+  - text: "I understand"
+    target: { type: page, value: continue }
+    track: true

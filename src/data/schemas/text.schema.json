@@ -9,6 +9,11 @@
     "image": { "type": "string" },
     "title": { "type": "string" },
     "text": { "type": "string" },
-    "margin": { "type": "string" }
+    "margin": { "type": "string" },
+    "nav-bar": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "visible": { "type": "boolean" } }
+    }
   }
 }

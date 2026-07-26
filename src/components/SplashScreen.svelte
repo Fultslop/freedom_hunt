@@ -3,31 +3,29 @@
   import ConfettiEffect from "./effects/ConfettiEffect.svelte";
   import ShootingStarsEffect from "./effects/ShootingStarsEffect.svelte";
   import FireworksEffect from "./effects/FireworksEffect.svelte";
-  import type { SplashShader, SplashEffectName, SplashAnchor } from "../types/data";
+  import { untrack } from "svelte";
+  import type { SplashShader, SplashEffectConfig, SplashAnchor } from "../types/data";
   import "./SplashScreen.css";
 
   let {
     image,
     title,
     shader = "none",
-    effectName = undefined,
+    effectConfig = undefined,
     anchor = { horizontal: "center", vertical: "center" },
-    playEffect = false,
-    entryKey,
-    onEffectPlayed = undefined,
+    isCurrent = true,
   }: {
     image: string;
     title: string;
     shader?: SplashShader;
-    effectName?: SplashEffectName;
+    effectConfig?: SplashEffectConfig;
     anchor?: SplashAnchor;
-    playEffect?: boolean;
-    entryKey: number;
-    onEffectPlayed?: () => void;
+    isCurrent?: boolean;
   } = $props();
 
   let bgSrc = $state<string | null>(null);
-  let showEffect = $state(false);
+  let activeEffects = $state<{ id: number; type: string }[]>([]);
+  let nextId = 0;
 
   $effect.pre(() => {
     bgSrc = getCachedImageUrl(image) ?? null;
@@ -48,20 +46,45 @@
     };
   });
 
-  // entryKey (the array index this instance currently displays) is read here
-  // purely to force this effect to re-run every time the caller swaps in a
-  // different splash entry — in carousel/peek swipe mode a single SplashScreen
-  // instance is reused across many different entries via prop changes rather
-  // than being remounted, so re-triggering must be keyed off entry identity,
-  // not component lifecycle.
+  function randomCooldownMs(config: SplashEffectConfig): number {
+    const maxSeconds = config.cooldown?.max ?? 1;
+    const minSeconds = config.cooldown?.min ?? maxSeconds;
+    const seconds = minSeconds + Math.random() * Math.max(0, maxSeconds - minSeconds);
+    return seconds * 1000;
+  }
+
   $effect(() => {
-    void entryKey;
-    if (playEffect && effectName) {
-      showEffect = true;
-      onEffectPlayed?.();
-    } else {
-      showEffect = false;
+    if (!isCurrent || !effectConfig) {
+      activeEffects = [];
+      return undefined;
     }
+
+    const config = effectConfig;
+    const maxIterations = config.max ?? 1;
+    let iteration = 0;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    function playIteration() {
+      if (!cancelled) {
+        iteration += 1;
+        const id = nextId++;
+        activeEffects = untrack(() => [...activeEffects, { id, type: config.type }]);
+        if (maxIterations < 0 || iteration < maxIterations) {
+          timer = setTimeout(playIteration, randomCooldownMs(config));
+        }
+      }
+    }
+
+    playIteration();
+
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) {
+        clearTimeout(timer);
+      }
+      activeEffects = [];
+    };
   });
 </script>
 
@@ -77,15 +100,15 @@
     <div class="splash-screen__overlay splash-screen__overlay--darken"></div>
   {/if}
 
-  {#if showEffect}
-    {#if effectName === "confetti"}
+  {#each activeEffects as eff (eff.id)}
+    {#if eff.type === "confetti"}
       <ConfettiEffect />
-    {:else if effectName === "shooting-stars"}
+    {:else if eff.type === "shooting-stars"}
       <ShootingStarsEffect />
-    {:else if effectName === "fireworks"}
+    {:else if eff.type === "fireworks"}
       <FireworksEffect />
     {/if}
-  {/if}
+  {/each}
 
   <div
     class="splash-screen__title-wrap"

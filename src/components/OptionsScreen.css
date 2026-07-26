@@ -4,6 +4,10 @@
   background: var(--color-background);
 }
 
+.options-screen__text {
+  padding: 0 16px;
+}
+
 .options-screen__buttons {
   display: flex;
   flex-direction: column;

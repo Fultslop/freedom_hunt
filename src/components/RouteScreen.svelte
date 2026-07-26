@@ -3,7 +3,6 @@
   import TextScreen from "./TextScreen.svelte";
   import SplashScreen from "./SplashScreen.svelte";
   import OptionsScreen from "./OptionsScreen.svelte";
-  import { shouldFireEffect, type EffectHistory } from "../utils/splashEffectHistory";
   import type { RouteEntry, LocationEntry } from "../types/data";
 
   let {
@@ -17,8 +16,8 @@
     allowResubmit = true,
     badgeStatus = undefined,
     onFormStatusChange = undefined,
-    splashEffectHistory = {},
-    onSplashEffectPlayed = undefined,
+    onContinue = undefined,
+    isCurrent = true,
   }: {
     entry: RouteEntry;
     index: number;
@@ -33,8 +32,8 @@
       locationId: number,
       status: { submitted: boolean; missingLabels: string[] },
     ) => void;
-    splashEffectHistory?: EffectHistory;
-    onSplashEffectPlayed?: (index: number) => void;
+    onContinue?: () => void;
+    isCurrent?: boolean;
   } = $props();
 </script>
 
@@ -45,20 +44,21 @@
     image={entry.image}
     title={entry.title}
     shader={entry.shader}
-    effectName={entry.effect}
+    effectConfig={entry.effect}
     anchor={entry.anchor}
-    playEffect={shouldFireEffect(splashEffectHistory, index, entry["repeat-effect"], Date.now())}
-    entryKey={index}
-    onEffectPlayed={() => onSplashEffectPlayed?.(index)}
+    {isCurrent}
   />
 {:else if entry["template-type"] === "options"}
   <OptionsScreen
     image={entry.image}
     title={entry.title}
+    text={entry.text}
     options={entry.options}
+    {index}
     project={project}
     city={cityId ?? ""}
     route={routeId ?? ""}
+    {onContinue}
   />
 {:else}
   <ChallengeCard

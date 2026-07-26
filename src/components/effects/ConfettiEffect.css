@@ -12,6 +12,8 @@
   top: -10px;
   width: 8px;
   height: 14px;
+  box-sizing: border-box;
+  border: 1px solid transparent;
   opacity: 0.9;
   animation-name: confettiFall;
   animation-timing-function: ease-in;
