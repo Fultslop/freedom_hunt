@@ -3,3 +3,15 @@ project.title: "Democrats Abroad"
 project.description: "Democrats Abroad is the official arm of the US Democratic Party for Americans living outside the United States. This scavenger hunt connects the history of European resistance to fascism with the stakes of American democracy today."
 project.cta: "Choose a city to start your hunt."
 project.image: da_abroad_logo.png
+
+# store form data in local storage so that users can come back to it later
+project.store_forms_in_local_storage: true
+
+# users must complete the form before they can continue to the next location
+project.form_required: true
+
+# users can skip the form and continue to the next location if they are stuck
+project.can_forms_skip: true 
+
+# users can resubmit the form if they want to change their answers
+project.allow_resubmit: true

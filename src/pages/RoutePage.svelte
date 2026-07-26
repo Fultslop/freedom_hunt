@@ -15,9 +15,12 @@
     shouldCommitSwipe,
     elasticOffset,
   } from "../utils/routeNav";
+  import { getHuntSettings } from "../utils/huntSettings";
+  import { buildFormStorageKey, loadFormState, saveFormState } from "../utils/formStorage";
   import { swipe } from "../actions/swipe";
   import { preloadImages } from "../assets/AssetManager";
   import ChallengeCard from "../components/ChallengeCard.svelte";
+  import Toast from "../components/Toast.svelte";
   import type { RoutesData, Location } from "../types/data";
   import { untrack } from "svelte";
   import "./RoutePage.css";
@@ -56,6 +59,17 @@
       `projects/${params.project}/${params.city}/routes`,
     ).then((data) => {
       routesText = data;
+    });
+  });
+
+  let huntSettings = $state(getHuntSettings(null));
+  $effect(() => {
+    const lang = $languageStore.currentLang;
+    loadText<Record<string, unknown>>(
+      lang,
+      `projects/${params.project}/${params.project}`,
+    ).then((data) => {
+      huntSettings = getHuntSettings(data);
     });
   });
 
@@ -112,8 +126,12 @@
       if (swipeMode === "snap") {
         // snap mode: instant index change, no drag animation
         if (delta < -60) {
-          direction = "next";
-          currentIndex = clampedNext(currentIndex, locations.length);
+          if (canAdvance) {
+            direction = "next";
+            currentIndex = clampedNext(currentIndex, locations.length);
+          } else {
+            triggerBlockedToast();
+          }
         } else if (delta > 60) {
           direction = "prev";
           currentIndex = clampedPrev(currentIndex);
@@ -126,9 +144,23 @@
         const goingPrev = delta > 0;
 
         if (goingNext && !atEnd && shouldCommitSwipe(delta, cardWidth)) {
-          pendingCommit = "next";
-          isAnimating = true;
-          dragOffset = -cardWidth;
+          if (canAdvance) {
+            pendingCommit = "next";
+            isAnimating = true;
+            dragOffset = -cardWidth;
+          } else {
+            triggerBlockedToast();
+            // Only animate a spring-back if there's actually an offset to spring
+            // back from (a real drag). A Next-button click never set dragOffset,
+            // so it's already 0 here — setting it to 0 again produces no CSS
+            // transform change, `transitionend` never fires, and isAnimating
+            // would stay stuck true forever, silently no-op'ing every future
+            // handleDragEnd call (including the next click).
+            if (dragOffset !== 0) {
+              isAnimating = true;
+              dragOffset = 0;
+            }
+          }
         } else if (goingPrev && !atStart && shouldCommitSwipe(delta, cardWidth)) {
           pendingCommit = "prev";
           isAnimating = true;
@@ -161,6 +193,98 @@
 
   let currentLocation = $derived(locations[currentIndex]);
 
+  let formStatusByIndex = $state<Record<number, { submitted: boolean; missingLabels: string[] }>>({});
+  let skippedIndices = $state<Set<number>>(new Set());
+  let showToast = $state(false);
+  let toastMissingLabels = $state<string[]>([]);
+
+  $effect(() => {
+    if (locations.length > 0 && huntSettings.storeFormsInLocalStorage) {
+      const restoredStatus: Record<number, { submitted: boolean; missingLabels: string[] }> = {};
+      const restoredSkipped = new Set<number>();
+      locations.forEach((_loc, i) => {
+        const locId = i + 1;
+        const state = loadFormState(
+          buildFormStorageKey(params.project, params.city, params.route, locId),
+        );
+        if (state.submitted) {
+          restoredStatus[locId] = { submitted: true, missingLabels: [] };
+        }
+        if (state.skipped) {
+          restoredSkipped.add(locId);
+        }
+      });
+      untrack(() => {
+        formStatusByIndex = { ...restoredStatus, ...formStatusByIndex };
+        skippedIndices = new Set([...restoredSkipped, ...skippedIndices]);
+      });
+    }
+  });
+
+  function handleFormStatusChange(
+    locationId: number,
+    status: { submitted: boolean; missingLabels: string[] },
+  ) {
+    // This is invoked synchronously from deep inside AppForm's own $effect (via
+    // ChallengeForm -> ChallengeCard -> here), so a plain `{...formStatusByIndex}`
+    // read here gets attributed as a dependency of THAT effect, and the write right
+    // after looks like the same effect writing its own dependency — Svelte's
+    // infinite-loop guard (effect_update_depth_exceeded) trips on exactly this shape.
+    // untrack() keeps the read from being attributed to whichever effect is
+    // currently running up the call stack.
+    const current = untrack(() => formStatusByIndex);
+    formStatusByIndex = { ...current, [locationId]: status };
+  }
+
+  function computeBadgeStatus(locationId: number, hasForm: boolean): "submitted" | "skipped" | undefined {
+    if (!hasForm) {
+      return undefined;
+    }
+    if (formStatusByIndex[locationId]?.submitted) {
+      return "submitted";
+    }
+    if (skippedIndices.has(locationId)) {
+      return "skipped";
+    }
+    return undefined;
+  }
+
+  let currentLocationId = $derived(currentIndex + 1);
+  let currentHasForm = $derived((currentLocation?.challenge.form?.length ?? 0) > 0);
+  let currentFormStatus = $derived(
+    formStatusByIndex[currentLocationId] ?? { submitted: false, missingLabels: [] },
+  );
+  let currentSkipped = $derived(skippedIndices.has(currentLocationId));
+  let canAdvance = $derived(
+    !huntSettings.formRequired ||
+      !currentHasForm ||
+      currentFormStatus.submitted ||
+      currentSkipped,
+  );
+
+  function triggerBlockedToast() {
+    toastMissingLabels = currentFormStatus.missingLabels;
+    showToast = true;
+  }
+
+  function handleSkip() {
+    const locId = currentLocationId;
+    skippedIndices = new Set(skippedIndices).add(locId);
+    if (huntSettings.storeFormsInLocalStorage) {
+      const key = buildFormStorageKey(params.project, params.city, params.route, locId);
+      saveFormState(key, { ...loadFormState(key), skipped: true });
+    }
+    showToast = false;
+    if (swipeMode === "snap") {
+      direction = "next";
+      currentIndex = clampedNext(currentIndex, locations.length);
+    } else {
+      pendingCommit = "next";
+      isAnimating = true;
+      dragOffset = -cardWidth;
+    }
+  }
+
   let swipeMode = $derived($themeStore.theme.swipe.mode);
   let hint = $derived(swipeMode === "snap" ? 0 : $themeStore.theme.swipe.hint);
 
@@ -192,6 +316,11 @@
           index={currentIndex + 1}
           routeId={params.route}
           cityId={params.city}
+          project={params.project}
+          storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
+          allowResubmit={huntSettings.allowResubmit}
+          onFormStatusChange={handleFormStatusChange}
+          badgeStatus={computeBadgeStatus(currentIndex + 1, currentHasForm)}
         />
       </div>
     {:else}
@@ -215,6 +344,11 @@
                 index={locIdx + 1}
                 routeId={params.route}
                 cityId={params.city}
+                project={params.project}
+                storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
+                allowResubmit={huntSettings.allowResubmit}
+                onFormStatusChange={handleFormStatusChange}
+                badgeStatus={computeBadgeStatus(locIdx + 1, (slotLocation.challenge.form?.length ?? 0) > 0)}
               />
             </div>
           {:else}
@@ -268,6 +402,7 @@
           aria-label="Next stop"
           onclick={() => handleDragEnd(-cardWidth)}
           class="route-page__next-btn"
+          class:route-page__next-btn--pending={!canAdvance}
         >
           Next
           <!-- ChevronRight -->
@@ -286,4 +421,15 @@
       {/if}
     </div>
   </div>
+
+  {#if showToast}
+    <Toast
+      message={toastMissingLabels.length > 0
+        ? `Please complete: ${toastMissingLabels.join(", ")}`
+        : "Please submit the form to continue."}
+      onDismiss={() => (showToast = false)}
+      skipLabel={huntSettings.canFormsSkip ? "Skip" : undefined}
+      onSkip={huntSettings.canFormsSkip ? handleSkip : undefined}
+    />
+  {/if}
 </div>

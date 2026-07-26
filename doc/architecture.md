@@ -205,13 +205,23 @@ Reference: `src/data/text/en/projects/democrats_abroad/den_haag/001_loc_binnenho
 
 ### `projects/<projectId>/<projectId>.yaml` — Project metadata
 
-Free-form project-level YAML. The only field consumed by the app is the optional `organizer_url`:
+Free-form project-level YAML. Fields consumed by the app:
 
 ```yaml
 organizer_url: "https://your-organization.example.org"
+project.store_forms_in_local_storage: true   # default true
+project.form_required: false                  # default false
+project.can_forms_skip: false                 # default false
+project.allow_resubmit: true                  # default true
 ```
 
-If present, the gallery landing page (`/:project/:city/gallery`) renders a header link pointing to this URL (opens in a new tab). If absent, no link is shown.
+- `organizer_url` — if present, the gallery landing page (`/:project/:city/gallery`) renders a header link pointing to this URL (opens in a new tab). If absent, no link is shown.
+- `project.store_forms_in_local_storage` — when true (default), each location's form values, photo upload outcomes, and submitted/skipped flags persist to `localStorage` (see `src/utils/formStorage.ts`), keyed `${project}/${city}/${route}/${locationId}/form`, so in-progress or completed forms survive a reload or crash. When false, all form state is in-memory only for the session.
+- `project.form_required` — when true, the Next button/swipe-forward is blocked (soft-disabled: styled but still clickable) until the current location's form is submitted, showing a toast listing missing required fields on a blocked attempt. Required `photo` fields must have a successful upload to count as filled.
+- `project.can_forms_skip` — when true, the blocked-navigation toast includes a Skip button that bypasses the requirement for that location (persisted if local storage is enabled).
+- `project.allow_resubmit` — when true (default), a location's form stays visible and editable after a successful submit, with the button relabeled "Re-submit" (disabled until a value changes). When false, the form is replaced by a static "Submitted! ✓" message, matching the original behavior.
+
+`getHuntSettings()` (`src/utils/huntSettings.ts`) centralizes reading these four flags with their defaults; `RoutePage` loads this file once per route via `loadText`.
 
 ### `photos` table (D1, `AUTH_DB`)
 
@@ -326,6 +336,8 @@ Each function wraps a single endpoint, handles the request shape, and returns a 
 | `EditorLocationForm` | Data-driven wrapper: loads field list from `src/data/text/en/editor/location_form.yaml` via `loadText()`; flattens loaded location data into `initialValues`; `onSubmit` rebuilds nested object, parses coordinates, calls `saveEditorLocation()` |
 
 **Editor form YAML:** `src/data/text/en/editor/location_form.yaml` defines all fields for the location editor. Adding or reordering editor fields requires only editing this file — no TypeScript changes.
+
+**Completion badge.** `ChallengeCard`'s numbered badge shows a small status overlay when `form_required` gating is in effect: a green checkmark once that location's form has been submitted, or a grey dash if the user skipped it via the toast's Skip button (see `project.can_forms_skip` above). The badge's own background color remains the per-location `themeColor`/theme accent — the overlay is a separate small circle, not a recoloring of the badge itself.
 
 ## YAML Data Validation
 

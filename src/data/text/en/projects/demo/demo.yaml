@@ -3,3 +3,14 @@ project.title: "Demo"
 project.description: "A sample scavenger hunt covering Paris and New York, used to test the app's full feature set — every question type, photo upload, and the photo gallery — without touching real event data."
 project.cta: "Choose a city to start exploring."
 project.image: placeholder.jpg
+# store form data in local storage so that users can come back to it later
+project.store_forms_in_local_storage: true
+
+# users must complete the form before they can continue to the next location
+project.form_required: true
+
+# users can skip the form and continue to the next location if they are stuck
+project.can_forms_skip: true 
+
+# users can resubmit the form if they want to change their answers
+project.allow_resubmit: true

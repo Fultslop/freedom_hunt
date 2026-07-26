@@ -57,6 +57,29 @@
   font-size: var(--font-size-xl);
   font-weight: 800;
   flex-shrink: 0;
+  position: relative;
+}
+
+.cc-badge-status {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 2px solid var(--color-background);
+}
+
+.cc-badge-status--submitted {
+  background: var(--color-success);
+}
+
+.cc-badge-status--skipped {
+  background: var(--color-text-muted);
 }
 
 .cc-location-title {

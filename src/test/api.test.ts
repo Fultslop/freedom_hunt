@@ -13,9 +13,10 @@ import {
   postDemoSignup,
 } from "../utils/api";
 
-function mockFetch(response: unknown) {
+function mockFetch(response: unknown, status = 200) {
   vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
     json: async () => response,
+    status,
   } as Response);
 }
 
@@ -59,7 +60,7 @@ test("postFormSubmit returns ok: false on server error", async () => {
 });
 
 test("postPhotoUpload POSTs to /upload with FormData", async () => {
-  mockFetch({ ok: true, id: "photo-1", key: "1_123" });
+  mockFetch({ ok: true, id: "photo-1", key: "1_123" }, 200);
   const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
   const result = await postPhotoUpload({
     locationId: 1,
@@ -72,7 +73,7 @@ test("postPhotoUpload POSTs to /upload with FormData", async () => {
     "/upload",
     expect.objectContaining({ method: "POST" }),
   );
-  expect(result).toEqual({ ok: true, id: "photo-1", key: "1_123" });
+  expect(result).toEqual({ ok: true, id: "photo-1", key: "1_123", httpCode: 200 });
 });
 
 // ---------------------------------------------------------------------------

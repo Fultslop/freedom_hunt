@@ -97,3 +97,26 @@ export type ProjectMeta = Record<string, unknown>;
 
 /** Free-form city metadata from <cityId>.yaml */
 export type CityText = Record<string, unknown>;
+
+export interface HuntSettings {
+  storeFormsInLocalStorage: boolean;
+  formRequired: boolean;
+  canFormsSkip: boolean;
+  allowResubmit: boolean;
+}
+
+export interface PhotoUploadStatus {
+  status: "success" | "error";
+  httpCode: number;
+}
+
+export interface FormState {
+  values: Record<string, unknown>;
+  uploads: Record<string, PhotoUploadStatus>;
+  submitted: boolean;
+  skipped: boolean;
+}
+
+export interface FormValidationStatus {
+  missingLabels: string[];
+}
