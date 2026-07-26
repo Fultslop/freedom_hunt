@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Splash Screen",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["template-type", "image", "title"],
+  "properties": {
+    "template-type": { "const": "splash" },
+    "image": { "type": "string" },
+    "shader": { "enum": ["none", "grayscale", "duotone", "vignette", "darken"] },
+    "effect": { "enum": ["confetti", "shooting-stars", "fireworks"] },
+    "repeat-effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cooldown", "max"],
+      "properties": {
+        "cooldown": { "type": "number" },
+        "max": { "type": "number" }
+      }
+    },
+    "title": { "type": "string" },
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["horizontal", "vertical"],
+      "properties": {
+        "horizontal": { "enum": ["left", "center", "right"] },
+        "vertical": { "enum": ["top", "center", "bottom"] }
+      }
+    }
+  }
+}

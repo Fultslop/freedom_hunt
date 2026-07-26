@@ -1,0 +1,9 @@
+/* src/components/TextScreen.css */
+
+.text-screen {
+  background: var(--color-background);
+}
+
+.text-screen__body {
+  padding: 16px;
+}

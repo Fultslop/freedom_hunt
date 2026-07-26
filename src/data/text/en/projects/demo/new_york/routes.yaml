@@ -30,8 +30,10 @@ brooklyn_route:
   description: "A route across the Brooklyn Bridge and along the waterfront to Coney Island — 10 stops."
   locations:
     - 021_loc_brooklyn_bridge
+    - 031_splash_brooklyn_checkpoint
     - 022_loc_south_street_seaport
     - 023_loc_brooklyn_bridge_park
+    - 032_text_dumbo_intro
     - 024_loc_dumbo
     - 025_loc_brooklyn_heights_promenade
     - 026_loc_domino_park
@@ -39,3 +41,4 @@ brooklyn_route:
     - 028_loc_prospect_park
     - 029_loc_brooklyn_museum
     - 030_loc_coney_island
+    - 033_options_end_of_route

@@ -120,3 +120,46 @@ export interface FormState {
 export interface FormValidationStatus {
   missingLabels: string[];
 }
+
+export interface LocationEntry extends Location {
+  "template-type"?: "location";
+}
+
+export interface TextEntry {
+  "template-type": "text";
+  image?: string;
+  title: string;
+  text: string;
+  margin?: string;
+}
+
+export type SplashShader = "none" | "grayscale" | "duotone" | "vignette" | "darken";
+export type SplashEffectName = "confetti" | "shooting-stars" | "fireworks";
+
+export interface SplashAnchor {
+  horizontal: "left" | "center" | "right";
+  vertical: "top" | "center" | "bottom";
+}
+
+export interface SplashEntry {
+  "template-type": "splash";
+  image: string;
+  shader?: SplashShader;
+  effect?: SplashEffectName;
+  "repeat-effect"?: { cooldown: number; max: number };
+  title: string;
+  anchor?: SplashAnchor;
+}
+
+export type OptionTarget =
+  | { type: "link"; value: string }
+  | { type: "page"; value: "title" | "project" | "start_route" | "gallery" };
+
+export interface OptionsEntry {
+  "template-type": "options";
+  image?: string;
+  title: string;
+  options: Array<{ text: string; target: OptionTarget }>;
+}
+
+export type RouteEntry = LocationEntry | TextEntry | SplashEntry | OptionsEntry;

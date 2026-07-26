@@ -2,8 +2,9 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/svelte/svel
 import { titleBarStore } from "../stores/titleBarStore";
 import { themeStore } from "../stores/themeStore";
 import RoutePage from "../pages/RoutePage.svelte";
+import type { RouteEntry } from "../types/data";
 
-const { mockLocations, huntSettingsFixture } = vi.hoisted(() => ({
+const { mockLocations, mockMixedEntries, huntSettingsFixture } = vi.hoisted(() => ({
   mockLocations: [
     {
       locationId: 1,
@@ -26,6 +27,30 @@ const { mockLocations, huntSettingsFixture } = vi.hoisted(() => ({
       storyline: "Story 2",
       breadcrumb: "Step 2",
       challenge: { name: "Challenge 2", description: "Desc 2", form: [] },
+    },
+  ],
+  mockMixedEntries: [
+    {
+      title: "Loc 1",
+      name: { value: "Location 1" },
+      coordinates: { latitude: 52.0, longitude: 4.0 },
+      storyline: "Story 1",
+      breadcrumb: "Step 1",
+      challenge: { name: "Challenge 1", description: "Desc 1", form: [] },
+    },
+    { "template-type": "text", title: "Between Stops", text: "Take a breath." },
+    {
+      title: "Loc 2",
+      name: { value: "Location 2" },
+      coordinates: { latitude: 52.1, longitude: 4.1 },
+      storyline: "Story 2",
+      breadcrumb: "Step 2",
+      challenge: { name: "Challenge 2", description: "Desc 2", form: [] },
+    },
+    {
+      "template-type": "options",
+      title: "The End",
+      options: [{ text: "Start over", target: { type: "page", value: "start_route" } }],
     },
   ],
   huntSettingsFixture: {} as Record<string, unknown>,
@@ -235,4 +260,49 @@ test("renders a submitted badge on a location after its form is submitted", asyn
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
   expect(await screen.findByTestId("badge-status-submitted")).toBeInTheDocument();
+});
+
+test("counts only location entries in the progress indicator, holding steady through template screens", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockMixedEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+  let progress: { current: number; total: number } | null = null;
+  titleBarStore.subscribe((state) => { if (state.progress !== undefined) { progress = state.progress; } })();
+  expect(progress).toEqual({ current: 1, total: 2 });
+
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i })); // -> text screen (index 1)
+  await screen.findByText("Between Stops");
+  titleBarStore.subscribe((state) => { if (state.progress !== undefined) { progress = state.progress; } })();
+  expect(progress).toEqual({ current: 1, total: 2 }); // holds at last location's ordinal
+});
+
+test("renders TextScreen and OptionsScreen entries within a route", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockMixedEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  expect(await screen.findByText("Between Stops")).toBeInTheDocument();
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  expect(await screen.findByText("Location 2")).toBeInTheDocument();
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  expect(await screen.findByText("The End")).toBeInTheDocument();
+  expect(await screen.findByText("Start over")).toBeInTheDocument();
+});
+
+test("does not render a numbered badge for template-type screens", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockMixedEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await screen.findByText("Between Stops");
+  expect(screen.queryByTestId("location-badge")).not.toBeInTheDocument();
 });

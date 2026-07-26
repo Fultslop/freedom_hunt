@@ -1,0 +1,11 @@
+template-type: splash
+image: placeholder.jpg
+shader: duotone
+effect: confetti
+repeat-effect:
+  cooldown: 20
+  max: 3
+title: "You Made It Across!"
+anchor:
+  horizontal: center
+  vertical: bottom

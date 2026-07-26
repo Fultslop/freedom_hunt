@@ -17,11 +17,13 @@
   } from "../utils/routeNav";
   import { getHuntSettings } from "../utils/huntSettings";
   import { buildFormStorageKey, loadFormState, saveFormState } from "../utils/formStorage";
+  import { isLocationEntry, locationTotal, locationOrdinalAt } from "../utils/routeEntries";
+  import { recordEffectFired, type EffectHistory } from "../utils/splashEffectHistory";
   import { swipe } from "../actions/swipe";
   import { preloadImages } from "../assets/AssetManager";
-  import ChallengeCard from "../components/ChallengeCard.svelte";
+  import RouteScreen from "../components/RouteScreen.svelte";
   import Toast from "../components/Toast.svelte";
-  import type { RoutesData, Location } from "../types/data";
+  import type { RoutesData, RouteEntry } from "../types/data";
   import { untrack } from "svelte";
   import "./RoutePage.css";
 
@@ -38,7 +40,7 @@
         )
       : [],
   );
-  let locations = $state<Location[]>([]);
+  let entries = $state<RouteEntry[]>([]);
 
   // use localStorage to remember the last visited location index for this route
   // we use untrack to avoid svelte warnings
@@ -77,7 +79,7 @@
     const lang = $languageStore.currentLang;
     if (locationPaths.length > 0) {
       loadLocations(lang, locationPaths).then((locs) => {
-        locations = locs;
+        entries = locs;
       });
     }
   });
@@ -86,8 +88,8 @@
     titleBarStore.set({
       title: params.route.replace(/_/g, " "),
       progress:
-        locations.length > 0
-          ? { current: currentIndex + 1, total: locations.length }
+        locationTotal(entries) > 0
+          ? { current: locationOrdinalAt(entries, currentIndex), total: locationTotal(entries) }
           : null,
       backPath: `/${params.project}/${params.city}`,
     });
@@ -98,8 +100,8 @@
   });
 
   $effect(() => {
-    if (locations.length > 0) {
-      const images = locations.flatMap((location) => (location.image ? [location.image] : []));
+    if (entries.length > 0) {
+      const images = entries.flatMap((entry) => (entry.image ? [entry.image] : []));
       preloadImages(images);
     }
   });
@@ -108,7 +110,7 @@
     if (!isAnimating) {
       if (swipeMode !== "snap") {
         const atStart = currentIndex === 0;
-        const atEnd = currentIndex === locations.length - 1;
+        const atEnd = currentIndex === entries.length - 1;
 
         if (delta > 0 && atStart) {
           dragOffset = elasticOffset(delta); // elastic resistance — no prev card
@@ -128,7 +130,7 @@
         if (delta < -60) {
           if (canAdvance) {
             direction = "next";
-            currentIndex = clampedNext(currentIndex, locations.length);
+            currentIndex = clampedNext(currentIndex, entries.length);
           } else {
             triggerBlockedToast();
           }
@@ -139,7 +141,7 @@
         dragOffset = 0;
       } else {
         const atStart = currentIndex === 0;
-        const atEnd = currentIndex === locations.length - 1;
+        const atEnd = currentIndex === entries.length - 1;
         const goingNext = delta < 0;
         const goingPrev = delta > 0;
 
@@ -179,7 +181,7 @@
       isAnimating = false;
       if (pendingCommit === "next") {
         direction = "next";
-        currentIndex = clampedNext(currentIndex, locations.length);
+        currentIndex = clampedNext(currentIndex, entries.length);
         currentSlotIndex = (currentSlotIndex + 1) % 3;
       } else if (pendingCommit === "prev") {
         direction = "prev";
@@ -191,18 +193,19 @@
     }
   }
 
-  let currentLocation = $derived(locations[currentIndex]);
+  let currentEntry = $derived(entries[currentIndex]);
 
   let formStatusByIndex = $state<Record<number, { submitted: boolean; missingLabels: string[] }>>({});
   let skippedIndices = $state<Set<number>>(new Set());
   let showToast = $state(false);
   let toastMissingLabels = $state<string[]>([]);
+  let splashEffectHistory = $state<EffectHistory>({});
 
   $effect(() => {
-    if (locations.length > 0 && huntSettings.storeFormsInLocalStorage) {
+    if (entries.length > 0 && huntSettings.storeFormsInLocalStorage) {
       const restoredStatus: Record<number, { submitted: boolean; missingLabels: string[] }> = {};
       const restoredSkipped = new Set<number>();
-      locations.forEach((_loc, i) => {
+      entries.forEach((_entry, i) => {
         const locId = i + 1;
         const state = loadFormState(
           buildFormStorageKey(params.project, params.city, params.route, locId),
@@ -226,14 +229,21 @@
     status: { submitted: boolean; missingLabels: string[] },
   ) {
     // This is invoked synchronously from deep inside AppForm's own $effect (via
-    // ChallengeForm -> ChallengeCard -> here), so a plain `{...formStatusByIndex}`
-    // read here gets attributed as a dependency of THAT effect, and the write right
-    // after looks like the same effect writing its own dependency — Svelte's
-    // infinite-loop guard (effect_update_depth_exceeded) trips on exactly this shape.
-    // untrack() keeps the read from being attributed to whichever effect is
-    // currently running up the call stack.
+    // ChallengeForm -> ChallengeCard -> RouteScreen -> here), so a plain
+    // `{...formStatusByIndex}` read here gets attributed as a dependency of THAT
+    // effect, and the write right after looks like the same effect writing its
+    // own dependency — Svelte's infinite-loop guard (effect_update_depth_exceeded)
+    // trips on exactly this shape. untrack() keeps the read from being
+    // attributed to whichever effect is currently running up the call stack.
     const current = untrack(() => formStatusByIndex);
     formStatusByIndex = { ...current, [locationId]: status };
+  }
+
+  function handleSplashEffectPlayed(index: number) {
+    // Same untrack() reasoning as handleFormStatusChange above — this fires
+    // synchronously from SplashScreen's own $effect.
+    const current = untrack(() => splashEffectHistory);
+    splashEffectHistory = recordEffectFired(current, index, Date.now());
   }
 
   function computeBadgeStatus(locationId: number, hasForm: boolean): "submitted" | "skipped" | undefined {
@@ -250,7 +260,11 @@
   }
 
   let currentLocationId = $derived(currentIndex + 1);
-  let currentHasForm = $derived((currentLocation?.challenge.form?.length ?? 0) > 0);
+  let currentHasForm = $derived(
+    currentEntry !== undefined &&
+      isLocationEntry(currentEntry) &&
+      (currentEntry.challenge.form?.length ?? 0) > 0,
+  );
   let currentFormStatus = $derived(
     formStatusByIndex[currentLocationId] ?? { submitted: false, missingLabels: [] },
   );
@@ -277,7 +291,7 @@
     showToast = false;
     if (swipeMode === "snap") {
       direction = "next";
-      currentIndex = clampedNext(currentIndex, locations.length);
+      currentIndex = clampedNext(currentIndex, entries.length);
     } else {
       pendingCommit = "next";
       isAnimating = true;
@@ -295,7 +309,6 @@
     return () => window.removeEventListener("resize", onResize);
   });
   let cardWidth = $derived(windowWidth - 2 * hint);
-
 </script>
 
 <div
@@ -304,15 +317,15 @@
   aria-label="Hunt route"
   use:swipe={{ onDragMove: handleDragMove, onDragEnd: handleDragEnd }}
 >
-  {#if locations.length > 0 && currentLocation}
+  {#if entries.length > 0 && currentEntry}
     {#if swipeMode === "snap"}
       <div
         class="route-page__cards"
         style={`animation: ${direction === "next" ? "slideInFromRight" : "slideInFromLeft"} 250ms ease-out`}
       >
-        <ChallengeCard
-          location={currentLocation}
-          isLast={currentIndex === locations.length - 1}
+        <RouteScreen
+          entry={currentEntry}
+          isLast={currentIndex === entries.length - 1}
           index={currentIndex + 1}
           routeId={params.route}
           cityId={params.city}
@@ -321,6 +334,8 @@
           allowResubmit={huntSettings.allowResubmit}
           onFormStatusChange={handleFormStatusChange}
           badgeStatus={computeBadgeStatus(currentIndex + 1, currentHasForm)}
+          {splashEffectHistory}
+          onSplashEffectPlayed={handleSplashEffectPlayed}
         />
       </div>
     {:else}
@@ -329,18 +344,18 @@
           {@const roleRaw = (slotIdx - currentSlotIndex + 3) % 3}
           {@const role = roleRaw === 2 ? -1 : roleRaw}
           {@const locIdx = currentIndex + role}
-          {@const slotLocation = locIdx >= 0 && locIdx < locations.length ? locations[locIdx] : null}
+          {@const slotEntry = locIdx >= 0 && locIdx < entries.length ? entries[locIdx] : null}
           {@const translateX = hint + role * cardWidth + dragOffset}
-          {#if slotLocation}
+          {#if slotEntry}
             <div
               class="route-page__slot"
               class:route-page__slot--animating={isAnimating}
               style="width: {cardWidth}px; transform: translateX({translateX}px)"
               ontransitionend={role === 0 ? handleTransitionEnd : undefined}
             >
-              <ChallengeCard
-                location={slotLocation}
-                isLast={locIdx === locations.length - 1}
+              <RouteScreen
+                entry={slotEntry}
+                isLast={locIdx === entries.length - 1}
                 index={locIdx + 1}
                 routeId={params.route}
                 cityId={params.city}
@@ -348,7 +363,9 @@
                 storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
                 allowResubmit={huntSettings.allowResubmit}
                 onFormStatusChange={handleFormStatusChange}
-                badgeStatus={computeBadgeStatus(locIdx + 1, (slotLocation.challenge.form?.length ?? 0) > 0)}
+                badgeStatus={computeBadgeStatus(locIdx + 1, isLocationEntry(slotEntry) && (slotEntry.challenge.form?.length ?? 0) > 0)}
+                {splashEffectHistory}
+                onSplashEffectPlayed={handleSplashEffectPlayed}
               />
             </div>
           {:else}
@@ -397,7 +414,7 @@
     </button>
 
     <div class="route-page__nav-slot--right">
-      {#if currentIndex < locations.length - 1}
+      {#if currentIndex < entries.length - 1}
         <button
           aria-label="Next stop"
           onclick={() => handleDragEnd(-cardWidth)}

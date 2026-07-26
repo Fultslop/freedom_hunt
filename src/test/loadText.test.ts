@@ -1,6 +1,6 @@
 import { loadText } from "../utils/loadText";
 import { loadLocations } from "../utils/loadLocations";
-import type { FormField, Location } from "../types/data";
+import type { FormField, RouteEntry, LocationEntry } from "../types/data";
 
 vi.mock("../utils/loadText", () => ({
   loadText: vi.fn(),
@@ -19,7 +19,7 @@ describe("loadLocations", () => {
   });
 
   it("returns loaded locations in order", async () => {
-    const loc = { title: "Binnenhof" } as unknown as Location;
+    const loc = { title: "Binnenhof" } as unknown as RouteEntry;
     vi.mocked(loadText).mockResolvedValueOnce(loc);
     const result = await loadLocations("en", [
       "projects/x/y/001_loc_binnenhof",
@@ -41,13 +41,14 @@ describe("loadLocations", () => {
         notes: "",
         form: [{ id: "field1", type: "string", label: "Some field" }],
       },
-    } as unknown as Location);
+    } as unknown as RouteEntry);
 
     const result = await loadLocations("en", ["projects/test/001_loc_test"]);
 
-    expect(result[0].challenge.form).toHaveLength(1);
-    expect(result[0].challenge.form[0].id).toBe("form");
-    expect(result[0].challenge.form[0].label).toContain("inline array");
+    const loc = result[0] as unknown as LocationEntry;
+    expect(loc.challenge.form).toHaveLength(1);
+    expect(loc.challenge.form[0].id).toBe("form");
+    expect(loc.challenge.form[0].label).toContain("inline array");
   });
 
   it("replaces form fields with unknown properties with a schema_error sentinel", async () => {
@@ -64,7 +65,7 @@ describe("loadLocations", () => {
           notes: "",
           form: "001_form_test.yaml",
         },
-      } as unknown as Location)
+      } as unknown as RouteEntry)
       .mockResolvedValueOnce([
         { id: "obs", type: "string", label: "Observations", vodoo: "Baz" },
       ] as unknown as FormField[]);
@@ -73,9 +74,10 @@ describe("loadLocations", () => {
       "projects/test/city/001_loc_test",
     ]);
 
-    expect(result[0].challenge.form).toHaveLength(1);
-    expect(result[0].challenge.form[0].type).toBe("schema_error");
-    expect(result[0].challenge.form[0].label).toContain("vodoo");
+    const loc = result[0] as unknown as LocationEntry;
+    expect(loc.challenge.form).toHaveLength(1);
+    expect(loc.challenge.form[0].type).toBe("schema_error");
+    expect(loc.challenge.form[0].label).toContain("vodoo");
   });
 });
 

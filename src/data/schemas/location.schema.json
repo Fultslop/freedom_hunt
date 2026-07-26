@@ -6,6 +6,7 @@
   "required": ["title", "name", "coordinates", "storyline", "breadcrumb", "challenge"],
   "properties": {
     "identity": { "type": "string" },
+    "template-type": { "type": "string", "enum": ["location"] },
     "title": { "type": "string" },
     "image": { "type": "string" },
     "themeColor": { "type": "string" },
