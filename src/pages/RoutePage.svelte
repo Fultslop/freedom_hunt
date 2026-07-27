@@ -1,7 +1,3 @@
-<script lang="ts" module>
-  export { clampedNext, clampedPrev } from "../utils/routeNav";
-</script>
-
 <script lang="ts">
   import { push } from "svelte-spa-router";
   import { titleBarStore } from "../stores/titleBarStore";
@@ -10,14 +6,21 @@
   import { loadText } from "../utils/loadText";
   import { loadLocations } from "../utils/loadLocations";
   import {
-    clampedNext,
-    clampedPrev,
     shouldCommitSwipe,
     elasticOffset,
   } from "../utils/routeNav";
   import { getHuntSettings } from "../utils/huntSettings";
   import { buildFormStorageKey, loadFormState, saveFormState } from "../utils/formStorage";
   import { isLocationEntry, locationTotal, locationOrdinalAt, isNavBarVisible } from "../utils/routeEntries";
+  import {
+    nextNavigableIndex,
+    prevNavigableIndex,
+    earliestAllowedIndex,
+    checkpointsBetween,
+    isCheckpointEntry,
+  } from "../utils/checkpointNav";
+  import { evaluateGate } from "../utils/routeRequirements";
+  import CheckpointGateModal from "../components/CheckpointGateModal.svelte";
   import { swipe } from "../actions/swipe";
   import { preloadImages } from "../assets/AssetManager";
   import RouteScreen from "../components/RouteScreen.svelte";
@@ -98,9 +101,24 @@
     localStorage.setItem(storageKey, String(currentIndex));
   });
 
+  let mountNormalizeAttempted = $state(false);
+
+  $effect(() => {
+    if (!mountNormalizeAttempted && entries.length > 0) {
+      mountNormalizeAttempted = true;
+      if (isCheckpointEntry(entries[currentIndex])) {
+        attemptAdvance(currentIndex - 1);
+      }
+    }
+  });
+
   $effect(() => {
     if (entries.length > 0) {
-      const images = entries.flatMap((entry) => (entry.image ? [entry.image] : []));
+      const images = entries.flatMap((entry) => {
+        if (entry["template-type"] === "checkpoint") { return []; }
+        const img = (entry as { image?: string }).image;
+        return img ? [img] : [];
+      });
       preloadImages(images);
     }
   });
@@ -108,8 +126,8 @@
   function handleDragMove(delta: number) {
     if (!isAnimating) {
       if (swipeMode !== "snap") {
-        const atStart = currentIndex === 0;
-        const atEnd = currentIndex === entries.length - 1;
+        const atStart = currentIndex === earliestAllowed;
+        const atEnd = !canGoForward;
 
         if (delta > 0 && atStart) {
           dragOffset = elasticOffset(delta); // elastic resistance — no prev card
@@ -128,27 +146,26 @@
         // snap mode: instant index change, no drag animation
         if (delta < -60) {
           if (canAdvance) {
-            direction = "next";
-            currentIndex = clampedNext(currentIndex, entries.length);
+            attemptAdvance();
           } else {
             triggerBlockedToast();
           }
         } else if (delta > 60) {
-          direction = "prev";
-          currentIndex = clampedPrev(currentIndex);
+          if (currentIndex > earliestAllowed) {
+            direction = "prev";
+            currentIndex = prevNavigableIndex(entries, currentIndex);
+          }
         }
         dragOffset = 0;
       } else {
-        const atStart = currentIndex === 0;
-        const atEnd = currentIndex === entries.length - 1;
+        const atStart = currentIndex === earliestAllowed;
+        const atEnd = !canGoForward;
         const goingNext = delta < 0;
         const goingPrev = delta > 0;
 
         if (goingNext && !atEnd && shouldCommitSwipe(delta, cardWidth)) {
           if (canAdvance) {
-            pendingCommit = "next";
-            isAnimating = true;
-            dragOffset = -cardWidth;
+            attemptAdvance();
           } else {
             triggerBlockedToast();
             // Only animate a spring-back if there's actually an offset to spring
@@ -178,16 +195,17 @@
   function handleTransitionEnd(e: TransitionEvent) {
     if (e.propertyName === "transform") {
       isAnimating = false;
-      if (pendingCommit === "next") {
+      if (pendingCommit === "next" && pendingTarget !== null) {
         direction = "next";
-        currentIndex = clampedNext(currentIndex, entries.length);
+        currentIndex = pendingTarget;
         currentSlotIndex = (currentSlotIndex + 1) % 3;
       } else if (pendingCommit === "prev") {
         direction = "prev";
-        currentIndex = clampedPrev(currentIndex);
+        currentIndex = prevNavigableIndex(entries, currentIndex);
         currentSlotIndex = (currentSlotIndex + 2) % 3;
       }
       pendingCommit = null;
+      pendingTarget = null;
       dragOffset = 0;
     }
   }
@@ -198,18 +216,22 @@
   // chrome, so a tracked action (e.g. an EULA's "I understand") can't be bypassed
   // by swiping past it.
   let navBarVisible = $derived(currentEntry === undefined || isNavBarVisible(currentEntry));
+  let earliestAllowed = $derived(earliestAllowedIndex(entries, currentIndex));
+  let canGoForward = $derived(nextNavigableIndex(entries, currentIndex) !== currentIndex);
 
   let formStatusByIndex = $state<Record<number, { submitted: boolean; missingLabels: string[] }>>({});
   let skippedIndices = $state<Set<number>>(new Set());
   let showToast = $state(false);
   let toastMissingLabels = $state<string[]>([]);
+  let gateModal = $state<{ mode: "fail" | "succeed"; message: string; skippable: boolean; target: number } | null>(null);
+  let pendingTarget = $state<number | null>(null);
 
   $effect(() => {
     if (entries.length > 0 && huntSettings.storeFormsInLocalStorage) {
       const restoredStatus: Record<number, { submitted: boolean; missingLabels: string[] }> = {};
       const restoredSkipped = new Set<number>();
       entries.forEach((_entry, i) => {
-        const locId = i + 1;
+        const locId = locationOrdinalAt(entries, i);
         const state = loadFormState(
           buildFormStorageKey(params.project, params.city, params.route, locId),
         );
@@ -255,7 +277,7 @@
     return undefined;
   }
 
-  let currentLocationId = $derived(currentIndex + 1);
+  let currentLocationId = $derived(locationOrdinalAt(entries, currentIndex));
   let currentHasForm = $derived(
     currentEntry !== undefined &&
       isLocationEntry(currentEntry) &&
@@ -285,13 +307,82 @@
       saveFormState(key, { ...loadFormState(key), skipped: true });
     }
     showToast = false;
+    attemptAdvance();
+  }
+
+  function commitAdvance(target: number) {
     if (swipeMode === "snap") {
       direction = "next";
-      currentIndex = clampedNext(currentIndex, entries.length);
+      currentIndex = target;
+      dragOffset = 0;
     } else {
       pendingCommit = "next";
+      pendingTarget = target;
       isAnimating = true;
       dragOffset = -cardWidth;
+    }
+  }
+
+  function springBackIfDragging() {
+    if (swipeMode !== "snap" && dragOffset !== 0) {
+      isAnimating = true;
+      dragOffset = 0;
+    }
+  }
+
+  function attemptAdvance(from: number = currentIndex) {
+    const target = nextNavigableIndex(entries, from);
+    if (target === from) {
+      /* nothing to advance to — no-op */
+    } else {
+      const crossed = checkpointsBetween(entries, from, target);
+      if (crossed.length === 0) {
+        commitAdvance(target);
+      } else {
+        let blocked = false;
+        for (const { index, checkpoint } of crossed) {
+          const result = evaluateGate(checkpoint.entry?.requirements, {
+            entries,
+            beforeIndex: index,
+            formStatusByIndex,
+            skippedIndices,
+          });
+          if (!result.met) {
+            gateModal = {
+              mode: "fail",
+              message: result.message ?? "",
+              skippable: checkpoint.entry?.skippable ?? true,
+              target,
+            };
+            springBackIfDragging();
+            blocked = true;
+            break;
+          }
+        }
+        if (!blocked) {
+          const onSucceed = crossed
+            .map(({ checkpoint }) => checkpoint.entry?.on_succeed)
+            .find((maybeMsg) => maybeMsg !== undefined);
+          if (onSucceed) {
+            gateModal = { mode: "succeed", message: onSucceed.message, skippable: false, target };
+            springBackIfDragging();
+          } else {
+            commitAdvance(target);
+          }
+        }
+      }
+    }
+  }
+
+  function resolveGateStay() {
+    gateModal = null;
+  }
+
+  function resolveGateProceed() {
+    const target = gateModal?.target;
+    gateModal = null;
+    if (target !== undefined) {
+      commitAdvance(target);
     }
   }
 
@@ -324,15 +415,15 @@
       >
         <RouteScreen
           entry={currentEntry}
-          isLast={currentIndex === entries.length - 1}
-          index={currentIndex + 1}
+          isLast={!canGoForward}
+          index={currentLocationId}
           routeId={params.route}
           cityId={params.city}
           project={params.project}
           storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
           allowResubmit={huntSettings.allowResubmit}
           onFormStatusChange={handleFormStatusChange}
-          badgeStatus={computeBadgeStatus(currentIndex + 1, currentHasForm)}
+          badgeStatus={computeBadgeStatus(currentLocationId, currentHasForm)}
           onContinue={() => handleDragEnd(-cardWidth)}
           isCurrent={true}
         />
@@ -354,15 +445,15 @@
             >
               <RouteScreen
                 entry={slotEntry}
-                isLast={locIdx === entries.length - 1}
-                index={locIdx + 1}
+                isLast={nextNavigableIndex(entries, locIdx) === locIdx}
+                index={locationOrdinalAt(entries, locIdx)}
                 routeId={params.route}
                 cityId={params.city}
                 project={params.project}
                 storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
                 allowResubmit={huntSettings.allowResubmit}
                 onFormStatusChange={handleFormStatusChange}
-                badgeStatus={computeBadgeStatus(locIdx + 1, isLocationEntry(slotEntry) && (slotEntry.challenge.form?.length ?? 0) > 0)}
+                badgeStatus={computeBadgeStatus(locationOrdinalAt(entries, locIdx), isLocationEntry(slotEntry) && (slotEntry.challenge.form?.length ?? 0) > 0)}
                 onContinue={() => handleDragEnd(-cardWidth)}
                 isCurrent={role === 0}
               />
@@ -383,7 +474,7 @@
   {#if navBarVisible}
     <div class="route-page__nav">
       <div class="route-page__nav-slot">
-        {#if currentIndex > 0}
+        {#if currentIndex > earliestAllowed}
           <button
             aria-label="Previous stop"
             onclick={() => handleDragEnd(cardWidth)}
@@ -414,7 +505,7 @@
       </button>
 
       <div class="route-page__nav-slot--right">
-        {#if currentIndex < entries.length - 1}
+        {#if canGoForward}
           <button
             aria-label="Next stop"
             onclick={() => handleDragEnd(-cardWidth)}
@@ -438,6 +529,16 @@
         {/if}
       </div>
     </div>
+  {/if}
+
+  {#if gateModal}
+    <CheckpointGateModal
+      mode={gateModal.mode}
+      message={gateModal.message}
+      skippable={gateModal.skippable}
+      onStay={resolveGateStay}
+      onProceed={resolveGateProceed}
+    />
   {/if}
 
   {#if showToast}

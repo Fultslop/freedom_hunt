@@ -1,0 +1,22 @@
+template-type: checkpoint
+entry:
+  requirements:
+    - type: forms
+      requires_all_forms_completed: true
+      on_fail:
+        message: "Not all location challenges are complete yet — but you're welcome to call it a day."
+        include_missing_forms: true
+    - type: period
+      start:
+        operator: ">="
+        date: "2026-03-01T00:00:00+02:00"
+      end:
+        operator: "<="
+        date: "2026-12-31T23:59:59+02:00"
+      on_fail:
+        message: "This hunt is no longer active. Thank you for participating."
+  skippable: true
+  on_succeed:
+    message: "All challenges complete. Time to finish the hunt!"
+re-entry:
+  blocked_after_exit: true

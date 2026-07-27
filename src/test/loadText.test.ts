@@ -25,7 +25,7 @@ describe("loadLocations", () => {
       "projects/x/y/001_loc_binnenhof",
     ]);
     expect(result).toHaveLength(1);
-    expect(result[0].title).toBe("Binnenhof");
+    expect((result[0] as { title: string }).title).toBe("Binnenhof");
   });
 
   it("replaces inline form array with a sentinel field", async () => {

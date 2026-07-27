@@ -7,6 +7,11 @@ import type { RouteEntry } from "../types/data";
 const {
   mockLocations,
   mockMixedEntries,
+  mockPrecededByTextEntries,
+  mockReEntryLockedEntries,
+  mockCheckpointGateEntries,
+  mockLeadingCheckpointEntries,
+  mockCheckpointSucceedEntries,
   mockEulaEntries,
   mockCompletionEntries,
   mockRepeatSplashEntries,
@@ -108,6 +113,114 @@ const {
       storyline: "s",
       breadcrumb: "b",
       challenge: { name: "", description: "d", form: [] },
+    },
+  ],
+  mockReEntryLockedEntries: [
+    {
+      "template-type": "options",
+      "nav-bar": { visible: false },
+      title: "Before You Begin",
+      options: [{ text: "I understand", target: { type: "page", value: "continue" } }],
+    },
+    { "template-type": "checkpoint", "re-entry": false },
+    {
+      title: "Loc 1",
+      name: { value: "Location 1" },
+      coordinates: { latitude: 52.0, longitude: 4.0 },
+      storyline: "Story 1",
+      breadcrumb: "Step 1",
+      challenge: { name: "Challenge 1", description: "Desc 1", form: [] },
+    },
+    {
+      title: "Loc 2",
+      name: { value: "Location 2" },
+      coordinates: { latitude: 52.1, longitude: 4.1 },
+      storyline: "Story 2",
+      breadcrumb: "Step 2",
+      challenge: { name: "Challenge 2", description: "Desc 2", form: [] },
+    },
+  ],
+  mockCheckpointGateEntries: [
+    {
+      title: "Loc 1",
+      name: { value: "Location 1" },
+      coordinates: { latitude: 52.0, longitude: 4.0 },
+      storyline: "Story 1",
+      breadcrumb: "Step 1",
+      challenge: {
+        name: "Challenge 1",
+        description: "Desc 1",
+        form: [{ id: "note", type: "string" as const, label: "Your note" }],
+      },
+    },
+    {
+      "template-type": "checkpoint",
+      entry: {
+        requirements: [
+          {
+            type: "forms",
+            requires_all_forms_completed: true,
+            on_fail: { message: "Forms still open" },
+          },
+        ],
+        skippable: true,
+      },
+    },
+    {
+      title: "Loc 2",
+      name: { value: "Location 2" },
+      coordinates: { latitude: 52.1, longitude: 4.1 },
+      storyline: "Story 2",
+      breadcrumb: "Step 2",
+      challenge: { name: "Challenge 2", description: "Desc 2", form: [] },
+    },
+  ],
+  mockLeadingCheckpointEntries: [
+    { "template-type": "checkpoint" },
+    {
+      title: "Loc 1",
+      name: { value: "Location 1" },
+      coordinates: { latitude: 52.0, longitude: 4.0 },
+      storyline: "Story 1",
+      breadcrumb: "Step 1",
+      challenge: { name: "Challenge 1", description: "Desc 1", form: [] },
+    },
+  ],
+  mockCheckpointSucceedEntries: [
+    {
+      title: "Loc 1",
+      name: { value: "Location 1" },
+      coordinates: { latitude: 52.0, longitude: 4.0 },
+      storyline: "Story 1",
+      breadcrumb: "Step 1",
+      challenge: { name: "Challenge 1", description: "Desc 1", form: [] },
+    },
+    {
+      "template-type": "checkpoint",
+      entry: { on_succeed: { message: "Ready to finish?" } },
+    },
+    {
+      title: "Loc 2",
+      name: { value: "Location 2" },
+      coordinates: { latitude: 52.1, longitude: 4.1 },
+      storyline: "Story 2",
+      breadcrumb: "Step 2",
+      challenge: { name: "Challenge 2", description: "Desc 2", form: [] },
+    },
+  ],
+  mockPrecededByTextEntries: [
+    { "template-type": "text", title: "Heads up", text: "Read this first." },
+    {
+      title: "Loc 1",
+      name: { value: "Location 1" },
+      coordinates: { latitude: 52.0, longitude: 4.0 },
+      storyline: "Story 1",
+      breadcrumb: "Step 1",
+      challenge: {
+        name: "Challenge 1",
+        description: "Desc 1",
+        form: [{ id: "note", type: "string" as const, label: "Your note" }],
+      },
     },
   ],
   huntSettingsFixture: {} as Record<string, unknown>,
@@ -379,6 +492,168 @@ test("does not render a numbered badge for template-type screens", async () => {
   expect(screen.queryByTestId("location-badge")).not.toBeInTheDocument();
 });
 
+test("badge number reflects location ordinal, not raw array position, when a non-location entry precedes it", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockMixedEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+  expect(screen.getByTestId("location-badge")).toHaveTextContent("1");
+
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i })); // -> text screen
+  await screen.findByText("Between Stops");
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i })); // -> Location 2, raw index 2
+  await screen.findByText("Location 2");
+  expect(screen.getByTestId("location-badge")).toHaveTextContent("2");
+});
+
+test("form answers persist under a key keyed by location ordinal, unaffected by a preceding non-location entry", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockPrecededByTextEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Heads up");
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await screen.findByText("Location 1");
+  await fireEvent.input(screen.getByLabelText("Your note"), { target: { value: "some text" } });
+  await fireEvent.click(await screen.findByRole("button", { name: /submit/i }));
+  await fireEvent.click(await screen.findByRole("button", { name: /confirm/i }));
+  await waitFor(() => {
+    const stored = localStorage.getItem("democrats_abroad/den_haag/short_loop/1/form");
+    expect(stored).not.toBeNull();
+    expect(JSON.parse(stored!).submitted).toBe(true);
+  });
+});
+
+test("checkpoint entry gate blocks Next and shows the fail message when its forms requirement is unmet", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockCheckpointGateEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  expect(await screen.findByText("Forms still open")).toBeInTheDocument();
+  expect(screen.getByText("Location 1")).toBeInTheDocument();
+});
+
+test("Skip on a failed checkpoint gate advances past it", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockCheckpointGateEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await screen.findByText("Forms still open");
+  await fireEvent.click(await screen.findByRole("button", { name: "Skip" }));
+  expect(await screen.findByText("Location 2")).toBeInTheDocument();
+});
+
+test("Go Back on a failed checkpoint gate leaves the participant in place", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockCheckpointGateEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await screen.findByText("Forms still open");
+  await fireEvent.click(await screen.findByRole("button", { name: "Go Back" }));
+  expect(screen.queryByText("Forms still open")).not.toBeInTheDocument();
+  expect(screen.getByText("Location 1")).toBeInTheDocument();
+});
+
+test("checkpoint gate passes silently when its forms requirement is already met", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockCheckpointGateEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+  await fireEvent.input(screen.getByLabelText("Your note"), { target: { value: "answer" } });
+  await fireEvent.click(await screen.findByRole("button", { name: /submit/i }));
+  await fireEvent.click(await screen.findByRole("button", { name: /confirm/i }));
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  expect(await screen.findByText("Location 2")).toBeInTheDocument();
+  expect(screen.queryByText("Forms still open")).not.toBeInTheDocument();
+});
+
+test("on_succeed shows a confirm dialog; Continue advances, Cancel leaves the participant in place", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockCheckpointSucceedEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  expect(await screen.findByText("Ready to finish?")).toBeInTheDocument();
+  await fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(screen.queryByText("Ready to finish?")).not.toBeInTheDocument();
+  expect(screen.getByText("Location 1")).toBeInTheDocument();
+
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await fireEvent.click(await screen.findByRole("button", { name: "Continue" }));
+  expect(await screen.findByText("Location 2")).toBeInTheDocument();
+});
+
+test("a checkpoint at the very start of a route is silently skipped on mount", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockLeadingCheckpointEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  expect(await screen.findByText("Location 1")).toBeInTheDocument();
+});
+
+test("a route with no checkpoints is completely unaffected (regression)", async () => {
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  const nextBtn = await screen.findByRole("button", { name: /next stop/i });
+  await fireEvent.click(nextBtn);
+  expect(await screen.findByText("Location 2")).toBeInTheDocument();
+});
+
+test("Prev is hidden once a re-entry-blocked checkpoint has been crossed", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockReEntryLockedEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Before You Begin");
+  await fireEvent.click(screen.getByText("I understand"));
+  expect(await screen.findByText("Location 1")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /previous stop/i })).not.toBeInTheDocument();
+});
+
+test("Prev still works normally between two entries after a re-entry-blocked checkpoint", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockReEntryLockedEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Before You Begin");
+  await fireEvent.click(screen.getByText("I understand"));
+  await screen.findByText("Location 1");
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await screen.findByText("Location 2");
+  await fireEvent.click(await screen.findByRole("button", { name: /previous stop/i }));
+  expect(await screen.findByText("Location 1")).toBeInTheDocument();
+});
+
+test("Prev is hidden at the very start of a route even when a leading checkpoint shifted currentIndex off 0", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockLeadingCheckpointEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+  expect(screen.queryByRole("button", { name: /previous stop/i })).not.toBeInTheDocument();
+});
+
 test("hides the nav bar for an entry with nav-bar.visible: false", async () => {
   const { loadLocations } = await import("../utils/loadLocations");
   vi.mocked(loadLocations).mockResolvedValueOnce(mockEulaEntries as RouteEntry[]);
@@ -401,7 +676,7 @@ test("clicking a tracked 'continue' option advances and submits a form even with
   await fireEvent.click(screen.getByText("I understand"));
   expect(await screen.findByText("Location 1")).toBeInTheDocument();
   expect(postFormSubmit).toHaveBeenCalledWith(
-    expect.objectContaining({ locationId: 1, answers: { selected: "I understand" } }),
+    expect.objectContaining({ locationId: 0, answers: { selected: "I understand" } }),
   );
   expect(screen.getByRole("button", { name: "Exit" })).toBeInTheDocument();
 });

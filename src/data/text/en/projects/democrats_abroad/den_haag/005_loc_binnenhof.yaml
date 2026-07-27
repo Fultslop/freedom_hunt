@@ -20,5 +20,6 @@ challenge:
   description: |
     Find the plaque or inscription that identifies the Binnenhof as the seat of the States General (Staten-Generaal). Photograph it and note the year it was established or the event it commemorates.
   notes: ""
+  form: "001_form_binnenhof.yaml"
 breadcrumb: |
   You have stood at the center of Dutch democracy. The question now is not who governs, but who chooses the people who govern. Walk toward the Noordeinde — the working palace where the king receives, but does not rule.

@@ -37,7 +37,15 @@
   } = $props();
 </script>
 
-{#if entry["template-type"] === "text"}
+{#if entry["template-type"] === "checkpoint"}
+  <!--
+    Checkpoints are navigation gates evaluated by RoutePage — they must never
+    become the "current" rendered entry. This branch is defense in depth: if
+    that invariant is ever violated, render nothing rather than falling
+    through to ChallengeCard and crashing on Location-shaped field access
+    against a file that has none of those fields.
+  -->
+{:else if entry["template-type"] === "text"}
   <TextScreen image={entry.image} title={entry.title} text={entry.text} margin={entry.margin} />
 {:else if entry["template-type"] === "splash"}
   <SplashScreen
