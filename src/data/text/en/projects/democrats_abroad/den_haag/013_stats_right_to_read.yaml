@@ -1,0 +1,10 @@
+prompt: "Before you look at the numbers — guess how many school book bans were recorded in a single US school year."
+footnote: "Recorded by PEN America, 2024–2025 school year."
+items:
+  - value: 6870
+    label: "school book bans"
+    visibility: click_to_reveal
+  - value: 23
+    label: "states"
+  - value: 87
+    label: "public school districts"

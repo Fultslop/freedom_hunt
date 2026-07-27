@@ -4,6 +4,7 @@
   import { themeStore } from "../stores/themeStore";
   import { leafletMap } from "../actions/leafletMap";
   import MarkdownText from "./MarkdownText.svelte";
+  import Storyline from "./Storyline.svelte";
   import ChallengeForm from "./ChallengeForm.svelte";
   import type { Location } from "../types/data";
   import "./ChallengeCard.css";
@@ -126,7 +127,7 @@
       <BookOpen size={12} aria-hidden="true" />
       Storyline
     </div>
-    <MarkdownText text={location.storyline} />
+    <Storyline text={location.storyline} elements={location.storylineElements} />
   </div>
 
   <div class="cc-section">

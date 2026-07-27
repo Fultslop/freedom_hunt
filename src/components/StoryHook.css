@@ -1,0 +1,13 @@
+.story-hook {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.story-hook mark {
+  background: none;
+  color: var(--color-accent);
+  padding: 0;
+}

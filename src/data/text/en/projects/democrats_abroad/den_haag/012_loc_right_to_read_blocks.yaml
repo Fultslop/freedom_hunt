@@ -1,0 +1,33 @@
+title: "The Right to Read — Blocks Preview"
+image: alireza-parpaei-den-haag-binnenhof-unsplash.jpg
+name:
+  label: ""
+  value: "The American Book Center / Paagman"
+address: "Lange Poten 23, The Hague"
+coordinates:
+  longitude: 4.3148478
+  latitude: 52.0786591
+storyline: |
+  ## Book bans are not ==just about books==.
+
+  They are about who gets to be seen, whose stories are considered dangerous, and what ideas young people are allowed to encounter.
+
+  {{stats: 013_stats_right_to_read.yaml}}
+
+  What someone tried to remove from public life is still here.
+
+  [+] Read the full story
+  In the United States, attempts to ban, challenge, restrict, or remove books from schools and libraries have increased sharply in recent years.
+
+  The American Library Association also tracks censorship attempts in libraries and schools and reported that thousands of unique titles have been targeted, with many challenges focusing on books involving LGBTQ+ people, people of color, sexuality, racism, gender, violence, or honest accounts of history.
+
+  That pattern is the point of this stop. A book does not have to be illegal everywhere to be part of a censorship campaign. It may have been removed from a school library, restricted to certain students, challenged by a parent group, pulled during review, or banned under a state or district policy.
+
+challenge:
+  name: ""
+  description: |
+    Inside The American Book Center or Paagman, find a book that has been banned, challenged, restricted, or removed somewhere in the United States. You may use Google or other sources to verify the book while you search.
+  notes: ""
+  form: "001_form_abc.yaml"
+breadcrumb: |
+  You have found one idea someone tried to remove from public life — twice, in two different ways of telling it. Now walk toward the Vredespaleis.

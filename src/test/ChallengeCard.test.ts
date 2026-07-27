@@ -57,6 +57,15 @@ test("hides breadcrumb when isLast=true", () => {
   expect(screen.queryByText("Look for the gate.")).not.toBeInTheDocument();
 });
 
+test("renders storyline hook markup through Storyline blocks", () => {
+  const withHook = {
+    ...location,
+    storyline: "## A ==historic== place.",
+  };
+  render(ChallengeCard, { props: { location: withHook } });
+  expect(document.querySelector(".story-hook mark")).toHaveTextContent("historic");
+});
+
 // ---------------------------------------------------------------------------
 // Badge status overlay
 // ---------------------------------------------------------------------------

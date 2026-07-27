@@ -1,4 +1,5 @@
 import { loadText } from "./loadText";
+import { findStatsRefs } from "./storylineBlocks";
 import type {
   RouteEntry,
   LocationEntry,
@@ -6,6 +7,7 @@ import type {
   RawChallenge,
   FormFieldType,
 } from "../types/data";
+import type { StatsDoc } from "../types/storyline";
 
 type RawLocationEntry = Omit<LocationEntry, "challenge"> & { challenge: RawChallenge };
 type RawRouteEntry = RawLocationEntry | Exclude<RouteEntry, LocationEntry>;
@@ -29,6 +31,50 @@ function withValidatedFields(fields: FormField[]): FormField[] {
   });
 }
 
+async function resolveForm(
+  lang: string,
+  challenge: RawChallenge,
+  dir: string,
+): Promise<FormField[] | undefined> {
+  if (typeof challenge.form === "string") {
+    const formPath = dir + challenge.form.replace(/\.yaml$/, "");
+    return withValidatedFields(
+      (await loadText<FormField[]>(lang, formPath)) ?? [],
+    );
+  }
+  if (Array.isArray(challenge.form)) {
+    return [
+      {
+        id: "form",
+        type: "inline_form" as FormFieldType,
+        label: "challenge.form inline array — migrate to a *_form_*.yaml file",
+      },
+    ];
+  }
+  return undefined;
+}
+
+async function resolveStorylineElements(
+  lang: string,
+  storyline: string,
+  dir: string,
+): Promise<Record<string, StatsDoc> | undefined> {
+  const refs = findStatsRefs(storyline);
+  if (refs.length === 0) {
+    return undefined;
+  }
+  const entries = await Promise.all(
+    refs.map(async (ref) => {
+      const doc = await loadText<StatsDoc>(lang, dir + ref.replace(/\.yaml$/, ""));
+      return [ref, doc] as const;
+    }),
+  );
+  const resolved = Object.fromEntries(
+    entries.filter((entry): entry is [string, StatsDoc] => entry[1] !== null),
+  );
+  return Object.keys(resolved).length > 0 ? resolved : undefined;
+}
+
 async function loadAndResolveLocation(
   lang: string,
   path: string,
@@ -44,33 +90,28 @@ async function loadAndResolveLocation(
   }
 
   const rawLocation = raw as RawLocationEntry;
+  const dir = path.substring(0, path.lastIndexOf("/") + 1);
+
   let resolvedForm: FormField[] | undefined;
-
-  if (rawLocation.challenge && typeof rawLocation.challenge.form === "string") {
-    const formFileName = rawLocation.challenge.form;
-    const dir = path.substring(0, path.lastIndexOf("/") + 1);
-    const formPath = dir + formFileName.replace(/\.yaml$/, "");
-    resolvedForm = withValidatedFields(
-      (await loadText<FormField[]>(lang, formPath)) ?? [],
-    );
-  } else if (rawLocation.challenge && Array.isArray(rawLocation.challenge.form)) {
-    resolvedForm = [
-      {
-        id: "form",
-        type: "inline_form" as FormFieldType,
-        label: "challenge.form inline array — migrate to a *_form_*.yaml file",
-      },
-    ];
+  if (rawLocation.challenge?.form) {
+    resolvedForm = await resolveForm(lang, rawLocation.challenge, dir);
   }
 
-  if (resolvedForm !== undefined) {
-    return {
-      ...rawLocation,
-      challenge: { ...rawLocation.challenge, form: resolvedForm },
-    } as RouteEntry;
+  let storylineElements: Record<string, StatsDoc> | undefined;
+  if (rawLocation.storyline) {
+    storylineElements = await resolveStorylineElements(lang, rawLocation.storyline, dir);
   }
 
-  return rawLocation as RouteEntry;
+  const withResolvedForm =
+    resolvedForm !== undefined
+      ? { ...rawLocation, challenge: { ...rawLocation.challenge, form: resolvedForm } }
+      : rawLocation;
+
+  return (
+    storylineElements !== undefined
+      ? { ...withResolvedForm, storylineElements }
+      : withResolvedForm
+  ) as RouteEntry;
 }
 
 export async function loadLocations(
