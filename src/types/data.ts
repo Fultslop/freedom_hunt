@@ -1,3 +1,5 @@
+import type { StatsDoc } from "./storyline";
+
 export type FormFieldType =
   | "boolean"
   | "string"
@@ -49,6 +51,7 @@ export interface Location {
   address?: string;
   coordinates: Coordinates;
   storyline: string;
+  storylineElements?: Record<string, StatsDoc>;
   breadcrumb: string;
   challenge: Challenge;
   themeColor?: string;

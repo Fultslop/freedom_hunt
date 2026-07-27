@@ -54,6 +54,22 @@ test("still resolves challenge.form filename references for location entries", a
   expect((entry as unknown as LocationEntry).challenge.form).toEqual([{ id: "found_it", type: "boolean", label: "Found it?" }]);
 });
 
+test("resolves {{stats: ...}} references in the storyline into storylineElements", async () => {
+  mockLoadText
+    .mockResolvedValueOnce({ ...rawLocation, storyline: "{{stats: 002_stats_example.yaml}}" })
+    .mockResolvedValueOnce({ items: [{ value: 1, label: "one" }] });
+  const [entry] = await loadLocations("en", ["projects/x/y/001_loc_example"]);
+  expect((entry as unknown as LocationEntry).storylineElements).toEqual({
+    "002_stats_example.yaml": { items: [{ value: 1, label: "one" }] },
+  });
+});
+
+test("omits storylineElements when the storyline has no transclusions", async () => {
+  mockLoadText.mockResolvedValueOnce(rawLocation);
+  const [entry] = await loadLocations("en", ["projects/x/y/001_loc_example"]);
+  expect((entry as unknown as LocationEntry).storylineElements).toBeUndefined();
+});
+
 test("filters out entries that fail to load", async () => {
   mockLoadText.mockResolvedValueOnce(null);
   const result = await loadLocations("en", ["path/missing"]);

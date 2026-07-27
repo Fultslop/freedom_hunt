@@ -1,0 +1,7 @@
+.storyline-root {
+  --storyline-gap-block: 32px;
+  --storyline-gap-inner: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--storyline-gap-block);
+}

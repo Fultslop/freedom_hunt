@@ -1,0 +1,47 @@
+.story-fold__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.story-fold__caret {
+  display: inline-flex;
+  color: var(--color-text-muted);
+}
+
+.story-fold__caret--open {
+  transform: rotate(180deg);
+}
+
+.story-fold__body {
+  margin-top: 12px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .story-fold__caret {
+    transition: transform 0.2s ease;
+  }
+
+  .story-fold__body {
+    animation: story-fold-open 0.2s ease;
+  }
+}
+
+@keyframes story-fold-open {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
