@@ -1,0 +1,33 @@
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.results-table th,
+.results-table td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.results-table__view-button {
+  padding: 4px 10px;
+  border: 1px solid var(--color-accent);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: var(--font-size-small);
+}
+
+.results-table__edited-tag {
+  margin-left: 6px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.results-table__dash {
+  color: var(--color-text-muted);
+}

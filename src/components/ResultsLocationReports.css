@@ -1,0 +1,39 @@
+.results-location-reports__item {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+}
+
+.results-location-reports__summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.results-location-reports__team-block {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.results-location-reports__team-name {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.results-location-reports__time {
+  font-size: var(--font-size-small);
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+
+.results-location-reports__question {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.results-location-reports__answer {
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}

@@ -5,6 +5,7 @@ import { handleUploadRoute } from "./worker/routes/uploadRoute";
 import { handleFormSubmitRoute } from "./worker/routes/formSubmitRoute";
 import { handleGalleryRoutes } from "./worker/routes/galleryRoutes";
 import { handleEditorRoutes } from "./worker/routes/editorRoutes";
+import { handleResultsRoutes } from "./worker/routes/resultsRoutes";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -15,6 +16,7 @@ export default {
       (await handleUploadRoute(request, url, env)) ??
       (await handleFormSubmitRoute(request, url, env)) ??
       (await handleGalleryRoutes(request, url, env)) ??
+      (await handleResultsRoutes(request, url, env)) ??
       (await handleEditorRoutes(request, url, env)) ??
       (env.ASSETS
         ? env.ASSETS.fetch(request)

@@ -12,6 +12,7 @@ import {
   fetchGalleryPhotos,
   fetchRandomPhotos,
   postDemoSignup,
+  fetchResultsSubmissions,
 } from "../utils/api";
 
 function mockFetch(response: unknown, status = 200) {
@@ -253,4 +254,22 @@ test("postDemoSignup POSTs to /auth/participant-signup and returns the response"
     expect.objectContaining({ method: "POST" }),
   );
   expect(result).toEqual({ ok: true, teamName: "Team Test", contact: "t@test.com", isAdmin: false });
+});
+
+// ---------------------------------------------------------------------------
+// Results
+// ---------------------------------------------------------------------------
+
+test("fetchResultsSubmissions GETs /results/:project/:city/submissions", async () => {
+  mockFetch({ ok: true, submissions: [] });
+  const result = await fetchResultsSubmissions("demo", "paris");
+  expect(fetch).toHaveBeenCalledWith("/results/demo/paris/submissions");
+  expect(result.ok).toBe(true);
+});
+
+test("fetchResultsSubmissions returns ok: false on server error", async () => {
+  mockFetch({ ok: false, error: "Forbidden" });
+  const result = await fetchResultsSubmissions("demo", "paris");
+  expect(result.ok).toBe(false);
+  expect(result.error).toBe("Forbidden");
 });

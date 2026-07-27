@@ -124,6 +124,7 @@ doc/
 | `/:project/:city`        | `CityPage`    | Route picker; loads `<city>/routes.yaml`            |
 | `/:project/:city/:route` | `RoutePage`   | Swipe-based challenge flow; loads location YAMLs    |
 | `/:project/:city/gallery` | `GalleryLandingPage` | Read-only post-event photo gallery; hero rotation + filterable grid + lightbox download |
+| `/:project/:city/results_download` | `ResultsDownloadPage` | Organizer/participant results view: per-route coverage grid, inline location reports, `.md` export |
 
 **RoutePage states:** loading → location cards rendered as a swipeable stack. Swipe left advances, swipe right retreats. Current index is persisted to `localStorage` keyed by project/city/route so reload resumes position.
 
@@ -304,6 +305,8 @@ CREATE TABLE form_submissions (
 );
 ```
 
+**`location_id` is per-route, not global.** `form_submissions.location_id` is the 1-based ordinal position of that location among location-type entries in whichever route the team was on (`locationOrdinalAt()`, `src/utils/routeEntries.ts`), set client-side by `RoutePage`. The same number means different locations in different routes — resolving a submission to a physical location requires looking up `(route_id, location_id)` together against that route's location list, never `location_id` alone. `src/utils/resultsRouteIndex.ts` builds this per-route index from a city's `routes.yaml` and location YAML.
+
 **R2 image variants.** Each photo is stored as three capped JPEG variants under a shared key prefix, generated in the Worker via `@cf-wasm/photon` (WASM, no native bindings) since Cloudflare's URL-based Image Resizing isn't available on the current plan:
 
 | Variant | Cap | Purpose |
@@ -344,6 +347,7 @@ Functions are grouped by domain:
 | Editor | `fetchEditorLocations(project, city)`, `fetchEditorLocation(project, city, file)`, `saveEditorLocation(payload)`, `fetchPrStatuses(numbers[])` |
 | Auth | `fetchAuthMe()`, `postLogin(payload)` (contact optional), `postLogout()`, `postVerifyCode(code)` → resolves a typed code to project or `demo` via `AUTH_STORE.list()` |
 | Gallery | `fetchGalleryPhotos(project, city, filters?)` → `GET /gallery/:project/:city/photos`; `fetchRandomPhotos(project, city)` → `GET /gallery/:project/:city/photos/random`; photo bytes served via `GET /photos/:id/:variant` |
+| Results | `fetchResultsSubmissions(project, city)` → `GET /results/:project/:city/submissions`, same participant-scoped auth as Gallery |
 
 Each function wraps a single endpoint, handles the request shape, and returns a typed response. Tests mock the function directly rather than mocking `globalThis.fetch`.
 

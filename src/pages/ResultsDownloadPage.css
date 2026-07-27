@@ -1,0 +1,36 @@
+.results-download-page {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.results-download-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.results-download-page__download-button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: var(--color-background);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.results-download-page__route-heading {
+  font-size: var(--font-size-large);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.results-download-page__empty {
+  color: var(--color-text-secondary);
+  padding: 16px;
+}

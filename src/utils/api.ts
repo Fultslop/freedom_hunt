@@ -1,5 +1,6 @@
 import type { Location } from "../types/data";
 import type { GalleryPhoto } from "../types/gallery";
+import type { ResultsSubmission } from "../types/results";
 
 // ---------------------------------------------------------------------------
 // Challenge
@@ -346,4 +347,22 @@ export async function fetchRandomPhotos(
 ): Promise<GalleryPhotosResponse> {
   const res = await fetch(`/gallery/${project}/${city}/photos/random`);
   return res.json() as Promise<GalleryPhotosResponse>;
+}
+
+// ---------------------------------------------------------------------------
+// Results
+// ---------------------------------------------------------------------------
+
+export interface ResultsSubmissionsResponse {
+  ok: boolean;
+  submissions?: ResultsSubmission[];
+  error?: string;
+}
+
+export async function fetchResultsSubmissions(
+  project: string,
+  city: string,
+): Promise<ResultsSubmissionsResponse> {
+  const res = await fetch(`/results/${project}/${city}/submissions`);
+  return res.json() as Promise<ResultsSubmissionsResponse>;
 }
