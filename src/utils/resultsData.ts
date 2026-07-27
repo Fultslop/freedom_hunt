@@ -125,10 +125,15 @@ export function visibleFields(fields: FormField[]): FormField[] {
   return fields.filter((field) => !SKIP_FIELD_TYPES.has(field.type));
 }
 
+function isEmptyAnswer(value: unknown): boolean {
+  if (Array.isArray(value)) {
+    return value.length === 0;
+  }
+  return value === undefined || value === null || value === "";
+}
+
 export function formatAnswerValue(field: FormField, value: unknown): string {
-  const isEmpty = value === undefined || value === null || value === "";
-  const isEmptyArray = Array.isArray(value) && value.length === 0;
-  if (isEmpty || isEmptyArray) {
+  if (isEmptyAnswer(value)) {
     return "No answer";
   }
   if (field.type === "boolean") {
