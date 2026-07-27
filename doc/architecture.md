@@ -30,10 +30,14 @@ Participants visit historically significant sites, complete challenges at each l
 ```
 src/
   pages/
-    AppPage.svelte      — Home: lists available projects
+    AppPage.svelte      — Home: "Start Hunting" button → /start
+    CodeEntryPage.svelte — Scavenger hunt code entry → /login/demo or /join/:project
+    JoinTeamPage.svelte  — Team name (prefill + dice reroll) → completes login via stashed password
     ProjectPage.svelte  — City picker for a chosen project
     CityPage.svelte     — Route picker for a chosen city
     RoutePage.svelte    — Swipe-based challenge flow
+    LoginPage.svelte    — Login: team name (prefill + dice reroll) + password; contact removed
+    GalleryLandingPage.svelte — Post-event photo gallery: hero rotation + filterable grid + lightbox download
     editor/             — Editor pages (admin)
   components/
     TitleBar.svelte     — Persistent top bar (back, title, progress, theme switcher)
@@ -48,6 +52,7 @@ src/
     SplashScreen.svelte — Route entry template: full-bleed image, shader/overlay, anchored title, entrance effect
     OptionsScreen.svelte — Route entry template: top image + title + navigation buttons
     ScreenHero.svelte   — Shared top-image component used by TextScreen/OptionsScreen
+    CheckpointGateModal.svelte — Portal overlay for checkpoint gates: fail/succeed modes, skippable, onStay/onProceed
     effects/            — ConfettiEffect, ShootingStarsEffect, FireworksEffect (hand-rolled CSS)
   stores/
     themeStore.ts       — Active theme; syncs CSS custom properties to <html>
@@ -62,9 +67,12 @@ src/
     loadLocations.ts    — Resolves and loads location YAML files for a route
     authGuards.ts       — Route pre-condition functions for svelte-spa-router
     routeNav.ts         — Navigation helpers (clampedNext, clampedPrev)
-    api.ts              — All client HTTP functions (challenge, editor, auth)
+    checkpointNav.ts    — Checkpoint-aware navigation: isCheckpointEntry, nextNavigableIndex, prevNavigableIndex, earliestAllowedIndex, isBackwardCrossingBlocked
+    routeRequirements.ts — evaluateGate: resolve requirement check results against a gate (forms, period logic)
+    teamNameGenerator.ts — generateTeamName(): 32 adjectives × 32 nouns
+    api.ts              — All client HTTP functions (challenge, editor, auth); postVerifyCode resolves typed codes
     formValues.ts       — buildNestedValues (dotted-path → nested object) and flattenValues (inverse)
-    routeEntries.ts     — isLocationEntry/locationTotal/locationOrdinalAt — location-vs-template discrimination
+    routeEntries.ts     — isLocationEntry/locationTotal/locationOrdinalAt — location-vs-template discrimination; isNavBarVisible excludes checkpoints
     splashEffectHistory.ts — shouldFireEffect/recordEffectFired — splash entrance-effect cooldown/repeat tracking
   actions/
     swipe.ts            — Svelte action for touch swipe events
@@ -107,7 +115,9 @@ doc/
 
 | Path                     | Component     | Notes                                               |
 | ------------------------ | ------------- | --------------------------------------------------- |
-| `/`                      | `AppPage`     | Lists projects from `projects/projects.yaml`        |
+| `/`                      | `AppPage`     | "Start Hunting" button → `/start`; replaced project-card browsing |
+| `/start`                 | `CodeEntryPage` | Enter scavenger-hunt code → routes to `/login/demo` or `/join/:project` via sessionStorage handoff |
+| `/join/:project`         | `JoinTeamPage` | Team name (prefill + dice reroll) + password (from stashed verify-code response); completes login |
 | `/login/demo`            | `DemoLoginPage` | Email+password login for the `demo` project only — matched before the `/login/:project` wildcard |
 | `/signup/demo`           | `DemoSignupPage` | Email+password signup for the `demo` project only — matched before the `/signup` route |
 | `/:project`              | `ProjectPage` | City picker; loads `projects/<project>/cities.yaml` |
@@ -126,6 +136,7 @@ A route's `locations` list can mix ordinary locations with non-location screens.
 | `text` | `NNN_text_<slug>.yaml` | Top image (optional) + centered title + markdown body |
 | `splash` | `NNN_splash_<slug>.yaml` | Full-bleed image with an optional CSS shader/overlay, anchored title, optional one-shot entrance effect |
 | `options` | `NNN_options_<slug>.yaml` | Top image (optional) + centered title + a list of buttons, each linking externally or navigating to a named in-app screen |
+| `checkpoint` | `NNN_chck_<slug>.yaml` | Gate that blocks forward/backward navigation until a requirement is met; never rendered as a visible screen — the carousel skips over it via nextNavigableIndex/prevNavigableIndex |
 
 Existing `NNN_loc_*.yaml` files are unaffected. Each template type has its own JSON Schema in `src/data/schemas/` (`text.schema.json`, `splash.schema.json`, `options.schema.json`), validated the same three ways as location/form YAML (IDE via `.vscode/settings.json`, CI via `npm run validate:yaml`).
 
@@ -331,7 +342,7 @@ Functions are grouped by domain:
 |-------|-----------|
 | Challenge | `postFormSubmit(payload)` → `POST /form-submit` (routes to Google Sheet for `democrats_abroad`, D1 `form_submissions` for every other project); `postPhotoUpload(payload)` → `POST /upload` |
 | Editor | `fetchEditorLocations(project, city)`, `fetchEditorLocation(project, city, file)`, `saveEditorLocation(payload)`, `fetchPrStatuses(numbers[])` |
-| Auth | `fetchAuthMe()`, `postLogin(payload)`, `postLogout()` |
+| Auth | `fetchAuthMe()`, `postLogin(payload)` (contact optional), `postLogout()`, `postVerifyCode(code)` → resolves a typed code to project or `demo` via `AUTH_STORE.list()` |
 | Gallery | `fetchGalleryPhotos(project, city, filters?)` → `GET /gallery/:project/:city/photos`; `fetchRandomPhotos(project, city)` → `GET /gallery/:project/:city/photos/random`; photo bytes served via `GET /photos/:id/:variant` |
 
 Each function wraps a single endpoint, handles the request shape, and returns a typed response. Tests mock the function directly rather than mocking `globalThis.fetch`.
@@ -379,6 +390,7 @@ Two schemas live in `src/data/schemas/`:
 |--------|------------|-----------------|
 | `location.schema.json` | `*_loc_*.yaml` | `additionalProperties: false` at root and inside `challenge`; `challenge.form` must be a `string` (filename reference) if present |
 | `form.schema.json` | `*_form_*.yaml` | Array of field objects; each field has `additionalProperties: false`; `type` is an enum of the eight supported field types |
+| `checkpoint.schema.json` | `*_chck_*.yaml` | `additionalProperties: false`; requires `template-type: checkpoint`, `gate` object with `require` (requirement array), `re-entry` (gate definition for re-crossing), `skippable` (boolean); each requirement supports `type: forms` or `type: period` |
 
 **Why `challenge.form` must be a string:** form data is kept in separate `*_form_*.yaml` files and referenced by filename. Inline arrays in the `challenge.form` field are a data-authoring error.
 
@@ -392,7 +404,7 @@ Two schemas live in `src/data/schemas/`:
 
 ### Layer 3 — CI (`npm run validate:yaml`)
 
-`scripts/validate-yaml.js` finds all `*_loc_*.yaml` and `*_form_*.yaml` files under `src/data/text/en/projects/`, parses each with `js-yaml`, and validates against the appropriate JSON schema using `ajv`. Errors are written to stderr in the form:
+`scripts/validate-yaml.js` finds all `*_loc_*.yaml`, `*_form_*.yaml`, and `*_chck_*.yaml` files under `src/data/text/en/projects/`, parses each with `js-yaml`, and validates against the appropriate JSON schema using `ajv`. Errors are written to stderr in the form:
 
 ```
 ERROR: src/data/.../001_loc_binnenhof.yaml: /challenge: must NOT have additional properties ('for')
@@ -403,7 +415,7 @@ The script exits 1 on any violation. It runs as a CI step (`.github/workflows/ci
 
 ## Key Design Decisions
 
-**YAML data files.** All content lives in `src/data/text/en/` as YAML, bundled by `@modyfi/vite-plugin-yaml`. Adding a new city = new directory + YAML files; no code changes needed. Location files are named `NNN_loc_<slug>.yaml` and listed in `routes.yaml`.
+**YAML data files.** All content lives in `src/data/text/en/` as YAML, bundled by `@modyfi/vite-plugin-yaml`. Adding a new city = new directory + YAML files; no code changes needed. Location files are named `NNN_loc_<slug>.yaml`, checkpoint files `NNN_chck_<slug>.yaml`, and all are listed in `routes.yaml`.
 
 **Multi-project, multi-city, multi-route.** The URL structure (`/:project/:city/:route`) and data hierarchy support running the same app for multiple organisations, cities, and named routes simultaneously.
 

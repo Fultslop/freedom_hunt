@@ -216,8 +216,8 @@
   // chrome, so a tracked action (e.g. an EULA's "I understand") can't be bypassed
   // by swiping past it.
   let navBarVisible = $derived(currentEntry === undefined || isNavBarVisible(currentEntry));
-  let earliestAllowed = $derived(earliestAllowedIndex(entries, currentIndex));
-  let canGoForward = $derived(nextNavigableIndex(entries, currentIndex) !== currentIndex);
+  let earliestAllowed = $derived(entries.length > 0 ? earliestAllowedIndex(entries, currentIndex) : currentIndex);
+  let canGoForward = $derived(entries.length > 0 ? nextNavigableIndex(entries, currentIndex) !== currentIndex : false);
 
   let formStatusByIndex = $state<Record<number, { submitted: boolean; missingLabels: string[] }>>({});
   let skippedIndices = $state<Set<number>>(new Set());

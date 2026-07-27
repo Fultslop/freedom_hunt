@@ -1,7 +1,7 @@
 import type { RouteEntry, CheckpointEntry } from "../types/data";
 
 export function isCheckpointEntry(entry: RouteEntry): entry is CheckpointEntry {
-  return entry["template-type"] === "checkpoint";
+  return entry?.["template-type"] === "checkpoint";
 }
 
 export function nextNavigableIndex(entries: RouteEntry[], current: number): number {

@@ -4,19 +4,16 @@
   import { titleBarStore } from "../stores/titleBarStore";
   import { languageStore } from "../stores/languageStore";
   import { fetchImage } from "../assets/AssetManager";
-  import MarkdownText from "../components/MarkdownText.svelte";
   import { loadText } from "../utils/loadText";
-  import type { ApplicationText, ProjectsText } from "../types/data";
+  import type { ApplicationText } from "../types/data";
   import "./AppPage.css";
 
   titleBarStore.set({ title: "Freedom Hunt", progress: null, backPath: null });
   themeStore.setThemeName("app");
 
   let appText = $state<ApplicationText | null>(null);
-  let projectsText = $state<ProjectsText | null>(null);
   let landingImageUrl = $state<string | null>(null);
   let imgHeight = $state(0);
-  let projectImageUrls = $state<Record<string, string>>({});
 
   $effect(() => {
     loadText<ApplicationText>($languageStore.currentLang, "application").then(
@@ -31,23 +28,6 @@
         }
       },
     );
-    loadText<ProjectsText>(
-      $languageStore.currentLang,
-      "projects/projects",
-    ).then((data) => {
-      projectsText = data;
-      if (data?.items) {
-        data.items.forEach((project) => {
-          if (project.image) {
-            fetchImage(project.image).then((url) => {
-              if (url) {
-                projectImageUrls = { ...projectImageUrls, [project.id]: url };
-              }
-            });
-          }
-        });
-      }
-    });
     fetchImage("landing-page.jpg").then((url) => {
       landingImageUrl = url;
     });
@@ -87,40 +67,12 @@
       </div>
     {/if}
 
-    {#if projectsText}
-      <h2 class="app-page__subtitle">{projectsText["page.subtitle"]}</h2>
-      {#each projectsText.items as project (project.id)}
-        <div
-          role="button"
-          tabindex="0"
-          class="app-page__project-card"
-          onclick={() => push(`/${project.id}`)}
-          onkeydown={(e) =>
-            (e.key === "Enter" || e.key === " ") && push(`/${project.id}`)}
-        >
-          {#if projectImageUrls[project.id]}
-            <img
-              src={projectImageUrls[project.id]}
-              alt=""
-              class="app-page__project-img"
-            />
-          {/if}
-          <div class="app-page__project-body">
-            <div class="app-page__project-name">{project.name}</div>
-            <MarkdownText
-              text={project.description}
-              style={{
-                fontSize: 13,
-                color: $themeStore.theme.textMuted,
-                marginTop: 4,
-                lineHeight: "1.5",
-              }}
-            />
-          </div>
-        </div>
-      {/each}
-    {:else}
-      <p class="app-page__loading">Loading…</p>
-    {/if}
+    <button
+      type="button"
+      class="app-page__start-btn"
+      onclick={() => push("/start")}
+    >
+      Start Hunting
+    </button>
   </div>
 </div>

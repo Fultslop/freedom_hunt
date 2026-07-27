@@ -12,6 +12,8 @@
   import { requireAuth, requireEditorAccess } from "./utils/authGuards";
   import TitleBar from "./components/TitleBar.svelte";
   import AppPage from "./pages/AppPage.svelte";
+  import CodeEntryPage from "./pages/CodeEntryPage.svelte";
+  import JoinTeamPage from "./pages/JoinTeamPage.svelte";
   import LoginPage from "./pages/LoginPage.svelte";
   import DemoLoginPage from "./pages/DemoLoginPage.svelte";
   import DemoSignupPage from "./pages/DemoSignupPage.svelte";
@@ -36,6 +38,8 @@
   // wildcard route that would otherwise match the same URL and win first.
   const routes = {
     "/": asRoute(AppPage),
+    "/start": asRoute(CodeEntryPage),
+    "/join/:project": asRoute(JoinTeamPage),
     "/login/demo": asRoute(DemoLoginPage),
     "/login/:project": asRoute(LoginPage),
     "/signup/demo": asRoute(DemoSignupPage),
