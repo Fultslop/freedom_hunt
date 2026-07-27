@@ -1,9 +1,11 @@
 template-type: splash
 image: placeholder.jpg
 shader: duotone
-effect: confetti
-repeat-effect:
-  cooldown: 20
+effect: 
+  type: confetti
+  cooldown: 
+    min: 0.26
+    max: 0.35
   max: 3
 title: "You Made It Across!"
 anchor:
