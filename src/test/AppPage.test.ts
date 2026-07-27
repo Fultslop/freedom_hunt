@@ -1,17 +1,11 @@
-import { render, screen } from "@testing-library/svelte/svelte5";
+import { render, screen, fireEvent } from "@testing-library/svelte/svelte5";
 import AppPage from "../pages/AppPage.svelte";
 import { titleBarStore } from "../stores/titleBarStore";
 
 vi.mock("../utils/loadText", () => ({
   loadText: vi.fn().mockResolvedValue({
-    items: [
-      {
-        id: "democrats_abroad",
-        name: "Democrats Abroad",
-        description: "DA desc",
-        image: null,
-      },
-    ],
+    "app.title": "YES. WE. VOTE.",
+    "app.tagline": "A scavenger hunt for democracy.",
   }),
 }));
 
@@ -24,7 +18,24 @@ beforeEach(() => {
   titleBarStore.set({ title: "Freedom Hunt", progress: null, backPath: null });
 });
 
-test("renders project list", async () => {
+test("renders the Start Hunting button", async () => {
   render(AppPage);
-  expect(await screen.findByText("Democrats Abroad")).toBeInTheDocument();
+  expect(
+    await screen.findByRole("button", { name: /start hunting/i }),
+  ).toBeInTheDocument();
+});
+
+test("does not render a project list", async () => {
+  render(AppPage);
+  await screen.findByRole("button", { name: /start hunting/i });
+  expect(screen.queryByText(/democrats abroad/i)).not.toBeInTheDocument();
+});
+
+test("navigates to /start when the button is clicked", async () => {
+  const { push } = await import("svelte-spa-router");
+  render(AppPage);
+  await fireEvent.click(
+    await screen.findByRole("button", { name: /start hunting/i }),
+  );
+  expect(push).toHaveBeenCalledWith("/start");
 });

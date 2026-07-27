@@ -6,6 +6,7 @@ import {
   fetchEditorLocations,
   fetchPrStatuses,
   postLogin,
+  postVerifyCode,
   postLogout,
   fetchAuthMe,
   fetchGalleryPhotos,
@@ -162,6 +163,36 @@ test("postLogin returns error message on failure", async () => {
   });
   expect(result.ok).toBe(false);
   expect(result.error).toBe("Wrong password");
+});
+
+test("postVerifyCode POSTs to /auth/verify-code with the code", async () => {
+  mockFetch({ ok: true, mode: "project", project: "democrats_abroad" });
+  const result = await postVerifyCode("letmein");
+  expect(fetch).toHaveBeenCalledWith("/auth/verify-code", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: "letmein" }),
+  });
+  expect(result.ok).toBe(true);
+  expect(result.mode).toBe("project");
+  expect(result.project).toBe("democrats_abroad");
+});
+
+test("postVerifyCode returns ok:false for an unrecognized code", async () => {
+  mockFetch({ ok: false, error: "Invalid code" });
+  const result = await postVerifyCode("nope");
+  expect(result.ok).toBe(false);
+});
+
+test("postLogin omits contact from the request body when not provided", async () => {
+  mockFetch({ ok: true, teamName: "Team A", isAdmin: false });
+  const payload = { project: "democrats_abroad", teamName: "Team A", password: "secret" };
+  await postLogin(payload);
+  expect(fetch).toHaveBeenCalledWith("/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 });
 
 test("postLogout POSTs to /auth/logout", async () => {

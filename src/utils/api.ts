@@ -127,9 +127,25 @@ export async function fetchPrStatuses(
 export interface LoginPayload {
   project: string;
   teamName: string;
-  contact: string;
+  contact?: string;
   password: string;
   email?: string;
+}
+
+export interface VerifyCodeResponse {
+  ok: boolean;
+  mode?: "demo" | "project";
+  project?: string;
+  error?: string;
+}
+
+export async function postVerifyCode(code: string): Promise<VerifyCodeResponse> {
+  const res = await fetch("/auth/verify-code", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+  });
+  return res.json() as Promise<VerifyCodeResponse>;
 }
 
 export interface DemoSignupPayload {

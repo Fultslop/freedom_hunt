@@ -145,17 +145,18 @@ This section explains how the participant login system works and how to manage i
 
 ### How it works
 
-When participants open the app and tap your project — or follow any direct link into it (a city page, a route page, anything under your project URL) — they see a full-screen login form with three fields:
+Participants open the app and tap **Start Hunting** on the home screen (or navigate directly to `/start`). They enter a **scavenger hunt code** — a short typed word or phrase that you distribute before the event.
 
-- **Team name** — how the team identifies themselves during the hunt
-- **Contact email** — optional, for follow-up
-- **Password** — the project password you distribute to all participants before the event
+The app resolves the code via a `POST /auth/verify-code` endpoint:
 
-Once they enter the correct password, they're logged in on that device for **30 days** and can access all cities and routes within your project. They won't be asked again unless they sign out or the session expires.
+- Code `"demo"` (case-insensitive) → routes to `/login/demo` (individual email+password accounts)
+- Any known project code → routes to `/join/:project` with the verified password stashed in `sessionStorage`
 
-> **One password, whole project.** A single password covers the entire project — all cities and routes beneath it. You don't set separate passwords per city.
+On the login/join screen, participants enter or generate a **team name** (prefilled from `localStorage` or randomly generated via `generateTeamName()` — with a dice button to reroll) and submit. Contact email is no longer collected.
 
-> **Both entry points are protected.** Whether a participant arrives through the home screen or via a direct deep link (e.g. a city or route URL you shared), they'll always hit the login form first if they haven't already authenticated.
+Once they submit, they're logged in on that device for **30 days** and can access all cities and routes within your project. They won't be asked again unless they sign out or the session expires.
+
+> **One password, whole project.** A single password covers the entire project — all cities and routes beneath it. The password is set in KV (`auth:<project_id>`) and verified by `POST /auth/verify-code`, which uses `AUTH_STORE.list()` to find the matching project.
 
 ### Setting a password for your project
 
@@ -185,9 +186,13 @@ The default is **30 days**. Changing it (e.g. to 90 days) requires a one-line co
 
 ### What participants see
 
-**Login form** — Full-screen, themed to match your project. Appears automatically when they first access any page under your project URL.
+**Home screen** — A single **Start Hunting** button, no project-card browsing.
 
-**Profile** — After logging in, participants can tap ☰ (top-right menu) → **Profile** to see their team name, contact email, and a **Sign out** button.
+**Code entry screen** (`/start`) — A text field to enter the scavenger hunt code. Submitting routes to either the demo login or team-join screen.
+
+**Join/Login screen** — Team name input (prefilled from `localStorage` or randomly generated). A dice button (with `Dice5` icon from lucide-svelte) rerolls the random suggestion. No contact email field.
+
+**Profile** — After logging in, participants can tap ☰ (top-right menu) → **Profile** to see their team name and a **Sign out** button.
 
 **Themes** — The same ☰ menu has a **Themes** tab with the visual style switcher (unchanged from before).
 

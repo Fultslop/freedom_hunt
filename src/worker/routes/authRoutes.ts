@@ -161,6 +161,47 @@ export async function handleAuthRoutes(
   }
 
   // -------------------------------------------------------------------------
+  // POST /auth/verify-code
+  // -------------------------------------------------------------------------
+  if (request.method === "POST" && url.pathname === "/auth/verify-code") {
+    if (!checkOrigin(request)) {
+      return json({ ok: false, error: "Forbidden" }, 403);
+    }
+    try {
+      const clientIP = request.headers.get("CF-Connecting-IP") || "unknown";
+      if (await checkRateLimit(clientIP, env)) {
+        return json({ ok: false, error: "Too many attempts. Please wait a moment." }, 429);
+      }
+
+      const { code } = (await request.json()) as { code?: string };
+      const trimmed = (code ?? "").trim();
+      if (!trimmed) {
+        return json({ ok: false, error: "Missing code" }, 400);
+      }
+
+      if (trimmed.toLowerCase() === "demo") {
+        return json({ ok: true, mode: "demo" });
+      }
+
+      const list = await env.AUTH_STORE.list({ prefix: KV_PREFIX_PARTICIPANT });
+      for (const key of list.keys) {
+        const storedPassword = await env.AUTH_STORE.get(key.name);
+        if (storedPassword !== null && storedPassword === trimmed) {
+          return json({
+            ok: true,
+            mode: "project",
+            project: key.name.slice(KV_PREFIX_PARTICIPANT.length),
+          });
+        }
+      }
+
+      return json({ ok: false, error: "Invalid code" }, 401);
+    } catch {
+      return json({ ok: false, error: "Verification failed" }, 500);
+    }
+  }
+
+  // -------------------------------------------------------------------------
   // POST /auth/login
   // -------------------------------------------------------------------------
   if (request.method === "POST" && url.pathname === "/auth/login") {

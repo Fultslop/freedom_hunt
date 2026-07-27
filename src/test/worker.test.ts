@@ -644,6 +644,102 @@ describe("/auth/login — admin tier", () => {
   });
 });
 
+describe("/auth/verify-code", () => {
+  const makeEnv = (kvData: Record<string, string>) => ({
+    AUTH_STORE: {
+      get: async (key: string) => kvData[key] ?? null,
+      put: async () => {},
+      list: async ({ prefix }: { prefix: string }) => ({
+        keys: Object.keys(kvData)
+          .filter((k) => k.startsWith(prefix))
+          .map((name) => ({ name })),
+      }),
+    },
+    AUTH_SECRET: TEST_SECRET,
+  } as Record<string, unknown>);
+
+  it("returns mode demo for the literal keyword, case-insensitively", async () => {
+    const request = new Request("https://example.com/auth/verify-code", {
+      method: "POST",
+      body: JSON.stringify({ code: "DEMO" }),
+      headers: { "Content-Type": "application/json", "CF-Connecting-IP": "5.5.5.1" },
+    });
+    const response = await worker.fetch(request, makeEnv({}));
+    const data = await response.json();
+    expect(data).toEqual({ ok: true, mode: "demo" });
+  });
+
+  it("resolves a project when the code matches its stored participant password", async () => {
+    const env = makeEnv({ "auth:democrats_abroad": "letmein" });
+    const request = new Request("https://example.com/auth/verify-code", {
+      method: "POST",
+      body: JSON.stringify({ code: "letmein" }),
+      headers: { "Content-Type": "application/json", "CF-Connecting-IP": "5.5.5.2" },
+    });
+    const response = await worker.fetch(request, env);
+    const data = await response.json();
+    expect(data).toEqual({ ok: true, mode: "project", project: "democrats_abroad" });
+  });
+
+  it("trims whitespace before comparing", async () => {
+    const env = makeEnv({ "auth:democrats_abroad": "letmein" });
+    const request = new Request("https://example.com/auth/verify-code", {
+      method: "POST",
+      body: JSON.stringify({ code: "  letmein  " }),
+      headers: { "Content-Type": "application/json", "CF-Connecting-IP": "5.5.5.3" },
+    });
+    const response = await worker.fetch(request, env);
+    const data = await response.json();
+    expect(data.ok).toBe(true);
+    expect(data.project).toBe("democrats_abroad");
+  });
+
+  it("returns ok:false with 401 for a code that matches nothing", async () => {
+    const env = makeEnv({ "auth:democrats_abroad": "letmein" });
+    const request = new Request("https://example.com/auth/verify-code", {
+      method: "POST",
+      body: JSON.stringify({ code: "wrong" }),
+      headers: { "Content-Type": "application/json", "CF-Connecting-IP": "5.5.5.4" },
+    });
+    const response = await worker.fetch(request, env);
+    expect(response.status).toBe(401);
+    const data = await response.json();
+    expect(data.ok).toBe(false);
+  });
+
+  it("returns 400 when code is missing", async () => {
+    const env = makeEnv({});
+    const request = new Request("https://example.com/auth/verify-code", {
+      method: "POST",
+      body: JSON.stringify({}),
+      headers: { "Content-Type": "application/json", "CF-Connecting-IP": "5.5.5.6" },
+    });
+    const response = await worker.fetch(request, env);
+    expect(response.status).toBe(400);
+  });
+
+  it("returns 429 when rate limited", async () => {
+    const env = {
+      AUTH_STORE: {
+        get: async (key: string) =>
+          key.startsWith("rl:")
+            ? JSON.stringify({ count: 5, windowStart: Date.now() })
+            : null,
+        put: async () => {},
+        list: async () => ({ keys: [] }),
+      },
+      AUTH_SECRET: TEST_SECRET,
+    };
+    const request = new Request("https://example.com/auth/verify-code", {
+      method: "POST",
+      body: JSON.stringify({ code: "demo" }),
+      headers: { "Content-Type": "application/json", "CF-Connecting-IP": "5.5.5.5" },
+    });
+    const response = await worker.fetch(request, env);
+    expect(response.status).toBe(429);
+  });
+});
+
 describe("/auth/me — isAdmin", () => {
   it("includes isAdmin in response", async () => {
     const adminToken = await createToken(

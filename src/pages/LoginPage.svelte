@@ -1,20 +1,29 @@
 <script lang="ts">
   import { push } from "svelte-spa-router";
+  import { Dice5 } from "lucide-svelte";
   import { authStore } from "../stores/authStore";
   import { titleBarStore } from "../stores/titleBarStore";
   import { postLogin } from "../utils/api";
+  import { generateTeamName } from "../utils/teamNameGenerator";
   import "./LoginPage.css";
 
   let { params }: { params: { project: string } } = $props();
 
-  let teamName = $state("");
-  let contact = $state("");
+  const teamNameKey = `teamName:${params.project}`;
+
+  let teamName = $state(
+    localStorage.getItem(teamNameKey) ?? generateTeamName(),
+  );
   let password = $state("");
   let error = $state<string | null>(null);
   let loading = $state(false);
   let showPassword = $state(false);
 
   titleBarStore.set({ title: "Sign in", progress: null, backPath: null });
+
+  function rerollTeamName() {
+    teamName = generateTeamName();
+  }
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
@@ -24,16 +33,16 @@
       const data = await postLogin({
         project: params.project,
         teamName,
-        contact,
         password,
       });
       if (data.ok) {
         authStore.loginParticipant(
           params.project,
           data.teamName ?? teamName,
-          data.contact ?? contact,
+          data.contact ?? "",
           data.isAdmin ?? false,
         );
+        localStorage.setItem(teamNameKey, teamName);
         push(data.isAdmin ? "/editor" : `/${params.project}`);
       } else {
         error = data.error || "Incorrect password. Please try again.";
@@ -65,27 +74,24 @@
   >
     <div class="login-page__field">
       <label class="login-page__label" for="teamName">Team name</label>
-      <input
-        id="teamName"
-        type="text"
-        bind:value={teamName}
-        required
-        placeholder="Your team name"
-        class="login-page__input"
-      />
-    </div>
-
-    <div class="login-page__field">
-      <label class="login-page__label" for="contact">
-        Contact email <span class="login-page__label-note">(optional)</span>
-      </label>
-      <input
-        id="contact"
-        type="email"
-        bind:value={contact}
-        placeholder="you@example.com"
-        class="login-page__input"
-      />
+      <div class="login-page__input-row">
+        <input
+          id="teamName"
+          type="text"
+          bind:value={teamName}
+          required
+          placeholder="Your team name"
+          class="login-page__input"
+        />
+        <button
+          type="button"
+          onclick={rerollTeamName}
+          aria-label="Suggest a new team name"
+          class="login-page__dice-btn"
+        >
+          <Dice5 size={20} />
+        </button>
+      </div>
     </div>
 
     <div
