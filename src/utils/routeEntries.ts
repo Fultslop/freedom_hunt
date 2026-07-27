@@ -12,6 +12,13 @@ export function locationOrdinalAt(entries: RouteEntry[], index: number): number 
   return entries.slice(0, index + 1).filter(isLocationEntry).length;
 }
 
+interface NavBarEntry {
+  "nav-bar"?: { visible?: boolean };
+}
+
 export function isNavBarVisible(entry: RouteEntry): boolean {
-  return entry["nav-bar"]?.visible ?? true;
+  if (entry["template-type"] === "checkpoint") {
+    return true;
+  }
+  return (entry as NavBarEntry)["nav-bar"]?.visible ?? true;
 }

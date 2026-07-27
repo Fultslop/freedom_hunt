@@ -178,4 +178,42 @@ export interface OptionsEntry {
   "nav-bar"?: NavBarConfig;
 }
 
-export type RouteEntry = LocationEntry | TextEntry | SplashEntry | OptionsEntry;
+export interface FormsRequirement {
+  type: "forms";
+  requires_all_forms_completed?: boolean;
+  min_completed_forms?: number;
+  include_skipped?: boolean;
+  on_fail: { message: string; include_missing_forms?: boolean };
+}
+
+export interface PeriodBound {
+  operator?: "<" | "<=" | "=" | ">" | ">=";
+  date: string;
+}
+
+export interface PeriodRequirement {
+  type: "period";
+  start?: PeriodBound;
+  end?: PeriodBound;
+  on_fail: { message: string; include_period?: boolean };
+}
+
+export type RouteRequirement = FormsRequirement | PeriodRequirement;
+
+export interface CheckpointEntryGate {
+  requirements?: RouteRequirement[];
+  skippable?: boolean;
+  on_succeed?: { message: string; include_missing_forms?: boolean };
+}
+
+export interface CheckpointReEntryGate {
+  blocked_after_exit?: boolean;
+}
+
+export interface CheckpointEntry {
+  "template-type": "checkpoint";
+  entry?: CheckpointEntryGate;
+  "re-entry"?: boolean | CheckpointReEntryGate;
+}
+
+export type RouteEntry = LocationEntry | TextEntry | SplashEntry | OptionsEntry | CheckpointEntry;

@@ -84,6 +84,14 @@ test("renders SplashScreen for a splash entry with the effect visible", () => {
   expect(container.querySelector(".confetti-effect")).toBeInTheDocument();
 });
 
+test("renders nothing for a checkpoint entry instead of falling through to ChallengeCard", () => {
+  const { container } = render(RouteScreen, {
+    props: { entry: { "template-type": "checkpoint", "re-entry": false } as RouteEntry, index: 1 },
+  });
+  expect(container.querySelector(".cc-root")).not.toBeInTheDocument();
+  expect(screen.queryByTestId("location-badge")).not.toBeInTheDocument();
+});
+
 test("does not show the effect on a splash entry when isCurrent is false", () => {
   const { container } = render(RouteScreen, {
     props: {

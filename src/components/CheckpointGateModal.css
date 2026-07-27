@@ -1,0 +1,55 @@
+.checkpoint-gate-modal__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.checkpoint-gate-modal__dialog {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 24px 20px 18px;
+  width: min(340px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.checkpoint-gate-modal__message {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  text-align: center;
+}
+
+.checkpoint-gate-modal__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.checkpoint-gate-modal__stay {
+  flex: 1;
+  padding: 10px 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.checkpoint-gate-modal__proceed {
+  flex: 1;
+  padding: 10px 0;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+}

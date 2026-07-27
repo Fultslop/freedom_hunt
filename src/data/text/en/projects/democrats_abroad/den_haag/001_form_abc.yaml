@@ -1,0 +1,14 @@
+- id: photo
+  type: photo
+  label: Upload a photo of the banned/challenged book you found in the shop
+- id: category
+  type: multiple
+  label: What category of book did you find?
+  min: 1
+  max: 2
+  options:
+    - LGBTQ+
+    - Race / racism
+    - Sexuality / gender
+    - Violence / history
+    - Other

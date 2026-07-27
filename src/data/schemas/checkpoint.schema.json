@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Checkpoint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["template-type"],
+  "anyOf": [{ "required": ["entry"] }, { "required": ["re-entry"] }],
+  "properties": {
+    "template-type": { "const": "checkpoint" },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "on_fail"],
+            "properties": {
+              "type": { "enum": ["forms", "period"] },
+              "requires_all_forms_completed": { "type": "boolean" },
+              "min_completed_forms": { "type": "number" },
+              "include_skipped": { "type": "boolean" },
+              "start": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["date"],
+                "properties": {
+                  "operator": { "enum": ["<", "<=", "=", ">", ">="] },
+                  "date": { "type": "string" }
+                }
+              },
+              "end": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["date"],
+                "properties": {
+                  "operator": { "enum": ["<", "<=", "=", ">", ">="] },
+                  "date": { "type": "string" }
+                }
+              },
+              "on_fail": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["message"],
+                "properties": {
+                  "message": { "type": "string" },
+                  "include_missing_forms": { "type": "boolean" },
+                  "include_period": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "skippable": { "type": "boolean" },
+        "on_succeed": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["message"],
+          "properties": {
+            "message": { "type": "string" },
+            "include_missing_forms": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "re-entry": {
+      "oneOf": [
+        { "type": "boolean" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "blocked_after_exit": { "type": "boolean" } }
+        }
+      ]
+    }
+  }
+}
