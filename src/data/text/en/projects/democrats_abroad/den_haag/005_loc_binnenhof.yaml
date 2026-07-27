@@ -8,17 +8,28 @@ coordinates:
   latitude: 52.0795
   longitude: 4.3130
 storyline: |
-  The Binnenhof is the oldest House of Parliament in the world still in use. Since the 15th century, this complex has been the center of Dutch political life — the place where the counts of Holland governed, where the States General convened, and where, today, the Senate and House of Representatives debate the laws that shape the Netherlands.
+ You have returned to the edge of The Hague’s political heart: the place where power is expected to answer in public.
 
-  This is a working parliament. On any given day, you can walk through the same courtyard as ministers, members of parliament, and journalists. The building does not hide behind gates or security perimeters. It sits in the middle of the city, surrounded by cafés, bookshops, trams, and pedestrians.
+ The Binnenhof is one of the oldest parliamentary complexes in the world. For centuries, this has been a place where government is not supposed to hDigital guide en entirely behind closed doors. Laws are debated. Coalitions are tested. Leaders are questioned. Decisions are challenged. Power is expected to explain itself, defend itself, and answer in public.
+ 
+ Het Plein, just outside, is part of that same civic landscape: a square of cafés, offices, demonstrations, conversations, journalists, civil servants, politicians, residents, and passersby. It is the space outside the formal chamber, where public life keeps pressing against political power.
+ 
+ This is where the route ends. But the finish is not only a celebration. It is where the route turns back into organizing.
 
-  The contrast with the US Capitol is deliberate. In Washington, visitors must book weeks in advance and pass through airport-level security. Here, you can walk from the street into the heart of a legislature in seconds. The openness is itself a democratic statement: government belongs to the people who live under it.
-
-  For American voters abroad, the distance from Washington can feel like a disenfranchisement. But the Binnenhof is a reminder that democracy is not a building in a distant capital. It is a practice that you carry with you — and that you can rejoin from anywhere in the world.
+ At the café, your team wrote a draft manifesto based on what you had seen so far. Since then, you have gathered more evidence. You have encountered new histories, new questions, and new responsibilities.
+ Now you return to the draft.  Democracy requires revision. No one gets it perfectly right on the first try. 
+ 
+ So here is how you bring in a new voice: you contact another voter.
+  
 challenge:
-  name: ""
+  name: "The Final Civic Act"
   description: |
-    Find the plaque or inscription that identifies the Binnenhof as the seat of the States General (Staten-Generaal). Photograph it and note the year it was established or the event it commemorates.
+   People, communities, movements, and cultures grow by learning, listening, changing, and doing better. Nothing worth building should be treated as finished before new evidence and new voices have been heard.
+   Open your Station 4 manifesto draft. Read it again with your team. Keep what still feels true. Revise what has changed. Add what the rest of the route taught you. Ask whose voice is still missing. Then submit your final manifesto.
+   
+   Now bring in a new voice. Text three Americans, help one person request their ballot, or commit to follow up within 24 hours.
+    
+   Before checking out, confirm that your evidence and materials have been submitted.
   notes: ""
   form: "001_form_binnenhof.yaml"
 breadcrumb: |
