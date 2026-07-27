@@ -1,11 +1,12 @@
-import { render, screen, fireEvent } from "@testing-library/svelte/svelte5";
+import { render, screen, fireEvent, waitFor } from "@testing-library/svelte/svelte5";
 import { authStore } from "../stores/authStore";
 import ChallengeForm from "../components/ChallengeForm.svelte";
 import { postFormSubmit } from "../utils/api";
+import { buildFormStorageKey, saveFormState } from "../utils/formStorage";
 
 vi.mock("../utils/api", () => ({
   postFormSubmit: vi.fn().mockResolvedValue({ ok: true }),
-  postPhotoUpload: vi.fn().mockResolvedValue({ ok: true }),
+  postPhotoUpload: vi.fn().mockResolvedValue({ ok: true, httpCode: 200 }),
 }));
 
 const form = [
@@ -14,6 +15,7 @@ const form = [
 ];
 
 beforeEach(() => {
+  localStorage.clear();
   authStore.loginParticipant("test_project", "Team A", "team@test.com");
 });
 
@@ -132,4 +134,113 @@ test("photo upload sends cityId and taskTitle from props", async () => {
       taskTitle: "The Final Civic Act",
     }),
   );
+});
+
+// ---------------------------------------------------------------------------
+// Local storage persistence and resubmit behavior
+// ---------------------------------------------------------------------------
+
+test("form stays visible with a disabled Re-submit button after a successful submit (allowResubmit default true)", async () => {
+  render(ChallengeForm, {
+    props: { form, locationId: 1, routeId: "short_loop" },
+  });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "some text" },
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
+  const resubmitBtn = await screen.findByRole("button", { name: /no changes/i });
+  expect(resubmitBtn).toBeDisabled();
+  expect(screen.getByLabelText("Your note")).toBeInTheDocument();
+});
+
+test("Re-submit button enables after editing a previously-submitted form", async () => {
+  render(ChallengeForm, {
+    props: { form, locationId: 1, routeId: "short_loop" },
+  });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "some text" },
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
+  await screen.findByRole("button", { name: /no changes/i });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "updated text" },
+  });
+  expect(screen.getByRole("button", { name: "Re-submit" })).not.toBeDisabled();
+});
+
+test("form is replaced by a static success message when allowResubmit is false", async () => {
+  render(ChallengeForm, {
+    props: { form, locationId: 1, routeId: "short_loop", allowResubmit: false },
+  });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "some text" },
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
+  expect(await screen.findByText("Submitted! ✓")).toBeInTheDocument();
+  expect(screen.queryByLabelText("Your note")).not.toBeInTheDocument();
+});
+
+test("restores previously-entered values and submitted state from local storage on mount", async () => {
+  const textOnlyForm = [
+    { id: "note", type: "string" as const, label: "Your note", isRequired: true },
+  ];
+  const key = buildFormStorageKey("demo", "den_haag", "short_loop", 1);
+  saveFormState(key, {
+    values: { note: "restored text" },
+    uploads: {},
+    submitted: true,
+    skipped: false,
+  });
+  render(ChallengeForm, {
+    props: { form: textOnlyForm, locationId: 1, routeId: "short_loop", cityId: "den_haag", project: "demo" },
+  });
+  expect((screen.getByLabelText("Your note") as HTMLInputElement).value).toBe(
+    "restored text",
+  );
+  const btn = await screen.findByRole("button", { name: /no changes/i });
+  expect(btn).toBeDisabled();
+});
+
+test("does not read or write local storage when storeInLocalStorage is false", async () => {
+  render(ChallengeForm, {
+    props: {
+      form,
+      locationId: 1,
+      routeId: "short_loop",
+      cityId: "den_haag",
+      project: "demo",
+      storeInLocalStorage: false,
+    },
+  });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "some text" },
+  });
+  expect(localStorage.getItem("demo/den_haag/short_loop/1/form")).toBeNull();
+});
+
+test("reports submitted status and missing labels via onFormStatusChange", async () => {
+  const onFormStatusChange = vi.fn();
+  render(ChallengeForm, {
+    props: { form, locationId: 1, routeId: "short_loop", onFormStatusChange },
+  });
+  await waitFor(() => {
+    expect(onFormStatusChange).toHaveBeenCalledWith({
+      submitted: false,
+      missingLabels: ["Your note"],
+    });
+  });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "some text" },
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
+  await waitFor(() => {
+    expect(onFormStatusChange).toHaveBeenLastCalledWith({
+      submitted: true,
+      missingLabels: [],
+    });
+  });
 });

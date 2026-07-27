@@ -15,6 +15,9 @@ function loadSchema(name) {
 const ajv = new Ajv({ allErrors: true });
 const validateLoc = ajv.compile(loadSchema("location.schema.json"));
 const validateForm = ajv.compile(loadSchema("form.schema.json"));
+const validateText = ajv.compile(loadSchema("text.schema.json"));
+const validateSplash = ajv.compile(loadSchema("splash.schema.json"));
+const validateOptions = ajv.compile(loadSchema("options.schema.json"));
 
 function findFiles(dir, pattern) {
   const entries = readdirSync(dir, { withFileTypes: true });
@@ -49,6 +52,9 @@ function checkFile(filePath, validator) {
 
 const LOC_PATTERN = /^\d+_loc_.*\.yaml$/;
 const FORM_PATTERN = /^\d+_form_.*\.yaml$/;
+const TEXT_PATTERN = /^\d+_text_.*\.yaml$/;
+const SPLASH_PATTERN = /^\d+_splash_.*\.yaml$/;
+const OPTIONS_PATTERN = /^\d+_options_.*\.yaml$/;
 
 const violations = [
   ...findFiles(DATA_DIR, LOC_PATTERN).flatMap((filePath) =>
@@ -56,6 +62,15 @@ const violations = [
   ),
   ...findFiles(DATA_DIR, FORM_PATTERN).flatMap((filePath) =>
     checkFile(filePath, validateForm).map((msg) => ({ filePath, msg })),
+  ),
+  ...findFiles(DATA_DIR, TEXT_PATTERN).flatMap((filePath) =>
+    checkFile(filePath, validateText).map((msg) => ({ filePath, msg })),
+  ),
+  ...findFiles(DATA_DIR, SPLASH_PATTERN).flatMap((filePath) =>
+    checkFile(filePath, validateSplash).map((msg) => ({ filePath, msg })),
+  ),
+  ...findFiles(DATA_DIR, OPTIONS_PATTERN).flatMap((filePath) =>
+    checkFile(filePath, validateOptions).map((msg) => ({ filePath, msg })),
   ),
 ];
 

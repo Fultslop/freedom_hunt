@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { BookOpen, MapPin, Crosshair, Compass } from "lucide-svelte";
+  import { BookOpen, MapPin, Crosshair, Compass, Check, Minus } from "lucide-svelte";
   import { fetchImage, getCachedImageUrl } from "../assets/AssetManager";
   import { themeStore } from "../stores/themeStore";
   import { leafletMap } from "../actions/leafletMap";
@@ -14,13 +14,25 @@
     index = undefined,
     routeId = undefined,
     cityId = undefined,
+    project = "",
+    storeFormsInLocalStorage = true,
+    allowResubmit = true,
+    badgeStatus = undefined,
+    onFormStatusChange = undefined,
   }: {
-    // TODO: move this to a separate type file, don't inline
     location: Location;
     isLast?: boolean;
     index?: number;
     routeId?: string;
     cityId?: string;
+    project?: string;
+    storeFormsInLocalStorage?: boolean;
+    allowResubmit?: boolean;
+    badgeStatus?: "submitted" | "skipped";
+    onFormStatusChange?: (
+      locationId: number,
+      status: { submitted: boolean; missingLabels: string[] },
+    ) => void;
   } = $props();
 
   let heroSrc = $state<string | null>(null);
@@ -50,6 +62,25 @@
   });
 </script>
 
+{#snippet badge()}
+  <div
+    class="cc-badge"
+    style="background: {location.themeColor ?? $themeStore.theme.accent}"
+    data-testid="location-badge"
+  >
+    {index}
+    {#if badgeStatus === "submitted"}
+      <span class="cc-badge-status cc-badge-status--submitted" data-testid="badge-status-submitted">
+        <Check size={12} aria-hidden="true" />
+      </span>
+    {:else if badgeStatus === "skipped"}
+      <span class="cc-badge-status cc-badge-status--skipped" data-testid="badge-status-skipped">
+        <Minus size={12} aria-hidden="true" />
+      </span>
+    {/if}
+  </div>
+{/snippet}
+
 <div class="cc-root">
   {#if hasHero}
     <div class="cc-hero-wrap">
@@ -60,14 +91,7 @@
       />
       <div class="cc-hero-title-wrap">
         <div class="cc-title-card cc-title-card--shadow">
-          <div
-            class="cc-badge"
-            style="background: {location.themeColor ??
-              $themeStore.theme.accent}"
-            data-testid="location-badge"
-          >
-            {index}
-          </div>
+          {@render badge()}
           <div>
             <div class="cc-location-title">{location.title}</div>
             {#if location.name?.value}
@@ -83,13 +107,7 @@
   {:else}
     <div class="cc-no-hero-wrap">
       <div class="cc-title-card">
-        <div
-          class="cc-badge"
-          style="background: {location.themeColor ?? $themeStore.theme.accent}"
-          data-testid="location-badge"
-        >
-          {index}
-        </div>
+        {@render badge()}
         <div>
           <div class="cc-location-title">{location.title}</div>
           {#if location.name?.value}
@@ -133,13 +151,19 @@
     </div>
 
     {#if location.challenge.form && location.challenge.form.length > 0}
-      <ChallengeForm
-        form={location.challenge.form}
-        locationId={index ?? -1}
-        {routeId}
-        {cityId}
-        taskTitle={location.challenge.name}
-      />
+      {#key `${project}/${cityId}/${routeId}/${index}`}
+        <ChallengeForm
+          form={location.challenge.form}
+          locationId={index ?? -1}
+          {routeId}
+          {cityId}
+          {project}
+          storeInLocalStorage={storeFormsInLocalStorage}
+          {allowResubmit}
+          taskTitle={location.challenge.name}
+          onFormStatusChange={(status) => onFormStatusChange?.(index ?? -1, status)}
+        />
+      {/key}
     {/if}
   </div>
 

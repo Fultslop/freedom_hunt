@@ -1,0 +1,12 @@
+template-type: options
+image: placeholder.jpg
+title: "You've Reached the End!"
+options:
+  - text: "Back to Brooklyn's routes"
+    target: { type: page, value: title }
+  - text: "See all New York routes"
+    target: { type: page, value: project }
+  - text: "Walk it again"
+    target: { type: page, value: start_route }
+  - text: "Browse the photo gallery"
+    target: { type: page, value: gallery }

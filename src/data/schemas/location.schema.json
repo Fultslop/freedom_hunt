@@ -6,6 +6,12 @@
   "required": ["title", "name", "coordinates", "storyline", "breadcrumb", "challenge"],
   "properties": {
     "identity": { "type": "string" },
+    "template-type": { "type": "string", "enum": ["location"] },
+    "nav-bar": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "visible": { "type": "boolean" } }
+    },
     "title": { "type": "string" },
     "image": { "type": "string" },
     "themeColor": { "type": "string" },

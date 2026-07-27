@@ -1,7 +1,7 @@
 <script lang="ts">
   import { untrack } from "svelte";
   import { Camera } from "lucide-svelte";
-  import type { FormField, FormFieldType } from "../types/data";
+  import type { FormField, FormFieldType, PhotoUploadStatus, FormValidationStatus } from "../types/data";
   import { buildNestedValues } from "../utils/formValues";
   import { getAvailableImages, type ImageEntry } from "../utils/images";
   import ImagePickerDialog from "./ImagePickerDialog.svelte";
@@ -45,37 +45,63 @@
   type SubmitState = "idle" | "submitting" | "error";
   type UploadState = "idle" | "uploading" | "success" | "error";
   type FieldValues = Record<string, string | number | boolean | string[] | { latitude: number; longitude: number }>;
+  interface PhotoFieldState {
+    status: UploadState;
+    httpCode?: number;
+  }
 
   let {
     fields,
     initialValues = {},
     baseValues = undefined,
+    initialUploads = {},
+    baseUploads = undefined,
     onSubmit,
     onPhotoUpload = undefined,
     onSuccess = undefined,
     onValuesChange = undefined,
     onHasChangesChange = undefined,
+    onStatusChange = undefined,
+    onUploadsChange = undefined,
     submitLabel = "Submit",
     confirmMessage = undefined,
   }: {
     fields: FormField[];
     initialValues?: Record<string, unknown>;
     baseValues?: Record<string, unknown>;
+    initialUploads?: Record<string, PhotoUploadStatus>;
+    baseUploads?: Record<string, PhotoUploadStatus>;
     onSubmit: (values: Record<string, unknown>) => Promise<void>;
-    onPhotoUpload?: (file: File) => Promise<{ ok: boolean }>;
+    onPhotoUpload?: (file: File) => Promise<{ ok: boolean; httpCode?: number }>;
     onSuccess?: () => void;
     onValuesChange?: (values: FieldValues) => void;
     onHasChangesChange?: (hasChanges: boolean) => void;
+    onStatusChange?: (status: FormValidationStatus) => void;
+    onUploadsChange?: (uploads: Record<string, PhotoUploadStatus>) => void;
     submitLabel?: string;
     confirmMessage?: string;
   } = $props();
 
   let values = $state<FieldValues>(untrack(() => ({ ...(initialValues as FieldValues) })));
+  let uploadStates = $state<Record<string, PhotoFieldState>>(
+    untrack(() => {
+      const result: Record<string, PhotoFieldState> = {};
+      for (const [id, upload] of Object.entries(initialUploads)) {
+        result[id] = { status: upload.status, httpCode: upload.httpCode };
+      }
+      return result;
+    }),
+  );
   const hasChanges = $derived(
     fields
       .filter((f) => f.id && f.type !== STR_SECTION)
       .some((f) => {
         const id = f.id!;
+        if (f.type === STR_PHOTO) {
+          const currentStatus = uploadStates[id]?.status;
+          const baselineStatus = (baseUploads ?? initialUploads)[id]?.status;
+          return currentStatus !== undefined && currentStatus !== baselineStatus;
+        }
         const curr = values[id];
         const baseline = baseValues
           ? (baseValues as Record<string, unknown>)[id]
@@ -95,11 +121,25 @@
   $effect(() => {
     onHasChangesChange?.(hasChanges);
   });
+  const liveErrors = $derived(validateValues());
+  const missingLabels = $derived(
+    fields.filter((f) => f.id && liveErrors[f.id]).map((f) => f.label),
+  );
+  $effect(() => {
+    onStatusChange?.({ missingLabels });
+  });
+  $effect(() => {
+    const settled: Record<string, PhotoUploadStatus> = {};
+    for (const [id, state] of Object.entries(uploadStates)) {
+      if (state.status === "success" || state.status === "error") {
+        settled[id] = { status: state.status, httpCode: state.httpCode ?? 0 };
+      }
+    }
+    onUploadsChange?.(settled);
+  });
   let errors = $state<Record<string, string>>({});
   let submitState = $state<SubmitState>("idle");
-  let uploadState = $state<UploadState>("idle");
   let showConfirm = $state(false);
-  let fileInput: HTMLInputElement | undefined = $state();
   let maxWarningKeys = $state<Record<string, number>>({});
   const availableImages: ImageEntry[] = getAvailableImages();
   let imagePickerOpenId = $state<string | null>(null);
@@ -147,28 +187,26 @@
     return null;
   }
 
-  async function handleFileChange(evt: Event) {
+  async function handleFileChange(evt: Event, fieldId: string) {
     if (onPhotoUpload) {
       const file = (evt.target as HTMLInputElement).files?.[0];
       if (file) {
-        uploadState = "uploading";
+        uploadStates = { ...uploadStates, [fieldId]: { status: "uploading" } };
         try {
           const data = await onPhotoUpload(file);
-          uploadState = data.ok ? "success" : "error";
+          uploadStates = {
+            ...uploadStates,
+            [fieldId]: { status: data.ok ? "success" : "error", httpCode: data.httpCode },
+          };
         } catch {
-          uploadState = "error";
+          uploadStates = { ...uploadStates, [fieldId]: { status: "error", httpCode: 0 } };
         }
       }
     }
   }
 
   function canSkipValidation(field: FormField): boolean {
-    return (
-      
-      field.type === STR_SECTION ||
-      field.type === STR_BOOLEAN ||
-      field.type === STR_PHOTO
-    );
+    return field.type === STR_SECTION || field.type === STR_BOOLEAN;
   }
 
   function validateValues(): Record<string, string> {
@@ -193,6 +231,10 @@
         const min = field.min ?? 1;
         if (selected.length < min) {
           errs[field.id] = MSG_SELECT_MIN(min);
+        }
+      } else if (field.type === STR_PHOTO) {
+        if (uploadStates[field.id]?.status !== "success") {
+          errs[field.id] = MSG_REQUIRED;
         }
       } else if (field.type === STR_IMAGE_PICKER) {
         const imageValue = (values[field.id] as string | undefined) ?? "";
@@ -257,16 +299,17 @@
       {@const err = errors[id]}
       <div class="af-field">
         {#if field.type === "photo"}
+          {@const upload = uploadStates[id]}
           <div class="af-photo-wrap">
             <button
               class="af-photo-btn"
-              onclick={() => fileInput?.click()}
-              disabled={uploadState === "uploading"}
+              onclick={() => (document.getElementById(id) as HTMLInputElement | null)?.click()}
+              disabled={upload?.status === "uploading"}
             >
               <Camera size={16} aria-hidden="true" />
-              {uploadState === "success"
+              {upload?.status === "success"
                 ? "Photo uploaded ✓"
-                : uploadState === "uploading"
+                : upload?.status === "uploading"
                   ? "Uploading…"
                   : field.label}
             </button>
@@ -276,10 +319,9 @@
               accept="image/*"
               capture="environment"
               class="af-photo-input"
-              bind:this={fileInput}
-              onchange={handleFileChange}
+              onchange={(evt) => handleFileChange(evt, id)}
             />
-            {#if uploadState === "error"}
+            {#if upload?.status === "error"}
               <p class="af-photo-error">Upload failed. Try again.</p>
             {/if}
           </div>

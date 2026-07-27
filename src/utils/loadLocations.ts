@@ -1,7 +1,14 @@
 import { loadText } from "./loadText";
-import type { Location, FormField, RawChallenge, FormFieldType } from "../types/data";
+import type {
+  RouteEntry,
+  LocationEntry,
+  FormField,
+  RawChallenge,
+  FormFieldType,
+} from "../types/data";
 
-type RawLocation = Omit<Location, "challenge"> & { challenge: RawChallenge };
+type RawLocationEntry = Omit<LocationEntry, "challenge"> & { challenge: RawChallenge };
+type RawRouteEntry = RawLocationEntry | Exclude<RouteEntry, LocationEntry>;
 
 const KNOWN_FORM_FIELD_KEYS = new Set(["id", "type", "label", "options", "min", "max"]);
 
@@ -25,22 +32,28 @@ function withValidatedFields(fields: FormField[]): FormField[] {
 async function loadAndResolveLocation(
   lang: string,
   path: string,
-): Promise<Location | null> {
-  const raw = await loadText<RawLocation>(lang, path);
+): Promise<RouteEntry | null> {
+  const raw = await loadText<RawRouteEntry>(lang, path);
   if (!raw) {
     return null;
   }
 
+  const templateType = raw["template-type"] ?? "location";
+  if (templateType !== "location") {
+    return raw as RouteEntry;
+  }
+
+  const rawLocation = raw as RawLocationEntry;
   let resolvedForm: FormField[] | undefined;
 
-  if (raw.challenge && typeof raw.challenge.form === "string") {
-    const formFileName = raw.challenge.form;
+  if (rawLocation.challenge && typeof rawLocation.challenge.form === "string") {
+    const formFileName = rawLocation.challenge.form;
     const dir = path.substring(0, path.lastIndexOf("/") + 1);
     const formPath = dir + formFileName.replace(/\.yaml$/, "");
     resolvedForm = withValidatedFields(
       (await loadText<FormField[]>(lang, formPath)) ?? [],
     );
-  } else if (raw.challenge && Array.isArray(raw.challenge.form)) {
+  } else if (rawLocation.challenge && Array.isArray(rawLocation.challenge.form)) {
     resolvedForm = [
       {
         id: "form",
@@ -52,23 +65,23 @@ async function loadAndResolveLocation(
 
   if (resolvedForm !== undefined) {
     return {
-      ...raw,
-      challenge: { ...raw.challenge, form: resolvedForm },
-    } as Location;
+      ...rawLocation,
+      challenge: { ...rawLocation.challenge, form: resolvedForm },
+    } as RouteEntry;
   }
 
-  return raw as Location;
+  return rawLocation as RouteEntry;
 }
 
 export async function loadLocations(
   lang: string,
   paths: string[],
-): Promise<Location[]> {
+): Promise<RouteEntry[]> {
   if (paths.length === 0) {
     return [];
   }
   const results = await Promise.all(
     paths.map((path) => loadAndResolveLocation(lang, path)),
   );
-  return results.filter((loc): loc is Location => loc !== null);
+  return results.filter((entry): entry is RouteEntry => entry !== null);
 }

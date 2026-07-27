@@ -97,3 +97,85 @@ export type ProjectMeta = Record<string, unknown>;
 
 /** Free-form city metadata from <cityId>.yaml */
 export type CityText = Record<string, unknown>;
+
+export interface HuntSettings {
+  storeFormsInLocalStorage: boolean;
+  formRequired: boolean;
+  canFormsSkip: boolean;
+  allowResubmit: boolean;
+}
+
+export interface PhotoUploadStatus {
+  status: "success" | "error";
+  httpCode: number;
+}
+
+export interface FormState {
+  values: Record<string, unknown>;
+  uploads: Record<string, PhotoUploadStatus>;
+  submitted: boolean;
+  skipped: boolean;
+}
+
+export interface FormValidationStatus {
+  missingLabels: string[];
+}
+
+export interface NavBarConfig {
+  visible?: boolean;
+}
+
+export interface LocationEntry extends Location {
+  "template-type"?: "location";
+  "nav-bar"?: NavBarConfig;
+}
+
+export interface TextEntry {
+  "template-type": "text";
+  image?: string;
+  title: string;
+  text: string;
+  margin?: string;
+  "nav-bar"?: NavBarConfig;
+}
+
+export type SplashShader = "none" | "grayscale" | "duotone" | "vignette" | "darken";
+export type SplashEffectName = "confetti" | "shooting-stars" | "fireworks";
+
+export interface SplashAnchor {
+  horizontal: "left" | "center" | "right";
+  vertical: "top" | "center" | "bottom";
+}
+
+export interface SplashEffectConfig {
+  type: SplashEffectName;
+  /** Random cooldown range (seconds) between iterations. `min` defaults to `max` if omitted; `max` defaults to 1 if the whole block is omitted. */
+  cooldown?: { min?: number; max?: number };
+  /** Number of iterations within a single visit. Default 1. Negative = loop until the participant leaves the screen. */
+  max?: number;
+}
+
+export interface SplashEntry {
+  "template-type": "splash";
+  image: string;
+  shader?: SplashShader;
+  effect?: SplashEffectConfig;
+  title: string;
+  anchor?: SplashAnchor;
+  "nav-bar"?: NavBarConfig;
+}
+
+export type OptionTarget =
+  | { type: "link"; value: string }
+  | { type: "page"; value: "title" | "project" | "start_route" | "gallery" | "continue" };
+
+export interface OptionsEntry {
+  "template-type": "options";
+  image?: string;
+  title: string;
+  text?: string;
+  options: Array<{ text: string; target: OptionTarget; track?: boolean }>;
+  "nav-bar"?: NavBarConfig;
+}
+
+export type RouteEntry = LocationEntry | TextEntry | SplashEntry | OptionsEntry;

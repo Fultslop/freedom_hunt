@@ -1,0 +1,25 @@
+/* src/components/effects/FireworksEffect.css */
+
+.fireworks-effect {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fireworks-effect__burst {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.fireworks-effect__dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation-name: fireworkBurst;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  animation-duration: 900ms;
+}

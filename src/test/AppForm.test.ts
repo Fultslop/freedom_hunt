@@ -575,6 +575,120 @@ test("calls onHasChangesChange(true) when a field value differs from initialValu
   });
 });
 
+// ---------------------------------------------------------------------------
+// Photo field — required validation and per-field state
+// ---------------------------------------------------------------------------
+
+test("required photo field blocks submit until a successful upload", async () => {
+  const onPhotoUpload = vi.fn().mockResolvedValue({ ok: true, httpCode: 200 });
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  const fields: FormField[] = [
+    { id: "pic", type: "photo", label: "Take a photo", isRequired: true },
+  ];
+  const { container } = render(AppForm, {
+    props: { fields, onSubmit, onPhotoUpload },
+  });
+  const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+  const input = container.querySelector(".af-photo-input") as HTMLInputElement;
+  await fireEvent.change(input, { target: { files: [file] } });
+  await waitFor(() => {
+    expect(screen.getByRole("button", { name: /submit/i })).not.toBeDisabled();
+  });
+  expect(screen.getByRole("button", { name: /photo uploaded/i })).toBeInTheDocument();
+});
+
+test("required photo field: failed upload keeps Required validation blocking submit", async () => {
+  const onPhotoUpload = vi.fn().mockResolvedValue({ ok: false, httpCode: 500 });
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  const fields: FormField[] = [
+    { id: "pic", type: "photo", label: "Take a photo", isRequired: true },
+  ];
+  const { container } = render(AppForm, {
+    props: { fields, onSubmit, onPhotoUpload },
+  });
+  const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+  const input = container.querySelector(".af-photo-input") as HTMLInputElement;
+  await fireEvent.change(input, { target: { files: [file] } });
+  await waitFor(() => {
+    expect(screen.getByText("Upload failed. Try again.")).toBeInTheDocument();
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  expect(onSubmit).not.toHaveBeenCalled();
+});
+
+test("two photo fields track upload state independently", async () => {
+  const onPhotoUpload = vi
+    .fn()
+    .mockResolvedValueOnce({ ok: true, httpCode: 200 })
+    .mockResolvedValueOnce({ ok: false, httpCode: 500 });
+  const fields: FormField[] = [
+    { id: "pic1", type: "photo", label: "Photo one" },
+    { id: "pic2", type: "photo", label: "Photo two" },
+  ];
+  const { container } = render(AppForm, {
+    props: { fields, onSubmit: vi.fn(), onPhotoUpload },
+  });
+  const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+  const inputs = container.querySelectorAll(".af-photo-input");
+  await fireEvent.change(inputs[0], { target: { files: [file] } });
+  await waitFor(() => {
+    expect(screen.getByRole("button", { name: /photo uploaded/i })).toBeInTheDocument();
+  });
+  await fireEvent.change(inputs[1], { target: { files: [file] } });
+  await waitFor(() => {
+    expect(screen.getByText("Upload failed. Try again.")).toBeInTheDocument();
+  });
+  expect(screen.getByRole("button", { name: /photo uploaded/i })).toBeInTheDocument();
+});
+
+// ---------------------------------------------------------------------------
+// onStatusChange and onUploadsChange
+// ---------------------------------------------------------------------------
+
+test("onStatusChange reports missing required field labels", async () => {
+  const onStatusChange = vi.fn();
+  const fields: FormField[] = [
+    { id: "note", type: "string", label: "Your note", isRequired: true },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn(), onStatusChange } });
+  await waitFor(() => {
+    expect(onStatusChange).toHaveBeenCalledWith({ missingLabels: ["Your note"] });
+  });
+});
+
+test("onStatusChange reports empty missingLabels once the required field is filled", async () => {
+  const onStatusChange = vi.fn();
+  const fields: FormField[] = [
+    { id: "note", type: "string", label: "Your note", isRequired: true },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn(), onStatusChange } });
+  await fireEvent.input(screen.getByLabelText("Your note"), {
+    target: { value: "hello" },
+  });
+  await waitFor(() => {
+    expect(onStatusChange).toHaveBeenLastCalledWith({ missingLabels: [] });
+  });
+});
+
+test("onUploadsChange reports only settled upload statuses, keyed by field id", async () => {
+  const onPhotoUpload = vi.fn().mockResolvedValue({ ok: true, httpCode: 200 });
+  const onUploadsChange = vi.fn();
+  const fields: FormField[] = [
+    { id: "pic", type: "photo", label: "Take a photo" },
+  ];
+  const { container } = render(AppForm, {
+    props: { fields, onSubmit: vi.fn(), onPhotoUpload, onUploadsChange },
+  });
+  const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+  const input = container.querySelector(".af-photo-input") as HTMLInputElement;
+  await fireEvent.change(input, { target: { files: [file] } });
+  await waitFor(() => {
+    expect(onUploadsChange).toHaveBeenLastCalledWith({
+      pic: { status: "success", httpCode: 200 },
+    });
+  });
+});
+
 test("calls onHasChangesChange(false) when value is restored to initialValues", async () => {
   const onHasChangesChange = vi.fn();
   const fields: FormField[] = [

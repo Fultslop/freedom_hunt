@@ -15,10 +15,14 @@
     shouldCommitSwipe,
     elasticOffset,
   } from "../utils/routeNav";
+  import { getHuntSettings } from "../utils/huntSettings";
+  import { buildFormStorageKey, loadFormState, saveFormState } from "../utils/formStorage";
+  import { isLocationEntry, locationTotal, locationOrdinalAt, isNavBarVisible } from "../utils/routeEntries";
   import { swipe } from "../actions/swipe";
   import { preloadImages } from "../assets/AssetManager";
-  import ChallengeCard from "../components/ChallengeCard.svelte";
-  import type { RoutesData, Location } from "../types/data";
+  import RouteScreen from "../components/RouteScreen.svelte";
+  import Toast from "../components/Toast.svelte";
+  import type { RoutesData, RouteEntry } from "../types/data";
   import { untrack } from "svelte";
   import "./RoutePage.css";
 
@@ -35,7 +39,7 @@
         )
       : [],
   );
-  let locations = $state<Location[]>([]);
+  let entries = $state<RouteEntry[]>([]);
 
   // use localStorage to remember the last visited location index for this route
   // we use untrack to avoid svelte warnings
@@ -59,11 +63,22 @@
     });
   });
 
+  let huntSettings = $state(getHuntSettings(null));
+  $effect(() => {
+    const lang = $languageStore.currentLang;
+    loadText<Record<string, unknown>>(
+      lang,
+      `projects/${params.project}/${params.project}`,
+    ).then((data) => {
+      huntSettings = getHuntSettings(data);
+    });
+  });
+
   $effect(() => {
     const lang = $languageStore.currentLang;
     if (locationPaths.length > 0) {
       loadLocations(lang, locationPaths).then((locs) => {
-        locations = locs;
+        entries = locs;
       });
     }
   });
@@ -72,8 +87,8 @@
     titleBarStore.set({
       title: params.route.replace(/_/g, " "),
       progress:
-        locations.length > 0
-          ? { current: currentIndex + 1, total: locations.length }
+        locationTotal(entries) > 0
+          ? { current: locationOrdinalAt(entries, currentIndex), total: locationTotal(entries) }
           : null,
       backPath: `/${params.project}/${params.city}`,
     });
@@ -84,8 +99,8 @@
   });
 
   $effect(() => {
-    if (locations.length > 0) {
-      const images = locations.flatMap((location) => (location.image ? [location.image] : []));
+    if (entries.length > 0) {
+      const images = entries.flatMap((entry) => (entry.image ? [entry.image] : []));
       preloadImages(images);
     }
   });
@@ -94,7 +109,7 @@
     if (!isAnimating) {
       if (swipeMode !== "snap") {
         const atStart = currentIndex === 0;
-        const atEnd = currentIndex === locations.length - 1;
+        const atEnd = currentIndex === entries.length - 1;
 
         if (delta > 0 && atStart) {
           dragOffset = elasticOffset(delta); // elastic resistance — no prev card
@@ -112,8 +127,12 @@
       if (swipeMode === "snap") {
         // snap mode: instant index change, no drag animation
         if (delta < -60) {
-          direction = "next";
-          currentIndex = clampedNext(currentIndex, locations.length);
+          if (canAdvance) {
+            direction = "next";
+            currentIndex = clampedNext(currentIndex, entries.length);
+          } else {
+            triggerBlockedToast();
+          }
         } else if (delta > 60) {
           direction = "prev";
           currentIndex = clampedPrev(currentIndex);
@@ -121,14 +140,28 @@
         dragOffset = 0;
       } else {
         const atStart = currentIndex === 0;
-        const atEnd = currentIndex === locations.length - 1;
+        const atEnd = currentIndex === entries.length - 1;
         const goingNext = delta < 0;
         const goingPrev = delta > 0;
 
         if (goingNext && !atEnd && shouldCommitSwipe(delta, cardWidth)) {
-          pendingCommit = "next";
-          isAnimating = true;
-          dragOffset = -cardWidth;
+          if (canAdvance) {
+            pendingCommit = "next";
+            isAnimating = true;
+            dragOffset = -cardWidth;
+          } else {
+            triggerBlockedToast();
+            // Only animate a spring-back if there's actually an offset to spring
+            // back from (a real drag). A Next-button click never set dragOffset,
+            // so it's already 0 here — setting it to 0 again produces no CSS
+            // transform change, `transitionend` never fires, and isAnimating
+            // would stay stuck true forever, silently no-op'ing every future
+            // handleDragEnd call (including the next click).
+            if (dragOffset !== 0) {
+              isAnimating = true;
+              dragOffset = 0;
+            }
+          }
         } else if (goingPrev && !atStart && shouldCommitSwipe(delta, cardWidth)) {
           pendingCommit = "prev";
           isAnimating = true;
@@ -147,7 +180,7 @@
       isAnimating = false;
       if (pendingCommit === "next") {
         direction = "next";
-        currentIndex = clampedNext(currentIndex, locations.length);
+        currentIndex = clampedNext(currentIndex, entries.length);
         currentSlotIndex = (currentSlotIndex + 1) % 3;
       } else if (pendingCommit === "prev") {
         direction = "prev";
@@ -159,7 +192,108 @@
     }
   }
 
-  let currentLocation = $derived(locations[currentIndex]);
+  let currentEntry = $derived(entries[currentIndex]);
+  // Hiding the nav bar also disables swipe on this screen — nav-bar.visible: false
+  // means the entry's own content controls navigation, not the generic route
+  // chrome, so a tracked action (e.g. an EULA's "I understand") can't be bypassed
+  // by swiping past it.
+  let navBarVisible = $derived(currentEntry === undefined || isNavBarVisible(currentEntry));
+
+  let formStatusByIndex = $state<Record<number, { submitted: boolean; missingLabels: string[] }>>({});
+  let skippedIndices = $state<Set<number>>(new Set());
+  let showToast = $state(false);
+  let toastMissingLabels = $state<string[]>([]);
+
+  $effect(() => {
+    if (entries.length > 0 && huntSettings.storeFormsInLocalStorage) {
+      const restoredStatus: Record<number, { submitted: boolean; missingLabels: string[] }> = {};
+      const restoredSkipped = new Set<number>();
+      entries.forEach((_entry, i) => {
+        const locId = i + 1;
+        const state = loadFormState(
+          buildFormStorageKey(params.project, params.city, params.route, locId),
+        );
+        if (state.submitted) {
+          restoredStatus[locId] = { submitted: true, missingLabels: [] };
+        }
+        if (state.skipped) {
+          restoredSkipped.add(locId);
+        }
+      });
+      untrack(() => {
+        formStatusByIndex = { ...restoredStatus, ...formStatusByIndex };
+        skippedIndices = new Set([...restoredSkipped, ...skippedIndices]);
+      });
+    }
+  });
+
+  function handleFormStatusChange(
+    locationId: number,
+    status: { submitted: boolean; missingLabels: string[] },
+  ) {
+    // This is invoked synchronously from deep inside AppForm's own $effect (via
+    // ChallengeForm -> ChallengeCard -> RouteScreen -> here), so a plain
+    // `{...formStatusByIndex}` read here gets attributed as a dependency of THAT
+    // effect, and the write right after looks like the same effect writing its
+    // own dependency — Svelte's infinite-loop guard (effect_update_depth_exceeded)
+    // trips on exactly this shape. untrack() keeps the read from being
+    // attributed to whichever effect is currently running up the call stack.
+    const current = untrack(() => formStatusByIndex);
+    formStatusByIndex = { ...current, [locationId]: status };
+  }
+
+  function computeBadgeStatus(locationId: number, hasForm: boolean): "submitted" | "skipped" | undefined {
+    if (!hasForm) {
+      return undefined;
+    }
+    if (formStatusByIndex[locationId]?.submitted) {
+      return "submitted";
+    }
+    if (skippedIndices.has(locationId)) {
+      return "skipped";
+    }
+    return undefined;
+  }
+
+  let currentLocationId = $derived(currentIndex + 1);
+  let currentHasForm = $derived(
+    currentEntry !== undefined &&
+      isLocationEntry(currentEntry) &&
+      (currentEntry.challenge.form?.length ?? 0) > 0,
+  );
+  let currentFormStatus = $derived(
+    formStatusByIndex[currentLocationId] ?? { submitted: false, missingLabels: [] },
+  );
+  let currentSkipped = $derived(skippedIndices.has(currentLocationId));
+  let canAdvance = $derived(
+    !huntSettings.formRequired ||
+      !currentHasForm ||
+      currentFormStatus.submitted ||
+      currentSkipped,
+  );
+
+  function triggerBlockedToast() {
+    toastMissingLabels = currentFormStatus.missingLabels;
+    showToast = true;
+  }
+
+  function handleSkip() {
+    const locId = currentLocationId;
+    skippedIndices = new Set(skippedIndices).add(locId);
+    if (huntSettings.storeFormsInLocalStorage) {
+      const key = buildFormStorageKey(params.project, params.city, params.route, locId);
+      saveFormState(key, { ...loadFormState(key), skipped: true });
+    }
+    showToast = false;
+    if (swipeMode === "snap") {
+      direction = "next";
+      currentIndex = clampedNext(currentIndex, entries.length);
+    } else {
+      pendingCommit = "next";
+      isAnimating = true;
+      dragOffset = -cardWidth;
+    }
+  }
 
   let swipeMode = $derived($themeStore.theme.swipe.mode);
   let hint = $derived(swipeMode === "snap" ? 0 : $themeStore.theme.swipe.hint);
@@ -171,27 +305,36 @@
     return () => window.removeEventListener("resize", onResize);
   });
   let cardWidth = $derived(windowWidth - 2 * hint);
-
 </script>
 
 <div
   class="route-page"
   role="region"
   aria-label="Hunt route"
-  use:swipe={{ onDragMove: handleDragMove, onDragEnd: handleDragEnd }}
+  use:swipe={{
+    onDragMove: (delta) => { if (navBarVisible) { handleDragMove(delta); } },
+    onDragEnd: (delta) => { if (navBarVisible) { handleDragEnd(delta); } },
+  }}
 >
-  {#if locations.length > 0 && currentLocation}
+  {#if entries.length > 0 && currentEntry}
     {#if swipeMode === "snap"}
       <div
         class="route-page__cards"
         style={`animation: ${direction === "next" ? "slideInFromRight" : "slideInFromLeft"} 250ms ease-out`}
       >
-        <ChallengeCard
-          location={currentLocation}
-          isLast={currentIndex === locations.length - 1}
+        <RouteScreen
+          entry={currentEntry}
+          isLast={currentIndex === entries.length - 1}
           index={currentIndex + 1}
           routeId={params.route}
           cityId={params.city}
+          project={params.project}
+          storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
+          allowResubmit={huntSettings.allowResubmit}
+          onFormStatusChange={handleFormStatusChange}
+          badgeStatus={computeBadgeStatus(currentIndex + 1, currentHasForm)}
+          onContinue={() => handleDragEnd(-cardWidth)}
+          isCurrent={true}
         />
       </div>
     {:else}
@@ -200,21 +343,28 @@
           {@const roleRaw = (slotIdx - currentSlotIndex + 3) % 3}
           {@const role = roleRaw === 2 ? -1 : roleRaw}
           {@const locIdx = currentIndex + role}
-          {@const slotLocation = locIdx >= 0 && locIdx < locations.length ? locations[locIdx] : null}
+          {@const slotEntry = locIdx >= 0 && locIdx < entries.length ? entries[locIdx] : null}
           {@const translateX = hint + role * cardWidth + dragOffset}
-          {#if slotLocation}
+          {#if slotEntry}
             <div
               class="route-page__slot"
               class:route-page__slot--animating={isAnimating}
               style="width: {cardWidth}px; transform: translateX({translateX}px)"
               ontransitionend={role === 0 ? handleTransitionEnd : undefined}
             >
-              <ChallengeCard
-                location={slotLocation}
-                isLast={locIdx === locations.length - 1}
+              <RouteScreen
+                entry={slotEntry}
+                isLast={locIdx === entries.length - 1}
                 index={locIdx + 1}
                 routeId={params.route}
                 cityId={params.city}
+                project={params.project}
+                storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
+                allowResubmit={huntSettings.allowResubmit}
+                onFormStatusChange={handleFormStatusChange}
+                badgeStatus={computeBadgeStatus(locIdx + 1, isLocationEntry(slotEntry) && (slotEntry.challenge.form?.length ?? 0) > 0)}
+                onContinue={() => handleDragEnd(-cardWidth)}
+                isCurrent={role === 0}
               />
             </div>
           {:else}
@@ -230,60 +380,74 @@
     <p class="route-page__loading">Loading…</p>
   {/if}
 
-  <div class="route-page__nav">
-    <div class="route-page__nav-slot">
-      {#if currentIndex > 0}
-        <button
-          aria-label="Previous stop"
-          onclick={() => handleDragEnd(cardWidth)}
-          class="route-page__prev-btn"
-        >
-          <!-- ChevronLeft -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg
+  {#if navBarVisible}
+    <div class="route-page__nav">
+      <div class="route-page__nav-slot">
+        {#if currentIndex > 0}
+          <button
+            aria-label="Previous stop"
+            onclick={() => handleDragEnd(cardWidth)}
+            class="route-page__prev-btn"
           >
-          Prev
-        </button>
-      {/if}
-    </div>
+            <!-- ChevronLeft -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg
+            >
+            Prev
+          </button>
+        {/if}
+      </div>
 
-    <button
-      onclick={() => push(`/${params.project}/${params.city}`)}
-      class="route-page__exit-btn"
-    >
-      Exit
-    </button>
+      <button
+        onclick={() => push(`/${params.project}/${params.city}`)}
+        class="route-page__exit-btn"
+      >
+        Exit
+      </button>
 
-    <div class="route-page__nav-slot--right">
-      {#if currentIndex < locations.length - 1}
-        <button
-          aria-label="Next stop"
-          onclick={() => handleDragEnd(-cardWidth)}
-          class="route-page__next-btn"
-        >
-          Next
-          <!-- ChevronRight -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg
+      <div class="route-page__nav-slot--right">
+        {#if currentIndex < entries.length - 1}
+          <button
+            aria-label="Next stop"
+            onclick={() => handleDragEnd(-cardWidth)}
+            class="route-page__next-btn"
+            class:route-page__next-btn--pending={!canAdvance}
           >
-        </button>
-      {/if}
+            Next
+            <!-- ChevronRight -->
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg
+            >
+          </button>
+        {/if}
+      </div>
     </div>
-  </div>
+  {/if}
+
+  {#if showToast}
+    <Toast
+      message={toastMissingLabels.length > 0
+        ? `Please complete: ${toastMissingLabels.join(", ")}`
+        : "Please submit the form to continue."}
+      onDismiss={() => (showToast = false)}
+      skipLabel={huntSettings.canFormsSkip ? "Skip" : undefined}
+      onSkip={huntSettings.canFormsSkip ? handleSkip : undefined}
+    />
+  {/if}
 </div>

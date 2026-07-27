@@ -43,6 +43,12 @@ src/
     CitySelector.svelte — City card used in ProjectPage
     RouteSelector.svelte — Route card used in CityPage
     MarkdownText.svelte — Renders markdown via marked
+    RouteScreen.svelte  — Dispatches a route entry to ChallengeCard/TextScreen/SplashScreen/OptionsScreen by template-type
+    TextScreen.svelte   — Route entry template: top image + title + markdown
+    SplashScreen.svelte — Route entry template: full-bleed image, shader/overlay, anchored title, entrance effect
+    OptionsScreen.svelte — Route entry template: top image + title + navigation buttons
+    ScreenHero.svelte   — Shared top-image component used by TextScreen/OptionsScreen
+    effects/            — ConfettiEffect, ShootingStarsEffect, FireworksEffect (hand-rolled CSS)
   stores/
     themeStore.ts       — Active theme; syncs CSS custom properties to <html>
     titleBarStore.ts    — Title bar state (title, progress, back path)
@@ -58,6 +64,8 @@ src/
     routeNav.ts         — Navigation helpers (clampedNext, clampedPrev)
     api.ts              — All client HTTP functions (challenge, editor, auth)
     formValues.ts       — buildNestedValues (dotted-path → nested object) and flattenValues (inverse)
+    routeEntries.ts     — isLocationEntry/locationTotal/locationOrdinalAt — location-vs-template discrimination
+    splashEffectHistory.ts — shouldFireEffect/recordEffectFired — splash entrance-effect cooldown/repeat tracking
   actions/
     swipe.ts            — Svelte action for touch swipe events
     leafletMap.ts       — Svelte action for Leaflet map integration
@@ -108,6 +116,26 @@ doc/
 | `/:project/:city/gallery` | `GalleryLandingPage` | Read-only post-event photo gallery; hero rotation + filterable grid + lightbox download |
 
 **RoutePage states:** loading → location cards rendered as a swipeable stack. Swipe left advances, swipe right retreats. Current index is persisted to `localStorage` keyed by project/city/route so reload resumes position.
+
+### Route entry templates (`template-type`)
+
+A route's `locations` list can mix ordinary locations with non-location screens. Every entry file has an optional `template-type` field — absent (or `"location"`) means the existing location shape above; three other values render a different template instead:
+
+| `template-type` | File pattern | Renders |
+|---|---|---|
+| `text` | `NNN_text_<slug>.yaml` | Top image (optional) + centered title + markdown body |
+| `splash` | `NNN_splash_<slug>.yaml` | Full-bleed image with an optional CSS shader/overlay, anchored title, optional one-shot entrance effect |
+| `options` | `NNN_options_<slug>.yaml` | Top image (optional) + centered title + a list of buttons, each linking externally or navigating to a named in-app screen |
+
+Existing `NNN_loc_*.yaml` files are unaffected. Each template type has its own JSON Schema in `src/data/schemas/` (`text.schema.json`, `splash.schema.json`, `options.schema.json`), validated the same three ways as location/form YAML (IDE via `.vscode/settings.json`, CI via `npm run validate:yaml`).
+
+`RouteEntry` (`src/types/data.ts`) is the discriminated union of all four shapes. `loadLocations.ts` passes non-location entries through unresolved (no `challenge.form` to resolve); `RoutePage.svelte` renders each entry via a new `RouteScreen.svelte` dispatcher, which picks `ChallengeCard`/`TextScreen`/`SplashScreen`/`OptionsScreen` based on `template-type`.
+
+Only `location`-type entries count toward the route's progress indicator ("N of M") and get a numbered badge — `src/utils/routeEntries.ts`'s `locationTotal`/`locationOrdinalAt` compute this separately from the raw array index used for swipe navigation and localStorage keys. While viewing a template screen, the progress indicator holds at the last-passed location's number.
+
+Splash screen entrance effects (`confetti | shooting-stars | fireworks`, `src/components/effects/`) are hand-rolled CSS, no animation library. `repeat-effect: { cooldown, max }` controls whether the effect replays on re-entering the same screen; the fire-count/last-fired state lives in `RoutePage`'s `splashEffectHistory` (`src/utils/splashEffectHistory.ts`), not inside `SplashScreen` itself, since carousel/peek swipe mode reuses one component instance across many different entries via prop changes rather than remounting per entry.
+
+The admin editor does not yet support authoring these template types — they're hand-authored YAML for now, same validation safety net as locations.
 
 ## Data Model
 
@@ -205,13 +233,23 @@ Reference: `src/data/text/en/projects/democrats_abroad/den_haag/001_loc_binnenho
 
 ### `projects/<projectId>/<projectId>.yaml` — Project metadata
 
-Free-form project-level YAML. The only field consumed by the app is the optional `organizer_url`:
+Free-form project-level YAML. Fields consumed by the app:
 
 ```yaml
 organizer_url: "https://your-organization.example.org"
+project.store_forms_in_local_storage: true   # default true
+project.form_required: false                  # default false
+project.can_forms_skip: false                 # default false
+project.allow_resubmit: true                  # default true
 ```
 
-If present, the gallery landing page (`/:project/:city/gallery`) renders a header link pointing to this URL (opens in a new tab). If absent, no link is shown.
+- `organizer_url` — if present, the gallery landing page (`/:project/:city/gallery`) renders a header link pointing to this URL (opens in a new tab). If absent, no link is shown.
+- `project.store_forms_in_local_storage` — when true (default), each location's form values, photo upload outcomes, and submitted/skipped flags persist to `localStorage` (see `src/utils/formStorage.ts`), keyed `${project}/${city}/${route}/${locationId}/form`, so in-progress or completed forms survive a reload or crash. When false, all form state is in-memory only for the session.
+- `project.form_required` — when true, the Next button/swipe-forward is blocked (soft-disabled: styled but still clickable) until the current location's form is submitted, showing a toast listing missing required fields on a blocked attempt. Required `photo` fields must have a successful upload to count as filled.
+- `project.can_forms_skip` — when true, the blocked-navigation toast includes a Skip button that bypasses the requirement for that location (persisted if local storage is enabled).
+- `project.allow_resubmit` — when true (default), a location's form stays visible and editable after a successful submit, with the button relabeled "Re-submit" (disabled until a value changes). When false, the form is replaced by a static "Submitted! ✓" message, matching the original behavior.
+
+`getHuntSettings()` (`src/utils/huntSettings.ts`) centralizes reading these four flags with their defaults; `RoutePage` loads this file once per route via `loadText`.
 
 ### `photos` table (D1, `AUTH_DB`)
 
@@ -326,6 +364,8 @@ Each function wraps a single endpoint, handles the request shape, and returns a 
 | `EditorLocationForm` | Data-driven wrapper: loads field list from `src/data/text/en/editor/location_form.yaml` via `loadText()`; flattens loaded location data into `initialValues`; `onSubmit` rebuilds nested object, parses coordinates, calls `saveEditorLocation()` |
 
 **Editor form YAML:** `src/data/text/en/editor/location_form.yaml` defines all fields for the location editor. Adding or reordering editor fields requires only editing this file — no TypeScript changes.
+
+**Completion badge.** `ChallengeCard`'s numbered badge shows a small status overlay when `form_required` gating is in effect: a green checkmark once that location's form has been submitted, or a grey dash if the user skipped it via the toast's Skip button (see `project.can_forms_skip` above). The badge's own background color remains the per-location `themeColor`/theme accent — the overlay is a separate small circle, not a recoloring of the badge itself.
 
 ## YAML Data Validation
 

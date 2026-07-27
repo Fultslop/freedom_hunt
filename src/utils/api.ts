@@ -35,7 +35,7 @@ export interface PhotoUploadPayload {
 
 export async function postPhotoUpload(
   payload: PhotoUploadPayload,
-): Promise<{ ok: boolean; id?: string; key?: string }> {
+): Promise<{ ok: boolean; id?: string; key?: string; httpCode: number }> {
   const body = new FormData();
   body.append("photo", payload.file);
   body.append("locationId", String(payload.locationId));
@@ -45,7 +45,8 @@ export async function postPhotoUpload(
   }
   body.append("taskTitle", payload.taskTitle);
   const res = await fetch("/upload", { method: "POST", body });
-  return res.json() as Promise<{ ok: boolean; id?: string; key?: string }>;
+  const data = (await res.json()) as { ok: boolean; id?: string; key?: string };
+  return { ...data, httpCode: res.status };
 }
 
 // ---------------------------------------------------------------------------
