@@ -23,6 +23,7 @@
   import CityPage from "./pages/CityPage.svelte";
   import RoutePage from "./pages/RoutePage.svelte";
   import GalleryLandingPage from "./pages/GalleryLandingPage.svelte";
+  import ResultsDownloadPage from "./pages/ResultsDownloadPage.svelte";
   import EditorLoginPage from "./pages/editor/EditorLoginPage.svelte";
   import EditorPage from "./pages/editor/EditorPage.svelte";
   import EditorLocationList from "./pages/editor/EditorLocationList.svelte";
@@ -72,6 +73,10 @@
     }),
     "/:project/:city/gallery": wrap({
       component: asRoute(GalleryLandingPage),
+      conditions: [requireAuth],
+    }),
+    "/:project/:city/results_download": wrap({
+      component: asRoute(ResultsDownloadPage),
       conditions: [requireAuth],
     }),
     "/:project/:city/:route": wrap({

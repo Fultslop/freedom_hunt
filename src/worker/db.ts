@@ -350,6 +350,22 @@ export async function insertFormSubmission(
     .run();
 }
 
+export async function listFormSubmissions(
+  database: D1Database,
+  projectId: string,
+  cityId: string,
+): Promise<DbFormSubmission[]> {
+  const result = await database
+    .prepare(
+      `SELECT * FROM form_submissions
+       WHERE project_id = ? AND city_id = ?
+       ORDER BY submitted_at ASC`,
+    )
+    .bind(projectId, cityId)
+    .all<DbFormSubmission>();
+  return result.results;
+}
+
 // ---------------------------------------------------------------------------
 // Participant whitelist / individual account queries
 // ---------------------------------------------------------------------------

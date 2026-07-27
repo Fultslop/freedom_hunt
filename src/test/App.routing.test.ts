@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/svelte/svelte5";
 import Router from "svelte-spa-router";
 import GalleryRouteMarker from "./fixtures/GalleryRouteMarker.svelte";
 import WildcardRouteMarker from "./fixtures/WildcardRouteMarker.svelte";
+import ResultsRouteMarker from "./fixtures/ResultsRouteMarker.svelte";
 import DemoLoginRouteMarker from "./fixtures/DemoLoginRouteMarker.svelte";
 import WildcardLoginRouteMarker from "./fixtures/WildcardLoginRouteMarker.svelte";
 
@@ -56,6 +57,20 @@ test("a literal /login/demo route wins over the /login/:project wildcard", async
   });
   await waitFor(() => expect(screen.getByText("demo-login-route-marker")).toBeInTheDocument());
   expect(screen.queryByText("wildcard-login-route-marker")).not.toBeInTheDocument();
+});
+
+test("a literal /:project/:city/results_download route wins over the /:project/:city/:route wildcard", async () => {
+  window.location.hash = "#/democrats_abroad/den_haag/results_download";
+  render(Router, {
+    props: {
+      routes: {
+        "/:project/:city/results_download": ResultsRouteMarker,
+        "/:project/:city/:route": WildcardRouteMarker,
+      },
+    },
+  });
+  await waitFor(() => expect(screen.getByText("results-route-marker")).toBeInTheDocument());
+  expect(screen.queryByText("wildcard-route-marker")).not.toBeInTheDocument();
 });
 
 test("documents the regression: a wildcard route declared first shadows the literal route", async () => {
