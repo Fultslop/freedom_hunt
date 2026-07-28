@@ -289,7 +289,7 @@ Used only by the `demo` project's participant auth. `participant_whitelist` gate
 
 ### `form_submissions` table (D1, `AUTH_DB`)
 
-Populated by `POST /form-submit` for every project except `democrats_abroad`, which still forwards to the Google Apps Script at `FORM_SCRIPT_URL` (unchanged, legacy path — see `doc/setup.md`). Project is always taken from the participant's auth token, never from the request body.
+Populated by `POST /form-submit` for all projects — D1 is the primary store. Additionally, `democrats_abroad` optionally forwards to the Google Apps Script at `FORM_SCRIPT_URL` when that secret is configured (best-effort, non-blocking — `console.warn` on failure). Project is always taken from the participant's auth token, never from the request body.
 
 ```sql
 CREATE TABLE form_submissions (

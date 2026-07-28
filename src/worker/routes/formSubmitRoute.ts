@@ -22,28 +22,19 @@ export async function handleFormSubmitRoute(
     return json({ ok: false, error: "Unauthorized" }, 401);
   }
 
-  if (authPayload.project === "democrats_abroad") {
-    try {
-      const body = await request.text();
-      const scriptRes = await fetch(env.FORM_SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-      });
-      const scriptData = (await scriptRes.json()) as { ok?: boolean };
-      return json({ ok: scriptData.ok ?? true });
-    } catch {
-      return json({ ok: false, error: "Submission failed" }, 500);
-    }
+  let body: {
+    locationId?: number;
+    routeId?: string;
+    cityId?: string;
+    answers?: Record<string, unknown>;
+  };
+  try {
+    body = (await request.json()) as typeof body;
+  } catch {
+    return json({ ok: false, error: "Invalid JSON" }, 400);
   }
 
   try {
-    const body = (await request.json()) as {
-      locationId?: number;
-      routeId?: string;
-      cityId?: string;
-      answers?: Record<string, unknown>;
-    };
     await insertFormSubmission(env.AUTH_DB, {
       id: generateId(),
       project_id: authPayload.project,
@@ -55,8 +46,21 @@ export async function handleFormSubmitRoute(
       answers: JSON.stringify(body.answers ?? {}),
       submitted_at: Math.floor(Date.now() / 1000),
     });
-    return json({ ok: true });
   } catch {
     return json({ ok: false, error: "Submission failed" }, 500);
   }
+
+  if (authPayload.project === "democrats_abroad" && env.FORM_SCRIPT_URL) {
+    try {
+      await fetch(env.FORM_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch {
+      console.warn("Failed to forward form submission to Google Script");
+    }
+  }
+
+  return json({ ok: true });
 }
