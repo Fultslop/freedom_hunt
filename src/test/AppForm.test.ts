@@ -22,6 +22,10 @@ vi.mock("../utils/photoPreview", () => ({
   createPhotoPreview: vi.fn().mockResolvedValue("data:image/jpeg;base64,MOCKPREVIEW"),
 }));
 
+vi.mock("../utils/photoUpload", () => ({
+  normalizePhotoForUpload: vi.fn((file: File) => Promise.resolve(file)),
+}));
+
 beforeEach(() => {
   vi.mocked(leafletMap).mockClear();
 });

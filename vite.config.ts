@@ -88,6 +88,12 @@ export default defineConfig(async () => {
   const plugins = [svelte(), yaml(), svelteTesting()];
   if (!process.env["VITEST"]) {
     plugins.unshift(startupDiagnosticsPlugin("pre"));
+    // Auto-generates a self-signed cert so the dev server serves HTTPS,
+    // including over --host on a LAN IP. Needed for phone testing: browsers
+    // only treat HTTPS (or localhost) as a secure context, and crypto.randomUUID()
+    // plus Secure cookies (the auth cookie) both silently stop working without one.
+    const { default: basicSsl } = await import("@vitejs/plugin-basic-ssl");
+    plugins.push(basicSsl());
     const { cloudflare } = await import("@cloudflare/vite-plugin");
     plugins.push(cloudflare());
     plugins.push(startupDiagnosticsPlugin("post"));
@@ -97,6 +103,21 @@ export default defineConfig(async () => {
 
   return {
     plugins,
+    server: {
+      // Vite serves HTTP/2 (via node:http2's createSecureServer) whenever
+      // HTTPS is on, UNLESS server.proxy is set — in that case it falls back
+      // to plain HTTP/1.1 (node:https). We rely on that fallback: over real
+      // HTTP/2, @cloudflare/vite-plugin's dev proxy to the workerd runtime
+      // loses the request's actual host (no Host header in HTTP/2, and its
+      // :authority isn't picked up), so request.url collapses to
+      // "https://localhost/..." regardless of what host/IP the browser
+      // actually connected to. That breaks checkOrigin's same-origin check
+      // for any LAN IP request, rejecting it with 403 even though it's
+      // legitimate. This proxy entry is never matched by any real request —
+      // it exists purely to keep Vite on HTTP/1.1, where request.url is
+      // built from the Host header correctly.
+      proxy: {},
+    },
     test: {
       environment: "happy-dom",
       globals: true,

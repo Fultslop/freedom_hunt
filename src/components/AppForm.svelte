@@ -4,6 +4,7 @@
   import type { FormField, FormFieldType, PhotoUploadStatus, FormValidationStatus } from "../types/data";
   import { buildNestedValues } from "../utils/formValues";
   import { createPhotoPreview } from "../utils/photoPreview";
+  import { normalizePhotoForUpload } from "../utils/photoUpload";
   import { getAvailableImages, type ImageEntry } from "../utils/images";
   import ImagePickerDialog from "./ImagePickerDialog.svelte";
   import CoordinatePicker from "./CoordinatePicker.svelte";
@@ -221,9 +222,10 @@
       const file = (evt.target as HTMLInputElement).files?.[0];
       if (file) {
         uploadStates = { ...uploadStates, [fieldId]: { status: "uploading" } };
+        const uploadFile = await normalizePhotoForUpload(file).catch(() => file);
         const [uploadResult, previewResult] = await Promise.allSettled([
-          onPhotoUpload(file),
-          createPhotoPreview(file),
+          onPhotoUpload(uploadFile),
+          createPhotoPreview(uploadFile),
         ]);
         const upload =
           uploadResult.status === "fulfilled" ? uploadResult.value : { ok: false, httpCode: 0 };
