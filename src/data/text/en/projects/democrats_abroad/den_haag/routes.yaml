@@ -4,16 +4,9 @@ short_loop:
     - 000_options_eula
     - 000_checkpoint_eula
     - 000_loc_stumbling_stones
-    # - 001_loc_right_to_read
     - 001_loc_abc
     - 002_loc_nieuwe_kerk
-    # - 012_loc_right_to_read_blocks
-    - 002_loc_vredespaleis
-    - 003_loc_plein
-    - 004_loc_american_bookstore
-    - 005_loc_binnenhof
-    - 009_loc_noordeinde
-    - 010_loc_mauritshuis
+    - 003_loc_jewish_children_museum
     - 011_checkpoint_completion
     - 007_splash_completion
     - 008_options_end_of_hunt

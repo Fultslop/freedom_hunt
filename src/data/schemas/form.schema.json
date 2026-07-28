@@ -10,11 +10,12 @@
       "id":    { "type": "string" },
       "type":  {
         "type": "string",
-        "enum": ["boolean", "string", "number", "radio", "multiple", "photo", "textarea", "section"]
+        "enum": ["boolean", "string", "number", "radio", "multiple", "photo", "textarea", "section", "random_value"]
       },
       "label":   { "type": "string" },
       "subtext": { "type": "string" },
       "options": { "type": "array", "items": { "type": "string" } },
+      "values":  { "type": "array", "items": { "type": "string" } },
       "min":     { "type": "number" },
       "max":     { "type": "number" }
     }

@@ -79,6 +79,40 @@ describe("loadLocations", () => {
     expect(loc.challenge.form[0].type).toBe("schema_error");
     expect(loc.challenge.form[0].label).toContain("vodoo");
   });
+
+  it("accepts a random_value field's values property without flagging it as unknown", async () => {
+    vi.mocked(loadText)
+      .mockResolvedValueOnce({
+        title: "Test",
+        name: { value: "Test Location" },
+        coordinates: { latitude: 0, longitude: 0 },
+        storyline: "Test storyline",
+        breadcrumb: "Test breadcrumb",
+        challenge: {
+          name: "",
+          description: "Do the thing",
+          notes: "",
+          form: "001_form_test.yaml",
+        },
+      } as unknown as RouteEntry)
+      .mockResolvedValueOnce([
+        {
+          id: "assigned_child",
+          type: "random_value",
+          label: "Reveal",
+          values: ["Alpha", "Beta"],
+        },
+      ] as unknown as FormField[]);
+
+    const result = await loadLocations("en", [
+      "projects/test/city/001_loc_test",
+    ]);
+
+    const loc = result[0] as unknown as LocationEntry;
+    expect(loc.challenge.form).toHaveLength(1);
+    expect(loc.challenge.form[0].type).toBe("random_value");
+    expect(loc.challenge.form[0].values).toEqual(["Alpha", "Beta"]);
+  });
 });
 
 describe("loadText content aliasing", () => {

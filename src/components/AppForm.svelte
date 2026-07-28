@@ -1,6 +1,6 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import { Image, Check } from "lucide-svelte";
+  import { Image, Check, Dice5 } from "lucide-svelte";
   import type { FormField, FormFieldType, PhotoUploadStatus, FormValidationStatus } from "../types/data";
   import { buildNestedValues } from "../utils/formValues";
   import { createPhotoPreview } from "../utils/photoPreview";
@@ -19,6 +19,7 @@
   const STR_SECTION = "section";
   const STR_IMAGE_PICKER = "image-picker";
   const STR_COORD_PICKER = "coord-picker";
+  const STR_RANDOM_VALUE = "random_value";
 
   const VALID_TYPES: FormFieldType[] = [
     STR_STRING,
@@ -31,6 +32,7 @@
     STR_SECTION,
     STR_IMAGE_PICKER,
     STR_COORD_PICKER,
+    STR_RANDOM_VALUE,
   ];
 
   const MSG_UNKNOWN_TYPE = (type: FormFieldType) => `unknown type "${type}"`;
@@ -38,6 +40,7 @@
   const MSG_MULTIPLE_MISSING = 'multiple field missing options';
   const MSG_MIN_MAX_MISSING = 'multiple field missing min/max';
   const MSG_MIN_GT_MAX = 'multiple field: min > max';
+  const MSG_RANDOM_VALUE_MISSING = "random_value field missing values";
   const MSG_REQUIRED = "Required";
   const MSG_SELECT_OPTION = "Please select an option";
   const MSG_SELECT_MIN = (min: number) =>
@@ -205,6 +208,11 @@
         return MSG_MIN_GT_MAX;
       }
     }
+    if (field.type === STR_RANDOM_VALUE) {
+      if (!field.values || field.values.length === 0) {
+        return MSG_RANDOM_VALUE_MISSING;
+      }
+    }
     return null;
   }
 
@@ -240,7 +248,7 @@
     for (const field of fields) {
       if (!field.id || canSkipValidation(field) || !field.isRequired) {
         // skip validation for these types
-      } else if (field.type === STR_STRING || field.type === STR_TEXTAREA) {
+      } else if (field.type === STR_STRING || field.type === STR_TEXTAREA || field.type === STR_RANDOM_VALUE) {
         const v = values[field.id] as string | undefined;
         if (!v || v.trim() === "") { 
           errs[field.id] = MSG_REQUIRED; 
@@ -564,6 +572,26 @@
               value={values[id] as { latitude: number; longitude: number }}
               onchange={(coords) => { values[id] = coords; }}
             />
+          {:else if field.type === "random_value"}
+            {@const picked = values[id] as string | undefined}
+            {#if picked}
+              <p class="af-random-value-result">{picked}</p>
+            {:else}
+              <button
+                type="button"
+                class="af-random-value-btn"
+                disabled={!field.values || field.values.length === 0}
+                onclick={() => {
+                  const options = field.values ?? [];
+                  if (options.length > 0) {
+                    values[id] = options[Math.floor(Math.random() * options.length)];
+                  }
+                }}
+              >
+                <Dice5 size={18} aria-hidden="true" />
+                Reveal a name
+              </button>
+            {/if}
           {/if}
         {/if}
       </div>

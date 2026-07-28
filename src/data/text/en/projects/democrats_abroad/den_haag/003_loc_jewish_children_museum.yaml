@@ -1,0 +1,49 @@
+title: "A Child's Name"
+image: rabbijn_maarsenplein.jpg
+name:
+  label: "location details"
+  value: "Joods Monument"
+address: "Rabbijn Maarsenplein"
+coordinates:
+  longitude: 4.314167
+  latitude: 52.075833
+storyline: |
+  Rabbijn Maarsenplein was once part of the heart of The Hague's Jewish neighborhood.
+  
+  Jewish life in this area went back centuries. Sephardic Jews began settling in The Hague in the 17th century, followed later by Ashkenazi Jews from Central and Eastern Europe.
+  
+  By the Second World War, The Hague's Jewish community numbered around 17,000 people. More than 12,000 were murdered by the Nazis.
+
+  Before the war, this was not a place of absence. It was a neighborhood of homes, schools, shops, synagogues, families, errands, birthdays, prayers, jokes, and children running through the square.
+  
+  This station asks your team to give one child a few minutes of attention.
+  
+  Not “the children.”
+  Not “the victims.”
+  One child.
+  One name.
+
+  [+] Read more about Rabbi Isaac Maarsen
+  
+  The square is named for Rabbi Isaac Maarsen, chief rabbi of The Hague, who continued to support his community during the occupation and was murdered at Sobibor in 1943.
+  
+  During the occupation, Jewish children were forced out of regular schools and segregated into separate Jewish schools. One of those schools stood here, beside what is now Rabbijn Maarsenplein.
+  
+  From The Hague, around 1,700 Jewish children were deported and murdered. The monument remembers them through stacked empty chairs engraved with the first names and ages of 400 children, representing all 1,700 children who never returned.
+
+challenge:
+  name: "SAY THE NAME"
+  description: |
+    This was once a living Jewish neighborhood: homes, schools, shops, synagogues, families, and children. The state tried to turn those children into numbers. This monument returns them to their names.
+    
+    When your team arrives at the monument, tap **Reveal a name** below. Find that name on the monument. When you find it, read the name and age aloud. Stand together in silence for 30 seconds. During the silence, imagine the child as alive: walking to school, playing nearby, sitting in class, being called by name.
+    
+  form: "003_form_jewish_children_museum"
+
+
+breadcrumb: |
+  From names carved into a monument, move toward a place where organizers sit, argue, plan, and write.
+  
+  Find a café along the Lange Voorhout. This is where your team will stop, talk, and draft the words you will carry to the finish.
+
+
