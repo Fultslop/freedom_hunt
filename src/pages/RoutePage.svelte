@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { push } from "svelte-spa-router";
   import { titleBarStore } from "../stores/titleBarStore";
   import { languageStore } from "../stores/languageStore";
   import { themeStore } from "../stores/themeStore";
@@ -446,6 +445,18 @@
     return () => window.removeEventListener("resize", onResize);
   });
   let cardWidth = $derived(windowWidth - 2 * hint);
+
+  $effect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "ArrowLeft" && currentIndex > earliestAllowed) {
+        handleDragEnd(cardWidth);
+      } else if (e.key === "ArrowRight" && canGoForward) {
+        handleDragEnd(-cardWidth);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
 </script>
 
 <div
@@ -466,6 +477,7 @@
         <RouteScreen
           entry={currentEntry}
           isLast={!canGoForward}
+          isFirst={currentIndex <= earliestAllowed}
           index={currentLocationId}
           routeId={params.route}
           cityId={params.city}
@@ -475,6 +487,7 @@
           onFormStatusChange={handleFormStatusChange}
           badgeStatus={computeBadgeStatus(currentLocationId, currentHasForm)}
           onContinue={() => handleDragEnd(-cardWidth)}
+          onPrev={() => handleDragEnd(cardWidth)}
           isCurrent={true}
         />
       </div>
@@ -496,6 +509,7 @@
               <RouteScreen
                 entry={slotEntry}
                 isLast={nextNavigableIndex(entries, locIdx) === locIdx}
+                isFirst={locIdx <= earliestAllowedIndex(entries, locIdx)}
                 index={locationOrdinalAt(entries, locIdx)}
                 routeId={params.route}
                 cityId={params.city}
@@ -505,6 +519,7 @@
                 onFormStatusChange={handleFormStatusChange}
                 badgeStatus={computeBadgeStatus(locationOrdinalAt(entries, locIdx), isLocationEntry(slotEntry) && (slotEntry.challenge.form?.length ?? 0) > 0)}
                 onContinue={() => handleDragEnd(-cardWidth)}
+                onPrev={() => handleDragEnd(cardWidth)}
                 isCurrent={role === 0}
               />
             </div>
@@ -522,63 +537,22 @@
   {/if}
 
   {#if navBarVisible}
-    <div class="route-page__nav">
-      <div class="route-page__nav-slot">
-        {#if currentIndex > earliestAllowed}
-          <button
-            aria-label="Previous stop"
-            onclick={() => handleDragEnd(cardWidth)}
-            class="route-page__prev-btn"
-          >
-            <!-- ChevronLeft -->
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg
-            >
-            Prev
-          </button>
-        {/if}
-      </div>
-
-      <button
-        onclick={() => push(`/${params.project}/${params.city}`)}
-        class="route-page__exit-btn"
-      >
-        Exit
-      </button>
-
-      <div class="route-page__nav-slot--right">
-        {#if canGoForward}
-          <button
-            aria-label="Next stop"
-            onclick={() => handleDragEnd(-cardWidth)}
-            class="route-page__next-btn"
-            class:route-page__next-btn--pending={!canAdvance}
-          >
-            Next
-            <!-- ChevronRight -->
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg
-            >
-          </button>
-        {/if}
-      </div>
-    </div>
+    <button
+      aria-label="Previous"
+      class="route-page__gutter-arrow route-page__gutter-arrow--prev"
+      class:route-page__gutter-arrow--hidden={currentIndex <= earliestAllowed}
+      onclick={() => handleDragEnd(cardWidth)}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+    </button>
+    <button
+      aria-label="Next"
+      class="route-page__gutter-arrow route-page__gutter-arrow--next"
+      class:route-page__gutter-arrow--hidden={!canGoForward}
+      onclick={() => handleDragEnd(-cardWidth)}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+    </button>
   {/if}
 
   {#if gateModal}

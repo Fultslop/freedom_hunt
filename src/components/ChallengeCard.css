@@ -217,3 +217,42 @@
   padding-left: 12px;
   animation: fadeInUp 400ms ease-out;
 }
+
+.cc-inline-nav {
+  max-width: var(--content-max);
+  margin: 24px auto 0;
+  padding-inline: 16px;
+  box-sizing: border-box;
+  display: flex;
+  gap: 10px;
+}
+
+.cc-inline-nav__btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.cc-inline-nav__btn--prev {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.cc-inline-nav__btn--next {
+  background: var(--color-accent);
+  color: #000;
+}
+
+.cc-inline-nav__end {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0;
+}

@@ -9,6 +9,7 @@
     entry,
     index,
     isLast = false,
+    isFirst = false,
     routeId = undefined,
     cityId = undefined,
     project = "",
@@ -17,11 +18,13 @@
     badgeStatus = undefined,
     onFormStatusChange = undefined,
     onContinue = undefined,
+    onPrev = undefined,
     isCurrent = true,
   }: {
     entry: RouteEntry;
     index: number;
     isLast?: boolean;
+    isFirst?: boolean;
     routeId?: string;
     cityId?: string;
     project?: string;
@@ -33,6 +36,7 @@
       status: { submitted: boolean; missingLabels: string[] },
     ) => void;
     onContinue?: () => void;
+    onPrev?: () => void;
     isCurrent?: boolean;
   } = $props();
 </script>
@@ -72,6 +76,7 @@
   <ChallengeCard
     location={entry as LocationEntry}
     {isLast}
+    {isFirst}
     {index}
     {routeId}
     {cityId}
@@ -80,5 +85,8 @@
     {allowResubmit}
     {onFormStatusChange}
     {badgeStatus}
+    {onContinue}
+    {onPrev}
+    {isCurrent}
   />
 {/if}

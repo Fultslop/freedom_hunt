@@ -311,9 +311,6 @@ test("Next stays enabled and un-styled when form_required is not set", async () 
     },
   });
   const nextBtn = await screen.findByRole("button", { name: /next stop/i });
-  await waitFor(() => {
-    expect(nextBtn).not.toHaveClass("route-page__next-btn--pending");
-  });
   await fireEvent.click(nextBtn);
   expect(await screen.findByText("Location 2")).toBeInTheDocument();
 });
@@ -326,9 +323,6 @@ test("blocks Next and shows a toast listing missing fields when form_required an
     },
   });
   const nextBtn = await screen.findByRole("button", { name: /next stop/i });
-  await waitFor(() => {
-    expect(nextBtn).toHaveClass("route-page__next-btn--pending");
-  });
   await fireEvent.click(nextBtn);
   expect(await screen.findByText(/please complete: your note/i)).toBeInTheDocument();
   expect(screen.getByText("Location 1")).toBeInTheDocument();
@@ -347,9 +341,7 @@ test("allows Next once the required form has been submitted", async () => {
   });
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
-  const nextBtn = await screen.findByRole("button", { name: /next stop/i });
-  await waitFor(() => expect(nextBtn).not.toHaveClass("route-page__next-btn--pending"));
-  await fireEvent.click(nextBtn);
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
   expect(await screen.findByText("Location 2")).toBeInTheDocument();
 });
 
@@ -362,7 +354,6 @@ test("shows a Skip button in the toast when can_forms_skip is true, and skipping
     },
   });
   const nextBtn = await screen.findByRole("button", { name: /next stop/i });
-  await waitFor(() => expect(nextBtn).toHaveClass("route-page__next-btn--pending"));
   await fireEvent.click(nextBtn);
   await fireEvent.click(await screen.findByRole("button", { name: "Skip" }));
   expect(await screen.findByText("Location 2")).toBeInTheDocument();
@@ -376,7 +367,6 @@ test("does not show a Skip button in the toast when can_forms_skip is false", as
     },
   });
   const nextBtn = await screen.findByRole("button", { name: /next stop/i });
-  await waitFor(() => expect(nextBtn).toHaveClass("route-page__next-btn--pending"));
   await fireEvent.click(nextBtn);
   await screen.findByText(/please complete/i);
   expect(screen.queryByRole("button", { name: "Skip" })).not.toBeInTheDocument();
@@ -396,7 +386,6 @@ test("blocked Next can be clicked repeatedly in carousel swipe mode without gett
     },
   });
   const nextBtn = await screen.findByRole("button", { name: /next stop/i });
-  await waitFor(() => expect(nextBtn).toHaveClass("route-page__next-btn--pending"));
 
   await fireEvent.click(nextBtn);
   expect(await screen.findByText(/please/i)).toBeInTheDocument();
@@ -429,7 +418,7 @@ test("Next recovers via a fallback timer if transitionend never fires (e.g. an e
   await vi.advanceTimersByTimeAsync(500);
   expect(await screen.findByText("Between Stops")).toBeInTheDocument();
 
-  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await fireEvent.click(await screen.findByRole("button", { name: "Next" }));
   await vi.advanceTimersByTimeAsync(500);
   expect(await screen.findByText("Location 2")).toBeInTheDocument();
 
@@ -460,7 +449,6 @@ test("shows a generic message when form_required is blocking but no individual f
     },
   });
   const nextBtn = await screen.findByRole("button", { name: /next stop/i });
-  await waitFor(() => expect(nextBtn).toHaveClass("route-page__next-btn--pending"));
   await fireEvent.click(nextBtn);
   expect(await screen.findByText("Please submit the form to continue.")).toBeInTheDocument();
 });
@@ -506,7 +494,7 @@ test("renders TextScreen and OptionsScreen entries within a route", async () => 
   await screen.findByText("Location 1");
   await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
   expect(await screen.findByText("Between Stops")).toBeInTheDocument();
-  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await fireEvent.click(await screen.findByRole("button", { name: "Next" }));
   expect(await screen.findByText("Location 2")).toBeInTheDocument();
   await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
   expect(await screen.findByText("The End")).toBeInTheDocument();
@@ -536,7 +524,7 @@ test("badge number reflects location ordinal, not raw array position, when a non
 
   await fireEvent.click(await screen.findByRole("button", { name: /next stop/i })); // -> text screen
   await screen.findByText("Between Stops");
-  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i })); // -> Location 2, raw index 2
+  await fireEvent.click(await screen.findByRole("button", { name: "Next" })); // -> Location 2, raw index 2
   await screen.findByText("Location 2");
   expect(screen.getByTestId("location-badge")).toHaveTextContent("2");
 });
@@ -548,7 +536,7 @@ test("form answers persist under a key keyed by location ordinal, unaffected by 
     props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
   });
   await screen.findByText("Heads up");
-  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await fireEvent.click(await screen.findByRole("button", { name: "Next" }));
   await screen.findByText("Location 1");
   await fireEvent.input(screen.getByLabelText("Your note"), { target: { value: "some text" } });
   await fireEvent.click(await screen.findByRole("button", { name: /submit/i }));
@@ -694,7 +682,6 @@ test("hides the nav bar for an entry with nav-bar.visible: false", async () => {
     props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
   });
   await screen.findByText("Before You Begin");
-  expect(screen.queryByRole("button", { name: "Exit" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /next stop/i })).not.toBeInTheDocument();
 });
 
@@ -711,7 +698,7 @@ test("clicking a tracked 'continue' option advances and submits a form even with
   expect(postFormSubmit).toHaveBeenCalledWith(
     expect.objectContaining({ locationId: 0, answers: { selected: "I understand" } }),
   );
-  expect(screen.getByRole("button", { name: "Exit" })).toBeInTheDocument();
+  expect(screen.getByText("End of route")).toBeInTheDocument();
 });
 
 test("regression: a one-shot splash effect stays visible instead of firing and immediately un-firing itself", async () => {
@@ -757,7 +744,7 @@ test("regression: repeat-effect re-fires in carousel swipe mode after leaving an
   await screen.findByText("Congrats");
   await waitFor(() => expect(container.querySelector(".confetti-effect")).toBeInTheDocument());
 
-  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await fireEvent.click(await screen.findByRole("button", { name: "Next" }));
   completeCarouselTransition(container);
   await screen.findByText("Location B");
   // Left the splash screen — it must turn off, not just keep showing forever.

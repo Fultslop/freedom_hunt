@@ -12,6 +12,7 @@
   let {
     location,
     isLast = false,
+    isFirst = false,
     index = undefined,
     routeId = undefined,
     cityId = undefined,
@@ -20,9 +21,13 @@
     allowResubmit = true,
     badgeStatus = undefined,
     onFormStatusChange = undefined,
+    onContinue = undefined,
+    onPrev = undefined,
+    isCurrent = true,
   }: {
     location: Location;
     isLast?: boolean;
+    isFirst?: boolean;
     index?: number;
     routeId?: string;
     cityId?: string;
@@ -34,6 +39,9 @@
       locationId: number,
       status: { submitted: boolean; missingLabels: string[] },
     ) => void;
+    onContinue?: () => void;
+    onPrev?: () => void;
+    isCurrent?: boolean;
   } = $props();
 
   let heroSrc = $state<string | null>(null);
@@ -180,6 +188,35 @@
       <div class="cc-breadcrumb">
         <MarkdownText text={location.breadcrumb} />
       </div>
+    </div>
+  {/if}
+
+  {#if isCurrent}
+    <div class="cc-inline-nav">
+      {#if !isFirst}
+        <button
+          type="button"
+          class="cc-inline-nav__btn cc-inline-nav__btn--prev"
+          aria-label="Previous stop"
+          onclick={onPrev}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          Prev
+        </button>
+      {/if}
+      {#if !isLast}
+        <button
+          type="button"
+          class="cc-inline-nav__btn cc-inline-nav__btn--next"
+          aria-label="Next stop"
+          onclick={onContinue}
+        >
+          Next stop
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+        </button>
+      {:else}
+        <p class="cc-inline-nav__end">End of route</p>
+      {/if}
     </div>
   {/if}
 </div>
