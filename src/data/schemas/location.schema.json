@@ -3,7 +3,7 @@
   "title": "Location",
   "type": "object",
   "additionalProperties": false,
-  "required": ["title", "name", "coordinates", "storyline", "breadcrumb", "challenge"],
+  "required": ["title", "name", "storyline", "challenge"],
   "properties": {
     "identity": { "type": "string" },
     "template-type": { "type": "string", "enum": ["location"] },

@@ -1,0 +1,1 @@
+npm run validate:yaml && npm run typecheck && npm run lint && npm run test:run

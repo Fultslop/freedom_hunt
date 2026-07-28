@@ -16,6 +16,7 @@ export interface FormField {
   id?: string;
   type: FormFieldType;
   label: string;
+  subtext?: string;
   options?: string[];
   min?: number;
   max?: number;
@@ -49,10 +50,10 @@ export interface Location {
   image?: string;
   name: LocationName;
   address?: string;
-  coordinates: Coordinates;
+  coordinates?: Coordinates;
   storyline: string;
   storylineElements?: Record<string, StatsDoc>;
-  breadcrumb: string;
+  breadcrumb?: string;
   challenge: Challenge;
   themeColor?: string;
 }

@@ -42,6 +42,15 @@ A form file is a YAML list. Each item in the list is one field:
 
 Every field must have a `type` and a `label`. Every field except `section` should also have an `id`.
 
+Every field type also accepts an optional `subtext` — a short line of muted helper text rendered just below the label (or, for `section`, below the heading; for `photo`, below the button).
+
+```yaml
+- id: motto_text
+  type: string
+  label: What motto is engraved on it?
+  subtext: Look on the base of the statue, not the plaque.
+```
+
 ## Field types
 
 ### `boolean` — yes / no

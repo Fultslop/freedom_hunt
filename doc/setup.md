@@ -212,6 +212,12 @@ Before this feature works, a developer needs to do the following once:
 
 After that, organizers manage passwords entirely through the Cloudflare dashboard.
 
+**Local development:** copy `.dev.vars.example` to `.dev.vars` and set `AUTH_SECRET` to any random string. Without it, `env.AUTH_SECRET` is `undefined` locally and every login/signup call fails with a 500 (`createToken` can't HMAC-sign with an empty key). To set a project's login code locally (the KV entry a normal deploy sets via the Cloudflare dashboard), run:
+
+```
+npx wrangler kv key put --binding=AUTH_STORE "auth:your_project_id" "your-chosen-code" --local
+```
+
 ---
 
 ## Troubleshooting

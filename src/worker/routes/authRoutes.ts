@@ -310,7 +310,8 @@ export async function handleAuthRoutes(
         200,
         { "Set-Cookie": cookieHeader(token, TOKEN_TTL_SECONDS) },
       );
-    } catch {
+    } catch (err) {
+      console.error("[auth/login] error:", err);
       return json({ ok: false, error: "Login failed" }, 500);
     }
   }

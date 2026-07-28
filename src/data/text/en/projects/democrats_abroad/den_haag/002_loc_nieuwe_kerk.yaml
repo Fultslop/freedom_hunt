@@ -1,0 +1,63 @@
+title: "Public Truth"
+image: den-haag-nieuwe-kerk.jpg
+name:
+  label: "location details"
+  value: "Nieuwe Kerk"
+address: "Spui churchyard, Spui 175"
+coordinates:
+  longitude: 4.3157
+  latitude: 52.0763
+storyline: |
+  The Nieuwe Kerk sits between the Spui and the former Jewish Quarter, in one of the most layered parts of The Hague. It is a churchyard, a public square, a burial place, and a quiet witness to the city’s long arguments about truth, belonging, dissent, and public memory.
+  
+  This area holds more than one story about when truth becomes dangerous.
+  
+  The philosopher **Baruch Spinoza** is remembered here after a life shaped by exile, censorship, and free thought. Excommunicated from Amsterdam’s Jewish community as a young man, he later lived and died in The Hague. His writing defended freedom of thought and challenged the idea that religious or political authorities should control belief. His books were treated as dangerous because they asked people to think for themselves.
+  
+  That is the point of this station. Authoritarian language works by flooding public life with noise: repetition, exaggeration, grievance, threat, spectacle, and lies. Blackout art reverses that process. It removes the noise until something hidden becomes visible.
+  
+  Here, in a place shaped by dissent, censorship, public argument, and imperfect memory, teams turn propaganda back into evidence.
+
+  [+] Read more about Spinoza
+
+  Spinoza is not the only figure whose memory shadows this part of the city. The Nieuwe Kerk is also connected to Johan de Witt, the republican statesman whose career and death became part of The Hague’s warning about what hDigital guide ens when public reason collapses into political hysteria. He represented a version of government built on argument, administration, and republican power rather than hereditary rule. His violent end nearby remains one of the city’s starkest reminders that a public can be manipulated into turning on its own institutions.
+
+  Around the Spui and the old city center, The Hague has always been a place where ideas move in public: sermons, pamphlets, court decisions, books, rumors, accusations, protests, and political arguments. Some truths were welcomed. Some were punished. Some were buried and returned later in fragments. 
+
+challenge:
+  name: "Remove the noise"
+  description: |
+    Each team uses the printed speech provided in its dossier.
+    Using the black marker, black out the parts of the speech that rely on:
+
+    - lies
+    - exaggeration
+    - scapegoating
+    - threats
+    - fearmongering
+    - empty slogans
+    - self-praise
+    - conspiracy
+    - distraction
+    - dehumanizing language
+    
+    What remains should reveal a message that is truer, clearer, sharper, or more honest than the original.The goal is not simply to make blackout poetry. The goal is to expose what remains when propaganda is stripped of its lies and spectacle.
+    
+    When finished:
+    
+    - Photograph the blackout piece at or near the Nieuwe Kerk / Spui churchyard.
+    - Upload the photo.
+    - Save the original sheet.
+    - Bring the original to the finish line for scanning, display, or inclusion in the campaign art archive.
+    
+    At the finish, all blackout pieces will be collaged together as a collective artwork: the lies removed, the truth left behind.
+
+  form: "001_form_nieuwe_kerk.yaml"
+
+breadcrumb: |
+  You have stripped the speech down to what it was trying to hide.
+  
+  Now walk toward the former heart of The Hague’s Jewish Quarter.
+  
+  Look for the square where empty chairs remember children whose names the state tried to erase.
+

@@ -9,13 +9,15 @@
 
   let { params }: { params: { project: string } } = $props();
 
-  const teamNameKey = `teamName:${params.project}`;
+  let teamNameKey = $derived(`teamName:${params.project}`);
 
-  let teamName = $state(
-    localStorage.getItem(teamNameKey) ?? generateTeamName(),
-  );
+  let teamName = $state("");
   let error = $state<string | null>(null);
   let loading = $state(false);
+
+  $effect(() => {
+    teamName = localStorage.getItem(teamNameKey) ?? generateTeamName();
+  });
 
   titleBarStore.set({ title: "Join the hunt", progress: null, backPath: null });
 

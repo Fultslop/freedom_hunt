@@ -16,7 +16,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,svelte,css,md}\"",
     "validate:yaml": "tsx scripts/validate-yaml.ts",
     "backfill-photos": "tsx scripts/backfill-photos.ts",
-    "typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json"
+    "typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json",
+    "prepare": "husky"
   },
   "dependencies": {
     "@cf-wasm/photon": "^0.3.7",
@@ -29,8 +30,8 @@
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1095.0",
-    "@cloudflare/vite-plugin": "^1.30.0",
-    "@cloudflare/workers-types": "^4.20260504.1",
+    "@cloudflare/vite-plugin": "^1.47.0",
+    "@cloudflare/workers-types": "^5.20260728.1",
     "@eslint/js": "^9.39.4",
     "@modyfi/vite-plugin-yaml": "^1.1.1",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
@@ -47,6 +48,7 @@
     "gh-pages": "^6.3.0",
     "globals": "^17.6.0",
     "happy-dom": "^20.9.0",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.0",
     "prettier": "3.8.3",
     "prettier-plugin-svelte": "^3.3.2",
@@ -57,6 +59,6 @@
     "typescript-eslint": "^8.59.1",
     "vite": "^6.0.1",
     "vitest": "^4.1.5",
-    "wrangler": "^4.76.0"
+    "wrangler": "^4.114.0"
   }
 }

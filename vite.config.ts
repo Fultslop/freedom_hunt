@@ -45,6 +45,31 @@ function devImageServer() {
   };
 }
 
+const START = Date.now();
+const elapsed = () => `+${Date.now() - START}ms`;
+
+function startupDiagnosticsPlugin(label: string) {
+  return {
+    name: `startup-diagnostics-${label}`,
+    enforce: label === "pre" ? ("pre" as const) : undefined,
+    configureServer(server: import("vite").ViteDevServer) {
+      console.log(`[diag] ${elapsed()} ${label} plugin configureServer running`);
+      if (label === "pre") {
+        server.middlewares.use((req, _res, next) => {
+          console.log(`[diag] ${elapsed()} incoming ${req.method} ${req.url}`);
+          next();
+        });
+      }
+      if (label === "post" && server.httpServer) {
+        server.httpServer.once("listening", () => {
+          const addr = server.httpServer!.address();
+          console.log(`[diag] ${elapsed()} httpServer listening on ${JSON.stringify(addr)}`);
+        });
+      }
+    },
+  };
+}
+
 function copyImagesPlugin() {
   return {
     name: "copy-images",
@@ -62,8 +87,10 @@ function copyImagesPlugin() {
 export default defineConfig(async () => {
   const plugins = [svelte(), yaml(), svelteTesting()];
   if (!process.env["VITEST"]) {
+    plugins.unshift(startupDiagnosticsPlugin("pre"));
     const { cloudflare } = await import("@cloudflare/vite-plugin");
     plugins.push(cloudflare());
+    plugins.push(startupDiagnosticsPlugin("post"));
     plugins.push(devImageServer());
     plugins.push(copyImagesPlugin());
   }

@@ -9,15 +9,17 @@
 
   let { params }: { params: { project: string } } = $props();
 
-  const teamNameKey = `teamName:${params.project}`;
+  let teamNameKey = $derived(`teamName:${params.project}`);
 
-  let teamName = $state(
-    localStorage.getItem(teamNameKey) ?? generateTeamName(),
-  );
+  let teamName = $state("");
   let password = $state("");
   let error = $state<string | null>(null);
   let loading = $state(false);
   let showPassword = $state(false);
+
+  $effect(() => {
+    teamName = localStorage.getItem(teamNameKey) ?? generateTeamName();
+  });
 
   titleBarStore.set({ title: "Sign in", progress: null, backPath: null });
 
