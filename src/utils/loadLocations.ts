@@ -12,7 +12,16 @@ import type { StatsDoc } from "../types/storyline";
 type RawLocationEntry = Omit<LocationEntry, "challenge"> & { challenge: RawChallenge };
 type RawRouteEntry = RawLocationEntry | Exclude<RouteEntry, LocationEntry>;
 
-const KNOWN_FORM_FIELD_KEYS = new Set(["id", "type", "label", "options", "min", "max"]);
+const KNOWN_FORM_FIELD_KEYS = new Set([
+  "id",
+  "type",
+  "label",
+  "subtext",
+  "options",
+  "min",
+  "max",
+  "isRequired",
+]);
 
 function withValidatedFields(fields: FormField[]): FormField[] {
   return fields.map((field) => {

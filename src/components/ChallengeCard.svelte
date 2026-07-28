@@ -38,10 +38,11 @@
 
   let heroSrc = $state<string | null>(null);
   let hasHero = $derived(!!heroSrc);
-  let pos = $derived<[number, number]>([
-    location.coordinates.latitude,
-    location.coordinates.longitude,
-  ]);
+  let pos = $derived<[number, number] | null>(
+    location.coordinates
+      ? [location.coordinates.latitude, location.coordinates.longitude]
+      : null,
+  );
 
   // Sync cache hit: runs before DOM commit, so heroSrc is correct on first paint.
   $effect.pre(() => {
@@ -131,17 +132,19 @@
   </div>
 
   <div class="cc-section">
-    <div class="cc-section-label">
-      <MapPin size={12} aria-hidden="true" />
-      Location
-    </div>
-    <div
-      use:leafletMap={{ center: pos, zoom: 16 }}
-      style="height: 180px; border-radius: 6px; border: 1px solid var(--color-border);"
-    ></div>
-    <div class="cc-map-coords">
-      {location.coordinates.latitude}° N, {location.coordinates.longitude}° E
-    </div>
+    {#if pos}
+      <div class="cc-section-label">
+        <MapPin size={12} aria-hidden="true" />
+        Location
+      </div>
+      <div
+        use:leafletMap={{ center: pos, zoom: 16 }}
+        style="height: 180px; border-radius: 6px; border: 1px solid var(--color-border);"
+      ></div>
+      <div class="cc-map-coords">
+        {location.coordinates?.latitude}° N, {location.coordinates?.longitude}° E
+      </div>
+    {/if}
 
     <div class="cc-challenge-box">
       <div class="cc-section-label">
@@ -168,13 +171,15 @@
     {/if}
   </div>
 
-  {#if !isLast}
+  {#if !isLast && location.breadcrumb}
     <div class="cc-section--no-border">
       <div class="cc-section-label">
         <Compass size={12} aria-hidden="true" />
         Your clue to your next destination
       </div>
-      <p class="cc-breadcrumb">{location.breadcrumb}</p>
+      <div class="cc-breadcrumb">
+        <MarkdownText text={location.breadcrumb} />
+      </div>
     </div>
   {/if}
 </div>

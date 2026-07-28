@@ -294,6 +294,7 @@
       </div>
     {:else if field.type === "section"}
       <div class="af-section-heading">{field.label}</div>
+      {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
     {:else}
       {@const id = field.id!}
       {@const err = errors[id]}
@@ -313,6 +314,7 @@
                   ? "Uploading…"
                   : field.label}
             </button>
+            {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
             <input
               {id}
               type="file"
@@ -335,8 +337,10 @@
               bind:checked={values[id] as boolean}
             />
           </label>
+          {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
         {:else}
           <label class="af-label" class:af-label--required={field.isRequired} for={id}>{field.label}</label>
+          {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
           {#if err}<p class="af-error-msg">{err}</p>{/if}
           {#if field.type === "string"}
             <input

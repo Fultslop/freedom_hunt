@@ -206,12 +206,12 @@ name:
   label: ""
   value: "Binnenhof / Het Plein"
 address: "Binnenhof 1"
-coordinates:
+coordinates:               # optional — omit to hide the map section
   longitude: 4.3133
   latitude: 52.0799
 storyline: |
   Narrative context shown on the card.
-breadcrumb: |
+breadcrumb: |               # optional — omit to hide the "clue to next destination" section
   The navigational clue to find the location.
 challenge:
   name: ""

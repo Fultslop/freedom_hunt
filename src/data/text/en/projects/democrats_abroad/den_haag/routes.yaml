@@ -3,8 +3,11 @@ short_loop:
   locations:
     - 000_options_eula
     - 000_checkpoint_eula
-    - 001_loc_right_to_read
-    - 012_loc_right_to_read_blocks
+    - 000_loc_stumbling_stones
+    # - 001_loc_right_to_read
+    - 001_loc_abc
+    - 002_loc_nieuwe_kerk
+    # - 012_loc_right_to_read_blocks
     - 002_loc_vredespaleis
     - 003_loc_plein
     - 004_loc_american_bookstore

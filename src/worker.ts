@@ -10,6 +10,11 @@ import { handleResultsRoutes } from "./worker/routes/resultsRoutes";
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    console.log(
+      `[worker] ${new Date().toISOString()} ${request.method} ${url.pathname} ` +
+        `bindings: AUTH_DB=${!!env.AUTH_DB} AUTH_STORE=${!!env.AUTH_STORE} ` +
+        `PHOTOS=${!!env.PHOTOS} AUTH_SECRET=${!!env.AUTH_SECRET} ASSETS=${!!env.ASSETS}`,
+    );
     return (
       (await handleAuthRoutes(request, url, env)) ??
       (await handleInviteRoutes(request, url, env)) ??

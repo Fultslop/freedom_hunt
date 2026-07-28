@@ -13,6 +13,7 @@
         "enum": ["boolean", "string", "number", "radio", "multiple", "photo", "textarea", "section"]
       },
       "label":   { "type": "string" },
+      "subtext": { "type": "string" },
       "options": { "type": "array", "items": { "type": "string" } },
       "min":     { "type": "number" },
       "max":     { "type": "number" }
