@@ -407,6 +407,39 @@ test("blocked Next can be clicked repeatedly in carousel swipe mode without gett
   expect(await screen.findByText(/please/i)).toBeInTheDocument();
 });
 
+test("Next recovers via a fallback timer if transitionend never fires (e.g. an extension strips CSS transitions)", async () => {
+  // Regression test for a real participant report: Next stopped responding on
+  // her laptop with no error beyond an unrelated browser-extension console
+  // message. In carousel/peek swipe mode, committing an advance depends
+  // entirely on a real `transitionend` event to reset isAnimating — if the
+  // browser (or an extension) ever drops that event, isAnimating gets stuck
+  // true and every future click silently no-ops. This test never fires a real
+  // transitionend (simulating that failure) and relies solely on the fallback
+  // timer in RoutePage.svelte to recover, across three consecutive advances.
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockMixedEntries as RouteEntry[]);
+  themeStore.setThemeName("app");
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await vi.advanceTimersByTimeAsync(500);
+  expect(await screen.findByText("Between Stops")).toBeInTheDocument();
+
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await vi.advanceTimersByTimeAsync(500);
+  expect(await screen.findByText("Location 2")).toBeInTheDocument();
+
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await vi.advanceTimersByTimeAsync(500);
+  expect(await screen.findByText("The End")).toBeInTheDocument();
+
+  vi.useRealTimers();
+});
+
 test("shows a generic message when form_required is blocking but no individual field is marked required", async () => {
   const { loadLocations } = await import("../utils/loadLocations");
   vi.mocked(loadLocations).mockResolvedValueOnce([

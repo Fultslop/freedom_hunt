@@ -44,3 +44,4 @@ Before starting work, read:
 ## Limitations
 
 - The user will control Git, do not invoke git commands
+- Never use Playwright (or any browser automation) to verify changes unless explicitly told to. The user does manual verification themselves.

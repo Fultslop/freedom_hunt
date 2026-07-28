@@ -6,7 +6,9 @@ Prerequisite: [local-00-setup.md](local-00-setup.md) completed and `npm run prev
 
 ## Steps
 
-**1. Apply the newer migrations**
+**1. Confirm migrations 002–004 are applied**
+
+`local-00-setup.md` step 2 now applies all four migrations up front. If you set up this machine before that changed, apply the missing ones now (harmless to re-run — all are `CREATE TABLE IF NOT EXISTS`):
 
 ```bash
 npx wrangler d1 execute scavenger_hunt_auth --local --file=migrations/002_photos.sql
@@ -14,7 +16,7 @@ npx wrangler d1 execute scavenger_hunt_auth --local --file=migrations/003_form_s
 npx wrangler d1 execute scavenger_hunt_auth --local --file=migrations/004_participant_auth.sql
 ```
 
-**Expected:** All three complete with no errors. (`002` may already be applied from earlier local testing — the `CREATE TABLE IF NOT EXISTS` statements make re-running it harmless.)
+**Expected:** All three complete with no errors.
 
 ---
 

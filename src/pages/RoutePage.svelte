@@ -176,37 +176,85 @@
             // handleDragEnd call (including the next click).
             if (dragOffset !== 0) {
               isAnimating = true;
+              armAnimationFallback("blocked-spring-back");
               dragOffset = 0;
             }
           }
         } else if (goingPrev && !atStart && shouldCommitSwipe(delta, cardWidth)) {
           pendingCommit = "prev";
           isAnimating = true;
+          armAnimationFallback("prev-commit");
           dragOffset = cardWidth;
         } else {
           // spring back
           isAnimating = true;
+          armAnimationFallback("spring-back");
           dragOffset = 0;
         }
       }
     }
   }
 
+  // Every path above that sets isAnimating = true depends on the browser firing
+  // a real `transitionend` (handleTransitionEnd) to reset it — that's the only
+  // place isAnimating/pendingCommit/dragOffset get cleared. If that event is
+  // ever skipped (dropped compositor frame, backgrounded tab, an extension
+  // that strips/short-circuits CSS transitions), isAnimating stays stuck true
+  // forever and every future click (Next, Prev, swipe) silently no-ops with no
+  // error — this is what a Den Haag participant hit on 28/07/2026: Next
+  // stopped responding on her laptop with only an unrelated browser-extension
+  // console error, and we couldn't reproduce it locally. This timer is a
+  // defense-in-depth fallback so a missed transitionend can no longer wedge
+  // navigation permanently; the console.warn gives us a trail if it fires
+  // again in the wild.
+  const ANIMATION_FALLBACK_MS = 400; // CSS transition is 250ms; padding for slow devices
+  let animationFallbackTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function armAnimationFallback(source: string) {
+    if (animationFallbackTimer !== null) {
+      clearTimeout(animationFallbackTimer);
+    }
+    animationFallbackTimer = setTimeout(() => {
+      console.warn(
+        "[RoutePage] transitionend never fired — recovering via fallback timer",
+        {
+          source,
+          pendingCommit,
+          pendingTarget,
+          dragOffset,
+          currentIndex,
+          swipeMode,
+          route: `${params.project}/${params.city}/${params.route}`,
+          userAgent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
+        },
+      );
+      resolveAnimation();
+    }, ANIMATION_FALLBACK_MS);
+  }
+
+  function resolveAnimation() {
+    if (animationFallbackTimer !== null) {
+      clearTimeout(animationFallbackTimer);
+      animationFallbackTimer = null;
+    }
+    isAnimating = false;
+    if (pendingCommit === "next" && pendingTarget !== null) {
+      direction = "next";
+      currentIndex = pendingTarget;
+      currentSlotIndex = (currentSlotIndex + 1) % 3;
+    } else if (pendingCommit === "prev") {
+      direction = "prev";
+      currentIndex = prevNavigableIndex(entries, currentIndex);
+      currentSlotIndex = (currentSlotIndex + 2) % 3;
+    }
+    pendingCommit = null;
+    pendingTarget = null;
+    dragOffset = 0;
+  }
+
   function handleTransitionEnd(e: TransitionEvent) {
     if (e.propertyName === "transform") {
-      isAnimating = false;
-      if (pendingCommit === "next" && pendingTarget !== null) {
-        direction = "next";
-        currentIndex = pendingTarget;
-        currentSlotIndex = (currentSlotIndex + 1) % 3;
-      } else if (pendingCommit === "prev") {
-        direction = "prev";
-        currentIndex = prevNavigableIndex(entries, currentIndex);
-        currentSlotIndex = (currentSlotIndex + 2) % 3;
-      }
-      pendingCommit = null;
-      pendingTarget = null;
-      dragOffset = 0;
+      resolveAnimation();
     }
   }
 
@@ -319,6 +367,7 @@
       pendingCommit = "next";
       pendingTarget = target;
       isAnimating = true;
+      armAnimationFallback("commit-advance");
       dragOffset = -cardWidth;
     }
   }
@@ -326,6 +375,7 @@
   function springBackIfDragging() {
     if (swipeMode !== "snap" && dragOffset !== 0) {
       isAnimating = true;
+      armAnimationFallback("gate-spring-back");
       dragOffset = 0;
     }
   }

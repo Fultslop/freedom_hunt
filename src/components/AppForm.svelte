@@ -1,8 +1,9 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import { Camera } from "lucide-svelte";
+  import { Image, Check } from "lucide-svelte";
   import type { FormField, FormFieldType, PhotoUploadStatus, FormValidationStatus } from "../types/data";
   import { buildNestedValues } from "../utils/formValues";
+  import { createPhotoPreview } from "../utils/photoPreview";
   import { getAvailableImages, type ImageEntry } from "../utils/images";
   import ImagePickerDialog from "./ImagePickerDialog.svelte";
   import CoordinatePicker from "./CoordinatePicker.svelte";
@@ -48,6 +49,7 @@
   interface PhotoFieldState {
     status: UploadState;
     httpCode?: number;
+    previewDataUrl?: string;
   }
 
   let {
@@ -81,6 +83,19 @@
     submitLabel?: string;
     confirmMessage?: string;
   } = $props();
+
+  // RoutePage's carousel/peek swipe strip keeps the prev/current/next cards
+  // all mounted in the DOM at once, and every location's form fields reuse
+  // the same YAML-authored ids (nearly every photo field is literally
+  // `id: photo`). DOM ids/names must be unique per document, so without this
+  // prefix, `document.getElementById(id)` in the photo button below can
+  // resolve to a DIFFERENT, off-screen card's hidden file input, silently
+  // uploading to (and updating the state of) the wrong location — with no
+  // error, since nothing actually throws. This instance-scoped prefix is used
+  // for every DOM id/for/name in the template; `field.id` itself stays the
+  // key for values/uploadStates/errors, since that's what the server and
+  // buildNestedValues expect.
+  const instanceId = crypto.randomUUID();
 
   let values = $state<FieldValues>(untrack(() => ({ ...(initialValues as FieldValues) })));
   let uploadStates = $state<Record<string, PhotoFieldState>>(
@@ -131,8 +146,14 @@
   $effect(() => {
     const settled: Record<string, PhotoUploadStatus> = {};
     for (const [id, state] of Object.entries(uploadStates)) {
-      if (state.status === "success" || state.status === "error") {
-        settled[id] = { status: state.status, httpCode: state.httpCode ?? 0 };
+      if (state.status === "success") {
+        settled[id] = {
+          status: "success",
+          httpCode: state.httpCode ?? 0,
+          previewDataUrl: state.previewDataUrl,
+        };
+      } else if (state.status === "error") {
+        settled[id] = { status: "error", httpCode: state.httpCode ?? 0 };
       }
     }
     onUploadsChange?.(settled);
@@ -192,15 +213,20 @@
       const file = (evt.target as HTMLInputElement).files?.[0];
       if (file) {
         uploadStates = { ...uploadStates, [fieldId]: { status: "uploading" } };
-        try {
-          const data = await onPhotoUpload(file);
-          uploadStates = {
-            ...uploadStates,
-            [fieldId]: { status: data.ok ? "success" : "error", httpCode: data.httpCode },
-          };
-        } catch {
-          uploadStates = { ...uploadStates, [fieldId]: { status: "error", httpCode: 0 } };
-        }
+        const [uploadResult, previewResult] = await Promise.allSettled([
+          onPhotoUpload(file),
+          createPhotoPreview(file),
+        ]);
+        const upload =
+          uploadResult.status === "fulfilled" ? uploadResult.value : { ok: false, httpCode: 0 };
+        const previewDataUrl =
+          previewResult.status === "fulfilled" ? previewResult.value : undefined;
+        uploadStates = {
+          ...uploadStates,
+          [fieldId]: upload.ok
+            ? { status: "success", httpCode: upload.httpCode, previewDataUrl }
+            : { status: "error", httpCode: upload.httpCode ?? 0 },
+        };
       }
     }
   }
@@ -284,6 +310,48 @@
       submitState = "error";
     }
   }
+
+  // A form made up only of photo field(s) (e.g. 001_form_nieuwe_kerk.yaml) has
+  // nothing left for the participant to fill in once the upload succeeds —
+  // the photo is already linked to this location server-side at upload time
+  // (see uploadRoute.ts), so Submit only exists to record the location as
+  // "done" for the progress gate. Tapping it is a redundant extra step, so we
+  // fire it automatically and hide the button entirely (see the template's
+  // `isPhotoOnlyForm` check on the submit button), surfacing it again only if
+  // submitState becomes "error" — the participant's one manual fallback.
+  // autoSubmitGuard prevents re-firing while a submit is in flight or has
+  // already failed once (a failed auto-submit relies on that visible
+  // "Try again" button for a manual retry rather than hammering the server in
+  // a retry loop); it's released again once the parent's baseline catches up
+  // (hasChanges goes false) so a later re-upload (allowResubmit) can
+  // auto-submit too.
+  const isPhotoOnlyForm = $derived(
+    fields.some((f) => f.type === STR_PHOTO) &&
+      fields.every((f) => f.type === STR_PHOTO || f.type === STR_SECTION),
+  );
+  const anyUploadInFlight = $derived(
+    Object.values(uploadStates).some((upload) => upload.status === "uploading"),
+  );
+  let autoSubmitGuard = $state(false);
+
+  $effect(() => {
+    if (!hasChanges) {
+      autoSubmitGuard = false;
+    }
+  });
+
+  $effect(() => {
+    if (
+      isPhotoOnlyForm &&
+      hasChanges &&
+      !anyUploadInFlight &&
+      !autoSubmitGuard &&
+      Object.keys(liveErrors).length === 0
+    ) {
+      autoSubmitGuard = true;
+      void doSubmit();
+    }
+  });
 </script>
 
 <div class="app-form">
@@ -297,26 +365,38 @@
       {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
     {:else}
       {@const id = field.id!}
+      {@const domId = `f-${instanceId}-${id}`}
       {@const err = errors[id]}
       <div class="af-field">
         {#if field.type === "photo"}
           {@const upload = uploadStates[id]}
           <div class="af-photo-wrap">
+            <label class="af-label" class:af-label--required={field.isRequired} for={domId}>{field.label}</label>
+            {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
             <button
-              class="af-photo-btn"
-              onclick={() => (document.getElementById(id) as HTMLInputElement | null)?.click()}
+              class="af-photo-tile"
+              class:af-photo-tile--uploading={upload?.status === "uploading"}
+              aria-label={upload?.status === "success"
+                ? `Retake photo — ${field.label}`
+                : upload?.status === "uploading"
+                  ? `Uploading photo — ${field.label}`
+                  : `Take a photo — ${field.label}`}
+              onclick={() => (document.getElementById(domId) as HTMLInputElement | null)?.click()}
               disabled={upload?.status === "uploading"}
             >
-              <Camera size={16} aria-hidden="true" />
-              {upload?.status === "success"
-                ? "Photo uploaded ✓"
-                : upload?.status === "uploading"
-                  ? "Uploading…"
-                  : field.label}
+              {#if upload?.status === "success" && upload.previewDataUrl}
+                <img src={upload.previewDataUrl} alt={field.label} class="af-photo-tile__img" />
+              {:else if upload?.status === "success"}
+                <Check size={32} aria-hidden="true" />
+              {:else}
+                <Image size={32} aria-hidden="true" />
+              {/if}
+              {#if upload?.status === "uploading"}
+                <span class="af-photo-tile__spinner" aria-hidden="true"></span>
+              {/if}
             </button>
-            {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
             <input
-              {id}
+              id={domId}
               type="file"
               accept="image/*"
               capture="environment"
@@ -331,7 +411,7 @@
           <label class="af-label--checkbox">
             {field.label}
             <input
-              {id}
+              id={domId}
               type="checkbox"
               class="af-checkbox"
               bind:checked={values[id] as boolean}
@@ -339,12 +419,12 @@
           </label>
           {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
         {:else}
-          <label class="af-label" class:af-label--required={field.isRequired} for={id}>{field.label}</label>
+          <label class="af-label" class:af-label--required={field.isRequired} for={domId}>{field.label}</label>
           {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
           {#if err}<p class="af-error-msg">{err}</p>{/if}
           {#if field.type === "string"}
             <input
-              {id}
+              id={domId}
               type="text"
               class="af-input"
               class:af-input--error={err}
@@ -352,14 +432,14 @@
             />
           {:else if field.type === "textarea"}
             <textarea
-              {id}
+              id={domId}
               class="af-textarea"
               class:af-textarea--error={err}
               bind:value={values[id] as string}
             ></textarea>
           {:else if field.type === "number"}
             <input
-              {id}
+              id={domId}
               type="number"
               inputmode="numeric"
               min="0"
@@ -378,7 +458,7 @@
                 <label class="af-label--radio">
                   <input
                     type="radio"
-                    name={id}
+                    name={domId}
                     value={opt}
                     bind:group={values[id] as string}
                   />
@@ -426,7 +506,7 @@
           {:else if field.type === "image-picker"}
             {@const currentImg = (values[id] as string | undefined) ?? ""}
             {@const matchedImg = availableImages.find((img) => img.filename === currentImg)}
-            <div class="af-image-picker" {id}>
+            <div class="af-image-picker" id={domId}>
               {#if currentImg === ""}
                 <button
                   type="button"
@@ -505,7 +585,7 @@
         </div>
       </div>
     </div>
-  {:else}
+  {:else if !isPhotoOnlyForm || submitState === "error"}
     <button
       class="af-submit-btn"
       class:af-submit-btn--submitting={submitState === "submitting"}
