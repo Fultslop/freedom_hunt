@@ -7,6 +7,8 @@ short_loop:
     - 001_loc_abc
     - 002_loc_nieuwe_kerk
     - 003_loc_jewish_children_museum
+    - 004_lange_voorhout_v1
+    - 004_lange_voorhout_v2
     - 011_checkpoint_completion
     - 007_splash_completion
     - 008_options_end_of_hunt

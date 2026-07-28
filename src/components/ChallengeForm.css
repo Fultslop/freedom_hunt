@@ -1,16 +1,7 @@
 /* src/components/ChallengeForm.css */
 
-.cf-divider {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 20px 0;
-}
-
-.cf-divider__line {
-  flex: 1;
-  height: 1px;
-  background: var(--color-border);
+.cf-form-wrap {
+  margin-top: var(--gap-block);
 }
 
 .cf-success {

@@ -1,0 +1,10 @@
+prompt: "In what year did The Hague formally apologise for its role in slavery?"
+footnote: "Sources: Gemeente Den Haag; KITLV research into The Hague's slavery history."
+items:
+  - value: 2022
+    label: "the city's formal apology"
+    visibility: click_to_reveal
+  - value: 1863
+    label: "abolition in the Dutch Caribbean"
+  - value: "€0"
+    label: "paid to the formerly enslaved"

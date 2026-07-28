@@ -12,7 +12,7 @@
   subtext: This may be a school district, state, library system, parent group, law, or official review process.
 
 - id: source_of_fear
-  type: string
+  type: textarea
   label: What idea in this book was someone afraid of?
   subtext: Think beyond the official reason. Was it queer identity? racial memory? women’s autonomy? grief? migration? sexuality? criticism of state violence? young people thinking for themselves?
   

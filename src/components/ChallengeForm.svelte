@@ -1,6 +1,5 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import { Flag } from "lucide-svelte";
   import { authStore } from "../stores/authStore";
   import type { FormField, PhotoUploadStatus } from "../types/data";
   import { postFormSubmit, postPhotoUpload } from "../utils/api";
@@ -99,32 +98,22 @@
   {#if hasSubmittedOnce && !allowResubmit}
     <p class="cf-success">Submitted! ✓</p>
   {:else}
-    <div class="cf-divider" aria-hidden="true">
-      <span class="cf-divider__line"></span>
-      <Flag size={12} aria-hidden="true" />
-      <span class="cf-divider__line"></span>
-    </div>
-
-    <AppForm
-      fields={form}
-      initialValues={baseValues}
-      {baseValues}
-      initialUploads={baseUploads}
-      {baseUploads}
-      onSubmit={handleSubmit}
-      onPhotoUpload={handlePhotoUpload}
-      onSuccess={handleSuccess}
-      onValuesChange={handleValuesChange}
-      onUploadsChange={handleUploadsChange}
-      onStatusChange={handleStatusChange}
-      confirmMessage="Submit your answers?"
-      submitLabel={hasSubmittedOnce ? "Re-submit" : "Submit"}
-    />
-
-    <div class="cf-divider" aria-hidden="true">
-      <span class="cf-divider__line"></span>
-      <Flag size={12} aria-hidden="true" />
-      <span class="cf-divider__line"></span>
+    <div class="cf-form-wrap">
+      <AppForm
+        fields={form}
+        initialValues={baseValues}
+        {baseValues}
+        initialUploads={baseUploads}
+        {baseUploads}
+        onSubmit={handleSubmit}
+        onPhotoUpload={handlePhotoUpload}
+        onSuccess={handleSuccess}
+        onValuesChange={handleValuesChange}
+        onUploadsChange={handleUploadsChange}
+        onStatusChange={handleStatusChange}
+        confirmMessage="Submit your answers?"
+        submitLabel={hasSubmittedOnce ? "Re-submit" : "Submit"}
+      />
     </div>
   {/if}
 </div>

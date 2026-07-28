@@ -10,3 +10,7 @@ https://commons.wikimedia.org/wiki/File:Stolperstein_for_Samuel_Henriquez_de_Gra
 Nieuwe kerk:
 
 https://commons.wikimedia.org/wiki/Category:Nieuwe_Kerk_(The_Hague)#/media/File:Den_Haag_Nieuwe_Kerk.jpg
+
+Lange voorhout:
+ M.M.Minderhoud or Wikipedia/Michiel1972
+ https://commons.wikimedia.org/wiki/File:Lange_voorhout.jpg

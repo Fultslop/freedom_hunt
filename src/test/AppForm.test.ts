@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { render, screen, fireEvent, waitFor } from "@testing-library/svelte/svelte5";
 import AppForm from "../components/AppForm.svelte";
 import type { FormField, FormFieldType } from "../types/data";
@@ -609,7 +611,40 @@ test("required photo field blocks submit until a successful upload", async () =>
   await waitFor(() => {
     expect(screen.getByRole("button", { name: /submit/i })).not.toBeDisabled();
   });
-  expect(screen.getByRole("button", { name: /retake photo/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /replace/i })).toBeInTheDocument();
+});
+
+test("Replace and Remove buttons appear below an uploaded photo", () => {
+  const fields: FormField[] = [{ id: "pic", type: "photo", label: "Take a photo" }];
+  render(AppForm, {
+    props: {
+      fields,
+      onSubmit: vi.fn(),
+      onPhotoUpload: vi.fn(),
+      initialUploads: { pic: { status: "success", httpCode: 200, previewDataUrl: "data:image/jpeg;base64,X" } },
+    },
+  });
+  expect(screen.getByRole("button", { name: /replace/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /remove/i })).toBeInTheDocument();
+});
+
+test("Remove clears the uploaded photo and reverts to the empty tile", async () => {
+  const fields: FormField[] = [{ id: "pic", type: "photo", label: "Take a photo" }];
+  const onUploadsChange = vi.fn();
+  render(AppForm, {
+    props: {
+      fields,
+      onSubmit: vi.fn(),
+      onPhotoUpload: vi.fn(),
+      onUploadsChange,
+      initialUploads: { pic: { status: "success", httpCode: 200, previewDataUrl: "data:image/jpeg;base64,X" } },
+    },
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /remove/i }));
+  await waitFor(() => {
+    expect(onUploadsChange).toHaveBeenCalledWith({});
+  });
+  expect(screen.getByText("Add a photo")).toBeInTheDocument();
 });
 
 test("required photo field: failed upload keeps Required validation blocking submit", async () => {
@@ -671,7 +706,7 @@ test("reverts to the placeholder tile (no image) after a failed upload", async (
     expect(screen.getByText("Upload failed. Try again.")).toBeInTheDocument();
   });
   expect(screen.queryByRole("img")).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /take a photo/i })).toBeInTheDocument();
+  expect(screen.getByText("Add a photo")).toBeInTheDocument();
 });
 
 test("shows a checkmark fallback when the upload succeeds but preview generation failed", async () => {
@@ -687,7 +722,7 @@ test("shows a checkmark fallback when the upload succeeds but preview generation
   const input = container.querySelector(".af-photo-input") as HTMLInputElement;
   await fireEvent.change(input, { target: { files: [file] } });
   await waitFor(() => {
-    expect(screen.getByRole("button", { name: /retake photo/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /replace/i })).toBeInTheDocument();
   });
   expect(screen.queryByRole("img")).not.toBeInTheDocument();
 });
@@ -734,13 +769,41 @@ test("two photo fields track upload state independently", async () => {
   const inputs = container.querySelectorAll(".af-photo-input");
   await fireEvent.change(inputs[0], { target: { files: [file] } });
   await waitFor(() => {
-    expect(screen.getByRole("button", { name: /retake photo/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /replace/i })).toBeInTheDocument();
   });
   await fireEvent.change(inputs[1], { target: { files: [file] } });
   await waitFor(() => {
     expect(screen.getByText("Upload failed. Try again.")).toBeInTheDocument();
   });
-  expect(screen.getByRole("button", { name: /retake photo/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /replace/i })).toBeInTheDocument();
+});
+
+test("errored photo tile has an error-colored border and an explicit Retry button", () => {
+  const fields: FormField[] = [{ id: "pic", type: "photo", label: "Take a photo" }];
+  render(AppForm, {
+    props: {
+      fields,
+      onSubmit: vi.fn(),
+      onPhotoUpload: vi.fn(),
+      initialUploads: { pic: { status: "error", httpCode: 0 } },
+    },
+  });
+  expect(document.querySelector(".af-photo-tile--error")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
+});
+
+test("upload failure is announced in a live region", () => {
+  const fields: FormField[] = [{ id: "pic", type: "photo", label: "Take a photo" }];
+  render(AppForm, {
+    props: {
+      fields,
+      onSubmit: vi.fn(),
+      onPhotoUpload: vi.fn(),
+      initialUploads: { pic: { status: "error", httpCode: 0 } },
+    },
+  });
+  const err = screen.getByText("Upload failed. Try again.");
+  expect(err.closest("[aria-live]")).toBeTruthy();
 });
 
 // ---------------------------------------------------------------------------
@@ -803,7 +866,7 @@ test("does not auto-submit when the form has a required field besides the photo"
   const input = container.querySelector(".af-photo-input") as HTMLInputElement;
   await fireEvent.change(input, { target: { files: [file] } });
   await waitFor(() => {
-    expect(screen.getByRole("button", { name: /retake photo/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /replace/i })).toBeInTheDocument();
   });
   expect(onSubmit).not.toHaveBeenCalled();
 });
@@ -827,6 +890,34 @@ test("a failed auto-submit on a photo-only form falls back to a manual retry via
   const retryBtn = await screen.findByRole("button", { name: /try again/i });
   await fireEvent.click(retryBtn);
   await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(2));
+});
+
+// ---------------------------------------------------------------------------
+// aria-describedby
+// ---------------------------------------------------------------------------
+
+test("text input is described by its subtext via aria-describedby", () => {
+  const fields: FormField[] = [
+    { id: "note", type: "string", label: "Your note", subtext: "Keep it short" },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  const input = screen.getByLabelText("Your note");
+  const describedBy = input.getAttribute("aria-describedby");
+  expect(describedBy).toBeTruthy();
+  expect(screen.getByText("Keep it short").id).toBe(describedBy);
+});
+
+test("text input's aria-describedby includes the error message id when invalid", async () => {
+  const fields: FormField[] = [
+    { id: "note", type: "string", label: "Your note", isRequired: true },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn(), initialValues: { note: "abc" } } });
+  const input = screen.getByLabelText("Your note");
+  await fireEvent.input(input, { target: { value: "" } });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  const describedBy = input.getAttribute("aria-describedby") ?? "";
+  const errorEl = screen.getByText("Required");
+  expect(describedBy.split(" ")).toContain(errorEl.id);
 });
 
 // ---------------------------------------------------------------------------
@@ -1017,6 +1108,79 @@ test("random_value: rolled value is passed to onSubmit", async () => {
   await waitFor(() =>
     expect(onSubmit).toHaveBeenCalledWith({ assigned_child: "Alpha" }),
   );
+});
+
+test("uploaded photo tile is rendered at the larger filled size with a success badge", () => {
+  const fields: FormField[] = [{ id: "pic", type: "photo", label: "Take a photo" }];
+  render(AppForm, {
+    props: {
+      fields,
+      onSubmit: vi.fn(),
+      onPhotoUpload: vi.fn(),
+      initialUploads: { pic: { status: "success", httpCode: 200, previewDataUrl: "data:image/jpeg;base64,X" } },
+    },
+  });
+  const tile = document.querySelector(".af-photo-tile--filled");
+  expect(tile).toBeInTheDocument();
+  expect(tile!.querySelector(".af-photo-tile__badge")).toBeInTheDocument();
+});
+
+test("empty photo tile shows an in-tile label and hint, not just an icon", () => {
+  const fields: FormField[] = [{ id: "pic", type: "photo", label: "Take a photo" }];
+  render(AppForm, { props: { fields, onSubmit: vi.fn(), onPhotoUpload: vi.fn() } });
+  expect(screen.getByText("Add a photo")).toBeInTheDocument();
+  expect(screen.getByText("Take one now, or choose a file")).toBeInTheDocument();
+});
+
+test("submit button shows 'Saved ✓' when form is clean after a successful submit", async () => {
+  const fields: FormField[] = [{ id: "title", type: "string", label: "Title" }];
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(AppForm, {
+    props: { fields, initialValues: { title: "Binnenhof" }, onSubmit },
+  });
+  // Fill and submit to register everSubmittedSuccessfully
+  await fireEvent.input(screen.getByLabelText("Title"), {
+    target: { value: "Binnenhof Updated" },
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  await vi.waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
+
+  // Restore the initial value so hasChanges becomes false
+  await fireEvent.input(screen.getByLabelText("Title"), {
+    target: { value: "Binnenhof" },
+  });
+  await vi.waitFor(() => {
+    expect(screen.queryByRole("button", { name: /saved/i })).toBeInTheDocument();
+  });
+});
+
+test("status line reads 'Unsaved changes' when dirty and 'All answers saved' after restoring initial value", async () => {
+  const fields: FormField[] = [{ id: "title", type: "string", label: "Title" }];
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(AppForm, {
+    props: { fields, initialValues: { title: "Binnenhof" }, onSubmit },
+  });
+  await fireEvent.input(screen.getByLabelText("Title"), {
+    target: { value: "Binnenhof Updated" },
+  });
+  expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
+
+  // Restore the initial value to make hasChanges false
+  await fireEvent.input(screen.getByLabelText("Title"), {
+    target: { value: "Binnenhof" },
+  });
+  await waitFor(() => expect(screen.getByText("All answers saved")).toBeInTheDocument());
+});
+
+test("input/textarea/photo-tile borders use the dedicated field-border token", () => {
+  const css = readFileSync(join(__dirname, "../components/AppForm.css"), "utf-8");
+  const inputRule = css.match(/\.af-input,\s*\n\.af-textarea\s*\{[^}]*\}/)?.[0] ?? "";
+  expect(inputRule).toMatch(/border:\s*1px solid var\(--field-border\)/);
+  const focusRule = css.match(/\.af-input:focus,\s*\n\.af-textarea:focus\s*\{[^}]*\}/)?.[0] ?? "";
+  expect(focusRule).toMatch(/box-shadow:/);
 });
 
 test("random_value: missing values array blocks submit with a definition error", async () => {

@@ -5,6 +5,33 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+function stubResizingImageBitmap(nativeWidth: number, nativeHeight: number) {
+  const bitmaps: Array<{ width: number; height: number; close: ReturnType<typeof vi.fn> }> = [];
+  const createImageBitmap = vi.fn(
+    (
+      source: File | { width: number; height: number },
+      options?: { resizeWidth?: number; resizeHeight?: number },
+    ) => {
+      const sourceWidth = source instanceof File ? nativeWidth : source.width;
+      const sourceHeight = source instanceof File ? nativeHeight : source.height;
+      let width = sourceWidth;
+      let height = sourceHeight;
+      if (options?.resizeWidth && options.resizeWidth < sourceWidth) {
+        width = options.resizeWidth;
+        height = Math.round(sourceHeight * (options.resizeWidth / sourceWidth));
+      } else if (options?.resizeHeight && options.resizeHeight < sourceHeight) {
+        height = options.resizeHeight;
+        width = Math.round(sourceWidth * (options.resizeHeight / sourceHeight));
+      }
+      const bitmap = { width, height, close: vi.fn() };
+      bitmaps.push(bitmap);
+      return Promise.resolve(bitmap);
+    },
+  );
+  vi.stubGlobal("createImageBitmap", createImageBitmap);
+  return { createImageBitmap, bitmaps };
+}
+
 function stubCanvas() {
   const drawImage = vi.fn();
   const toDataURL = vi.fn().mockReturnValue("data:image/jpeg;base64,FAKE");
@@ -21,12 +48,34 @@ function stubCanvas() {
   return { drawImage, toDataURL };
 }
 
+test("never performs an uncapped decode of a large source photo", async () => {
+  stubCanvas();
+  const { createImageBitmap } = stubResizingImageBitmap(8000, 6000);
+
+  const file = new File(["data"], "photo.heic", { type: "image/heic" });
+  await createPhotoPreview(file);
+
+  for (const call of createImageBitmap.mock.calls) {
+    const options = call[1] as { resizeWidth?: number; resizeHeight?: number } | undefined;
+    expect(options?.resizeWidth || options?.resizeHeight).toBeTruthy();
+  }
+});
+
+test("still crops correctly after a capped decode of a very large landscape photo", async () => {
+  const { drawImage } = stubCanvas();
+  stubResizingImageBitmap(8000, 6000);
+
+  const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+  await createPhotoPreview(file);
+
+  expect(drawImage).toHaveBeenCalled();
+  const [, , , cropW, cropH] = drawImage.mock.calls[0];
+  expect(cropW).toBe(cropH);
+});
+
 test("center-crops a wider-than-tall image to a square using the shorter side", async () => {
-  vi.stubGlobal(
-    "createImageBitmap",
-    vi.fn().mockResolvedValue({ width: 400, height: 300, close: vi.fn() }),
-  );
   const { drawImage, toDataURL } = stubCanvas();
+  stubResizingImageBitmap(400, 300);
 
   const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
   const result = await createPhotoPreview(file);
@@ -44,11 +93,8 @@ test("center-crops a wider-than-tall image to a square using the shorter side", 
 });
 
 test("center-crops a taller-than-wide image using the shorter side", async () => {
-  vi.stubGlobal(
-    "createImageBitmap",
-    vi.fn().mockResolvedValue({ width: 300, height: 500, close: vi.fn() }),
-  );
   const { drawImage } = stubCanvas();
+  stubResizingImageBitmap(300, 500);
 
   const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
   await createPhotoPreview(file);

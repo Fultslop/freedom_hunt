@@ -5,7 +5,7 @@
 .story-stats__prompt {
   font-size: var(--font-size-base);
   color: var(--color-text);
-  margin: 0 0 var(--storyline-gap-inner);
+  margin: 0 0 var(--gap-field);
 }
 
 .story-stats__grid {

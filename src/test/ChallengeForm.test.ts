@@ -71,11 +71,9 @@ test("calls postFormSubmit with correct payload on confirm", async () => {
   );
 });
 
-test("renders two ornamental dividers framing the field list", () => {
-  const { container } = render(ChallengeForm, {
-    props: { form, locationId: 1, routeId: "short_loop" },
-  });
-  expect(container.querySelectorAll(".cf-divider")).toHaveLength(2);
+test("no longer renders a flag-glyph divider", () => {
+  render(ChallengeForm, { props: { form, locationId: 1, routeId: "short_loop" } });
+  expect(document.querySelector(".cf-divider")).not.toBeInTheDocument();
 });
 
 test("multiple field: blocks selection beyond max and shows warning", async () => {
@@ -149,8 +147,8 @@ test("form stays visible with a disabled Re-submit button after a successful sub
   });
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
-  const resubmitBtn = await screen.findByRole("button", { name: /no changes/i });
-  expect(resubmitBtn).toBeDisabled();
+  const savedBtn = await screen.findByRole("button", { name: /saved/i });
+  expect(savedBtn).toBeDisabled();
   expect(screen.getByLabelText("Your note")).toBeInTheDocument();
 });
 
@@ -163,7 +161,7 @@ test("Re-submit button enables after editing a previously-submitted form", async
   });
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
-  await screen.findByRole("button", { name: /no changes/i });
+  await screen.findByRole("button", { name: /saved/i });
   await fireEvent.input(screen.getByLabelText("Your note"), {
     target: { value: "updated text" },
   });

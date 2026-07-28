@@ -28,18 +28,12 @@
   margin-bottom: 0;
 }
 
-.markdown-text .storyline-inline-image {
-  float: right;
-  width: 45%;
-  max-width: 250px;
-  min-width: 120px;
-  margin: 0 0 10px 20px;
-  border-radius: 8px;
-}
-
-@media (max-width: 480px) {
-  .markdown-text .storyline-inline-image {
-    width: 40%;
-    margin-left: 12px;
-  }
+.storyline-root img {
+  display: block;
+  margin-inline: auto;
+  max-width: 100%;
+  max-height: 32vh;
+  width: auto;
+  height: auto;
+  border-radius: 6px;
 }

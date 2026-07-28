@@ -1,0 +1,44 @@
+title: "Where the Orders Were Signed - Voorhout v2"
+image: lange_voorhout.jpg   
+name:
+  label: "location details"
+  value: "Slavery Monument — 'Remember Our United Beginning', Lange Voorhout"
+address: "Lange Voorhout, The Hague"
+coordinates:
+  latitude: 52.0823
+  longitude: 4.3116
+storyline: |
+  ## The Hague never shipped a single ==enslaved person==.
+
+  It didn't have to. This was not a port — it was the seat of government.
+  The ships sailed from elsewhere; the decisions, the charters, and the
+  profits ran through here.
+
+  {{stats: 004_stats_lange_voorhout.yaml}}
+
+  The city apologised in 2022. This monument, unveiled in 2025, is what an
+  apology looks like when it is made permanent.
+
+  [+] Read the full story
+
+    Wealthy residents of The Hague held shares in the Dutch East and West India
+    Companies, sat on their boards, and owned plantations worked by enslaved
+    people. The city's own tax authority invested in the trade. As the seat of
+    the stadholders and later the monarchy, The Hague was where national policy
+    on the colonies — and therefore on slavery — was decided.
+
+    When slavery was abolished in the Caribbean in 1863, compensation was paid.
+    Not to the people who had been enslaved, but to the people who had owned
+    them.
+
+    The monument, by artist Buhlebezwe Siwani, was designed in dialogue with
+    descendants and residents. It stands on the Lange Voorhout, a few minutes'
+    walk from the buildings where the decisions were once taken.
+
+challenge:
+  name: ""
+  description: |
+    Find the slavery monument 'Remember Our United Beginning' on the Lange Voorhout. Photograph it, and find one element of its form or symbolism that speaks to you. Note what you think it means.
+  notes: ""
+breadcrumb: |
+  You have stood where a country made its money and, much later, admitted how. The distance between the two — the profit and the reckoning — was more than a century. Ask yourself what today's version of that distance looks like, and walk on.

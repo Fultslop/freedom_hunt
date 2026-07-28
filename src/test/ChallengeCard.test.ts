@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { render, screen, fireEvent, waitFor } from "@testing-library/svelte/svelte5";
 import { authStore } from "../stores/authStore";
 import ChallengeCard from "../components/ChallengeCard.svelte";
@@ -97,6 +99,15 @@ test("forwards form status changes tagged with the location's index", async () =
       expect.objectContaining({ submitted: false }),
     );
   });
+});
+
+test("challenge card sections are capped at --content-max width", () => {
+  const css = readFileSync(
+    join(__dirname, "../components/ChallengeCard.css"),
+    "utf-8",
+  );
+  const sectionRule = css.match(/\.cc-section\s*\{[^}]*\}/)?.[0] ?? "";
+  expect(sectionRule).toMatch(/max-width:\s*var\(--content-max\)/);
 });
 
 test("remounts the challenge form and resets submitted state when the location index changes", async () => {

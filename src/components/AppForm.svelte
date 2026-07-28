@@ -1,6 +1,6 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import { Image, Check, Dice5 } from "lucide-svelte";
+  import { Check, Camera, Dice5 } from "lucide-svelte";
   import type { FormField, FormFieldType, PhotoUploadStatus, FormValidationStatus } from "../types/data";
   import { buildNestedValues } from "../utils/formValues";
   import { createPhotoPreview } from "../utils/photoPreview";
@@ -47,7 +47,7 @@
   const MSG_SELECT_MIN = (min: number) =>
     `Please select at least ${min} option${min > 1 ? "s" : ""}`;
 
-  type SubmitState = "idle" | "submitting" | "error";
+  type SubmitState = "idle" | "submitting" | "saved" | "error";
   type UploadState = "idle" | "uploading" | "success" | "error";
   type FieldValues = Record<string, string | number | boolean | string[] | { latitude: number; longitude: number }>;
   interface PhotoFieldState {
@@ -106,7 +106,7 @@
     untrack(() => {
       const result: Record<string, PhotoFieldState> = {};
       for (const [id, upload] of Object.entries(initialUploads)) {
-        result[id] = { status: upload.status, httpCode: upload.httpCode };
+        result[id] = { status: upload.status, httpCode: upload.httpCode, previewDataUrl: upload.previewDataUrl };
       }
       return result;
     }),
@@ -164,6 +164,9 @@
   });
   let errors = $state<Record<string, string>>({});
   let submitState = $state<SubmitState>("idle");
+  let savedTimeoutId: ReturnType<typeof setTimeout> | undefined;
+  let everSubmittedSuccessfully = $state(false);
+  const hasSubmittedButNoChanges = $derived(!hasChanges && everSubmittedSuccessfully);
   let showConfirm = $state(false);
   let maxWarningKeys = $state<Record<string, number>>({});
   const availableImages: ImageEntry[] = getAvailableImages();
@@ -241,6 +244,12 @@
     }
   }
 
+  function removePhoto(fieldId: string) {
+    const next = { ...uploadStates };
+    delete next[fieldId];
+    uploadStates = next;
+  }
+
   function canSkipValidation(field: FormField): boolean {
     return field.type === STR_SECTION || field.type === STR_BOOLEAN;
   }
@@ -314,7 +323,12 @@
       await onSubmit(
         buildNestedValues(fields, values as Record<string, unknown>),
       );
-      submitState = "idle";
+      clearTimeout(savedTimeoutId);
+      submitState = "saved";
+      everSubmittedSuccessfully = true;
+      savedTimeoutId = setTimeout(() => {
+        submitState = "idle";
+      }, 3000);
       onSuccess?.();
     } catch {
       submitState = "error";
@@ -383,28 +397,53 @@
           <div class="af-photo-wrap">
             <label class="af-label" class:af-label--required={field.isRequired} for={domId}>{field.label}</label>
             {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
-            <button
-              class="af-photo-tile"
-              class:af-photo-tile--uploading={upload?.status === "uploading"}
-              aria-label={upload?.status === "success"
-                ? `Retake photo — ${field.label}`
-                : upload?.status === "uploading"
+            {#if upload?.status === "success"}
+              <div class="af-photo-tile af-photo-tile--filled">
+                {#if upload.previewDataUrl}
+                  <img src={upload.previewDataUrl} alt={field.label} class="af-photo-tile__img" />
+                  <span class="af-photo-tile__badge" aria-hidden="true"><Check size={14} /></span>
+                {:else}
+                  <Check size={32} aria-hidden="true" />
+                {/if}
+              </div>
+              <div class="af-photo-actions">
+                <button
+                  type="button"
+                  class="af-photo-action"
+                  aria-label={`Replace photo — ${field.label}`}
+                  onclick={() => (document.getElementById(domId) as HTMLInputElement | null)?.click()}
+                >
+                  Replace
+                </button>
+                <button
+                  type="button"
+                  class="af-photo-action af-photo-action--remove"
+                  aria-label={`Remove photo — ${field.label}`}
+                  onclick={() => removePhoto(id)}
+                >
+                  Remove
+                </button>
+              </div>
+            {:else}
+              <button
+                class="af-photo-tile"
+                class:af-photo-tile--uploading={upload?.status === "uploading"}
+                class:af-photo-tile--error={upload?.status === "error"}
+                aria-label={upload?.status === "uploading"
                   ? `Uploading photo — ${field.label}`
                   : `Take a photo — ${field.label}`}
-              onclick={() => (document.getElementById(domId) as HTMLInputElement | null)?.click()}
-              disabled={upload?.status === "uploading"}
-            >
-              {#if upload?.status === "success" && upload.previewDataUrl}
-                <img src={upload.previewDataUrl} alt={field.label} class="af-photo-tile__img" />
-              {:else if upload?.status === "success"}
-                <Check size={32} aria-hidden="true" />
-              {:else}
-                <Image size={32} aria-hidden="true" />
-              {/if}
-              {#if upload?.status === "uploading"}
-                <span class="af-photo-tile__spinner" aria-hidden="true"></span>
-              {/if}
-            </button>
+                onclick={() => (document.getElementById(domId) as HTMLInputElement | null)?.click()}
+                disabled={upload?.status === "uploading"}
+              >
+                {#if upload?.status === "uploading"}
+                  <span class="af-photo-tile__spinner" aria-hidden="true"></span>
+                {:else}
+                  <Camera size={28} aria-hidden="true" />
+                  <span class="af-photo-tile__label">Add a photo</span>
+                  <span class="af-photo-tile__hint">Take one now, or choose a file</span>
+                {/if}
+              </button>
+            {/if}
             <input
               id={domId}
               type="file"
@@ -414,7 +453,15 @@
               onchange={(evt) => handleFileChange(evt, id)}
             />
             {#if upload?.status === "error"}
-              <p class="af-photo-error">Upload failed. Try again.</p>
+              <p class="af-photo-error" aria-live="polite">Upload failed. Try again.</p>
+              <button
+                type="button"
+                class="af-photo-action"
+                aria-label={`Retry photo upload — ${field.label}`}
+                onclick={() => (document.getElementById(domId) as HTMLInputElement | null)?.click()}
+              >
+                Retry
+              </button>
             {/if}
           </div>
         {:else if field.type === "boolean"}
@@ -430,14 +477,16 @@
           {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
         {:else}
           <label class="af-label" class:af-label--required={field.isRequired} for={domId}>{field.label}</label>
-          {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
-          {#if err}<p class="af-error-msg">{err}</p>{/if}
+          {#if field.subtext}<p class="af-subtext" id={`${domId}-help`}>{field.subtext}</p>{/if}
+          {#if err}<p class="af-error-msg" id={`${domId}-err`}>{err}</p>{/if}
+          {@const describedBy = [field.subtext ? `${domId}-help` : null, err ? `${domId}-err` : null].filter(Boolean).join(" ") || undefined}
           {#if field.type === "string"}
             <input
               id={domId}
               type="text"
               class="af-input"
               class:af-input--error={err}
+              aria-describedby={describedBy}
               bind:value={values[id] as string}
             />
           {:else if field.type === "textarea"}
@@ -445,6 +494,7 @@
               id={domId}
               class="af-textarea"
               class:af-textarea--error={err}
+              aria-describedby={describedBy}
               bind:value={values[id] as string}
             ></textarea>
           {:else if field.type === "number"}
@@ -456,6 +506,7 @@
               step="1"
               class="af-input"
               class:af-input--error={err}
+              aria-describedby={describedBy}
               bind:value={values[id] as number}
               oninput={(e) => {
                 const inputEl = e.target as HTMLInputElement;
@@ -619,16 +670,27 @@
     <button
       class="af-submit-btn"
       class:af-submit-btn--submitting={submitState === "submitting"}
+      class:af-submit-btn--saved={submitState === "saved" && !hasChanges}
+      class:af-submit-btn--dirty={hasChanges}
       onclick={handleSubmit}
       disabled={submitState === "submitting" || !hasChanges}
     >
       {submitState === "submitting"
         ? "Submitting…"
-        : !hasChanges
-          ? "No changes"
-          : submitState === "error"
-            ? "Try again"
-            : submitLabel}
+        : submitState === "saved" && !hasChanges
+          ? "Saved ✓"
+          : !hasChanges
+            ? "No changes"
+            : submitState === "error"
+              ? "Try again"
+              : submitLabel}
     </button>
+    <p class="af-status-line" aria-live="polite">
+      {#if hasChanges}
+        Unsaved changes
+      {:else if hasSubmittedButNoChanges}
+        All answers saved
+      {/if}
+    </p>
   {/if}
 </div>
