@@ -26,18 +26,24 @@ beforeEach(async () => {
 describe("/form-submit", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("forwards payload to FORM_SCRIPT_URL and returns ok", async () => {
-    globalThis.fetch = vi.fn(() =>
-      Promise.resolve(
-        new Response(JSON.stringify({ ok: true }), {
-          headers: { "Content-Type": "application/json" },
-        }),
-      ),
+  it("writes to D1 and forwards to FORM_SCRIPT_URL for democrats_abroad", async () => {
+    const fetchSpy = vi.fn(() =>
+      Promise.resolve(new Response(JSON.stringify({ ok: true }))),
     );
+    globalThis.fetch = fetchSpy;
+    const inserted: unknown[] = [];
     const env: Env = {
       FORM_SCRIPT_URL: "https://script.google.com/fake",
       AUTH_STORE: { get: async () => null },
       AUTH_SECRET: TEST_SECRET,
+      AUTH_DB: {
+        prepare: () => ({
+          bind: (...args: unknown[]) => {
+            inserted.push(args);
+            return { run: async () => {} };
+          },
+        }),
+      },
     } as unknown as Env;
     const body = JSON.stringify({
       locationId: "001",
@@ -56,31 +62,32 @@ describe("/form-submit", () => {
 
     const response = await worker.fetch(request, env);
 
-    expect(globalThis.fetch).toHaveBeenCalledWith(
+    expect(inserted[0]).toContain("democrats_abroad");
+    expect(fetchSpy).toHaveBeenCalledWith(
       "https://script.google.com/fake",
-      expect.objectContaining({ method: "POST", body }),
+      expect.objectContaining({ method: "POST" }),
     );
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.ok).toBe(true);
   });
 
-  it("propagates ok:false from Apps Script response", async () => {
-    globalThis.fetch = vi.fn(() =>
-      Promise.resolve(
-        new Response(JSON.stringify({ ok: false, error: "Sheet error" }), {
-          headers: { "Content-Type": "application/json" },
-        }),
-      ),
-    );
+  it("returns 200 and logs warning when Google Script forward fails", async () => {
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error("Network error")));
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const env: Env = {
       FORM_SCRIPT_URL: "https://script.google.com/fake",
       AUTH_STORE: { get: async () => null },
       AUTH_SECRET: TEST_SECRET,
+      AUTH_DB: {
+        prepare: () => ({
+          bind: () => ({ run: async () => {} }),
+        }),
+      },
     } as unknown as Env;
     const request = new Request("https://example.com/form-submit", {
       method: "POST",
-      body: JSON.stringify({}),
+      body: JSON.stringify({ locationId: 1 }),
       headers: { Cookie: `freedom_hunt_auth=${authToken}` },
     });
 
@@ -88,19 +95,27 @@ describe("/form-submit", () => {
 
     expect(response.status).toBe(200);
     const data = await response.json();
-    expect(data.ok).toBe(false);
+    expect(data.ok).toBe(true);
+    expect(warnSpy).toHaveBeenCalledWith(
+      "Failed to forward form submission to Google Script",
+    );
+    warnSpy.mockRestore();
   });
 
-  it("returns 500 when fetch throws", async () => {
-    globalThis.fetch = vi.fn(() => Promise.reject(new Error("Network error")));
+  it("returns 500 when D1 insert fails", async () => {
+    globalThis.fetch = vi.fn();
     const env: Env = {
-      FORM_SCRIPT_URL: "https://script.google.com/fake",
       AUTH_STORE: { get: async () => null },
       AUTH_SECRET: TEST_SECRET,
+      AUTH_DB: {
+        prepare: () => ({
+          bind: () => ({ run: async () => { throw new Error("DB error"); } }),
+        }),
+      },
     } as unknown as Env;
     const request = new Request("https://example.com/form-submit", {
       method: "POST",
-      body: JSON.stringify({}),
+      body: JSON.stringify({ locationId: 1 }),
       headers: { Cookie: `freedom_hunt_auth=${authToken}` },
     });
 
@@ -111,7 +126,7 @@ describe("/form-submit", () => {
     expect(data.ok).toBe(false);
   });
 
-  it("writes to form_submissions D1 table for non-DA projects instead of calling fetch", async () => {
+  it("writes to D1 for non-DA projects and does not call fetch", async () => {
     const demoToken = await createToken(
       { project: "demo", teamName: "Team A", contact: "a@b.com", isAdmin: false, exp: Math.floor(Date.now() / 1000) + 3600 },
       TEST_SECRET,
