@@ -18,6 +18,7 @@ const KNOWN_FORM_FIELD_KEYS = new Set([
   "label",
   "subtext",
   "options",
+  "values",
   "min",
   "max",
   "isRequired",

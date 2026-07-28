@@ -315,3 +315,30 @@
   font-size: var(--font-size-sm);
   color: var(--color-error);
 }
+
+.af-random-value-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.af-random-value-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.af-random-value-result {
+  margin: 4px 0 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+}

@@ -19,4 +19,4 @@ entry:
   on_succeed:
     message: "All challenges complete. Time to finish the hunt!"
 re-entry:
-  blocked_after_exit: true
+  blocked_after_exit: false

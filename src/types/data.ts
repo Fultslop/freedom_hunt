@@ -10,7 +10,8 @@ export type FormFieldType =
   | "textarea"
   | "section"
   | "image-picker"
-  | "coord-picker";
+  | "coord-picker"
+  | "random_value";
 
 export interface FormField {
   id?: string;
@@ -18,6 +19,7 @@ export interface FormField {
   label: string;
   subtext?: string;
   options?: string[];
+  values?: string[];
   min?: number;
   max?: number;
   isRequired?: boolean;

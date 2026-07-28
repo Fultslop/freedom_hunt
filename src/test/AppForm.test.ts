@@ -939,3 +939,91 @@ test("calls onHasChangesChange(false) when value is restored to initialValues", 
     expect(onHasChangesChange).toHaveBeenLastCalledWith(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// random_value field
+// ---------------------------------------------------------------------------
+
+test("random_value: renders a reveal button when no value is set", () => {
+  const fields: FormField[] = [
+    {
+      id: "assigned_child",
+      type: "random_value" as FormFieldType,
+      label: "Tap to reveal the name you'll look for",
+      values: ["Alpha", "Beta", "Gamma"],
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(
+    screen.getByText("Tap to reveal the name you'll look for"),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: /reveal a name/i }),
+  ).toBeInTheDocument();
+});
+
+test("random_value: clicking reveal sets one of the listed values and removes the button", async () => {
+  const values = ["Alpha", "Beta", "Gamma"];
+  const fields: FormField[] = [
+    { id: "assigned_child", type: "random_value" as FormFieldType, label: "Reveal", values },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  await fireEvent.click(screen.getByRole("button", { name: /reveal a name/i }));
+  expect(
+    screen.queryByRole("button", { name: /reveal a name/i }),
+  ).not.toBeInTheDocument();
+  const revealed = values.find((v) => screen.queryByText(v));
+  expect(revealed).toBeDefined();
+});
+
+test("random_value: pre-populated value from initialValues renders locked, no reveal button", () => {
+  const fields: FormField[] = [
+    {
+      id: "assigned_child",
+      type: "random_value" as FormFieldType,
+      label: "Reveal",
+      values: ["Alpha", "Beta"],
+    },
+  ];
+  render(AppForm, {
+    props: { fields, initialValues: { assigned_child: "Alpha" }, onSubmit: vi.fn() },
+  });
+  expect(screen.getByText("Alpha")).toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: /reveal a name/i }),
+  ).not.toBeInTheDocument();
+});
+
+test("random_value: rolled value is passed to onSubmit", async () => {
+  const fields: FormField[] = [
+    {
+      id: "assigned_child",
+      type: "random_value" as FormFieldType,
+      label: "Reveal",
+      values: ["Alpha"],
+    },
+  ];
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(AppForm, { props: { fields, onSubmit } });
+  await fireEvent.click(screen.getByRole("button", { name: /reveal a name/i }));
+  await waitFor(() => {
+    expect(screen.getByRole("button", { name: /submit/i })).not.toBeDisabled();
+  });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  await waitFor(() =>
+    expect(onSubmit).toHaveBeenCalledWith({ assigned_child: "Alpha" }),
+  );
+});
+
+test("random_value: missing values array blocks submit with a definition error", async () => {
+  const fields: FormField[] = [
+    { id: "assigned_child", type: "random_value" as FormFieldType, label: "Reveal" },
+    { id: "note", type: "string", label: "Note" },
+  ];
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(AppForm, { props: { fields, onSubmit } });
+  await fireEvent.input(screen.getByLabelText("Note"), { target: { value: "hi" } });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  expect(screen.getByText("random_value field missing values")).toBeInTheDocument();
+  expect(onSubmit).not.toHaveBeenCalled();
+});
