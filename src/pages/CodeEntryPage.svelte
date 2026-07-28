@@ -108,10 +108,11 @@
         >
         <input
           id="code"
+          name="code"
           type="text"
           bind:value={code}
           required
-          autocomplete="off"
+          autocomplete="on"
           autocapitalize="off"
           placeholder="Enter your code"
           class={`code-entry-page__input${error ? " code-entry-page__input--error" : ""}`}
