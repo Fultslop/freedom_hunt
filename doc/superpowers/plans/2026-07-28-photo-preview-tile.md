@@ -1,7 +1,5 @@
 # Photo Field Preview Tile Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
 **Goal:** Replace the photo form field's small pill-shaped upload button with a square preview tile — a gray photo-icon placeholder before upload, the actual (locally compressed) photo after — persisted in `localStorage` so it survives navigating away and back.
 
 **Architecture:** A new isolated, mockable utility (`createPhotoPreview`) does client-side canvas resize/compression, independent of the network upload. `AppForm.svelte` runs both concurrently on file select and only keeps the generated preview if the server upload actually succeeds. The preview rides the *existing* `PhotoUploadStatus` → `onUploadsChange` → `ChallengeForm.persist()` → `saveFormState()` → `localStorage` pipeline unchanged — no new persistence plumbing.

@@ -16,6 +16,12 @@ vi.mock("../actions/leafletMap", () => ({
   leafletMap: vi.fn(() => ({ update: vi.fn(), destroy: vi.fn() })),
 }));
 
+import { createPhotoPreview } from "../utils/photoPreview";
+
+vi.mock("../utils/photoPreview", () => ({
+  createPhotoPreview: vi.fn().mockResolvedValue("data:image/jpeg;base64,MOCKPREVIEW"),
+}));
+
 beforeEach(() => {
   vi.mocked(leafletMap).mockClear();
 });
@@ -599,7 +605,7 @@ test("required photo field blocks submit until a successful upload", async () =>
   await waitFor(() => {
     expect(screen.getByRole("button", { name: /submit/i })).not.toBeDisabled();
   });
-  expect(screen.getByRole("button", { name: /photo uploaded/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /retake photo/i })).toBeInTheDocument();
 });
 
 test("required photo field: failed upload keeps Required validation blocking submit", async () => {
@@ -620,6 +626,66 @@ test("required photo field: failed upload keeps Required validation blocking sub
   });
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   expect(onSubmit).not.toHaveBeenCalled();
+});
+
+test("idle photo field shows the placeholder tile, not an image", () => {
+  const fields: FormField[] = [
+    { id: "pic", type: "photo", label: "Take a photo" },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn(), onPhotoUpload: vi.fn() } });
+  expect(screen.getByRole("button", { name: /take a photo/i })).toBeInTheDocument();
+  expect(screen.queryByRole("img")).not.toBeInTheDocument();
+});
+
+test("shows the compressed preview image after a successful upload", async () => {
+  const onPhotoUpload = vi.fn().mockResolvedValue({ ok: true, httpCode: 200 });
+  const fields: FormField[] = [
+    { id: "pic", type: "photo", label: "Take a photo" },
+  ];
+  const { container } = render(AppForm, {
+    props: { fields, onSubmit: vi.fn(), onPhotoUpload },
+  });
+  const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+  const input = container.querySelector(".af-photo-input") as HTMLInputElement;
+  await fireEvent.change(input, { target: { files: [file] } });
+  const img = await screen.findByRole("img", { name: "Take a photo" });
+  expect(img).toHaveAttribute("src", "data:image/jpeg;base64,MOCKPREVIEW");
+});
+
+test("reverts to the placeholder tile (no image) after a failed upload", async () => {
+  const onPhotoUpload = vi.fn().mockResolvedValue({ ok: false, httpCode: 500 });
+  const fields: FormField[] = [
+    { id: "pic", type: "photo", label: "Take a photo" },
+  ];
+  const { container } = render(AppForm, {
+    props: { fields, onSubmit: vi.fn(), onPhotoUpload },
+  });
+  const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+  const input = container.querySelector(".af-photo-input") as HTMLInputElement;
+  await fireEvent.change(input, { target: { files: [file] } });
+  await waitFor(() => {
+    expect(screen.getByText("Upload failed. Try again.")).toBeInTheDocument();
+  });
+  expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /take a photo/i })).toBeInTheDocument();
+});
+
+test("shows a checkmark fallback when the upload succeeds but preview generation failed", async () => {
+  vi.mocked(createPhotoPreview).mockRejectedValueOnce(new Error("decode failed"));
+  const onPhotoUpload = vi.fn().mockResolvedValue({ ok: true, httpCode: 200 });
+  const fields: FormField[] = [
+    { id: "pic", type: "photo", label: "Take a photo" },
+  ];
+  const { container } = render(AppForm, {
+    props: { fields, onSubmit: vi.fn(), onPhotoUpload },
+  });
+  const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+  const input = container.querySelector(".af-photo-input") as HTMLInputElement;
+  await fireEvent.change(input, { target: { files: [file] } });
+  await waitFor(() => {
+    expect(screen.getByRole("button", { name: /retake photo/i })).toBeInTheDocument();
+  });
+  expect(screen.queryByRole("img")).not.toBeInTheDocument();
 });
 
 test("two AppForm instances with an identical field id don't collide in the DOM (RoutePage's carousel keeps prev/current/next cards mounted at once)", async () => {
@@ -664,13 +730,13 @@ test("two photo fields track upload state independently", async () => {
   const inputs = container.querySelectorAll(".af-photo-input");
   await fireEvent.change(inputs[0], { target: { files: [file] } });
   await waitFor(() => {
-    expect(screen.getByRole("button", { name: /photo uploaded/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /retake photo/i })).toBeInTheDocument();
   });
   await fireEvent.change(inputs[1], { target: { files: [file] } });
   await waitFor(() => {
     expect(screen.getByText("Upload failed. Try again.")).toBeInTheDocument();
   });
-  expect(screen.getByRole("button", { name: /photo uploaded/i })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /retake photo/i })).toBeInTheDocument();
 });
 
 // ---------------------------------------------------------------------------
@@ -733,7 +799,7 @@ test("does not auto-submit when the form has a required field besides the photo"
   const input = container.querySelector(".af-photo-input") as HTMLInputElement;
   await fireEvent.change(input, { target: { files: [file] } });
   await waitFor(() => {
-    expect(screen.getByRole("button", { name: /photo uploaded/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /retake photo/i })).toBeInTheDocument();
   });
   expect(onSubmit).not.toHaveBeenCalled();
 });
@@ -802,7 +868,53 @@ test("onUploadsChange reports only settled upload statuses, keyed by field id", 
   await fireEvent.change(input, { target: { files: [file] } });
   await waitFor(() => {
     expect(onUploadsChange).toHaveBeenLastCalledWith({
-      pic: { status: "success", httpCode: 200 },
+      pic: {
+        status: "success",
+        httpCode: 200,
+        previewDataUrl: "data:image/jpeg;base64,MOCKPREVIEW",
+      },
+    });
+  });
+});
+
+test("onUploadsChange includes previewDataUrl after a successful upload", async () => {
+  const onPhotoUpload = vi.fn().mockResolvedValue({ ok: true, httpCode: 200 });
+  const onUploadsChange = vi.fn();
+  const fields: FormField[] = [
+    { id: "pic", type: "photo", label: "Take a photo" },
+  ];
+  const { container } = render(AppForm, {
+    props: { fields, onSubmit: vi.fn(), onPhotoUpload, onUploadsChange },
+  });
+  const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+  const input = container.querySelector(".af-photo-input") as HTMLInputElement;
+  await fireEvent.change(input, { target: { files: [file] } });
+  await waitFor(() => {
+    expect(onUploadsChange).toHaveBeenLastCalledWith({
+      pic: {
+        status: "success",
+        httpCode: 200,
+        previewDataUrl: "data:image/jpeg;base64,MOCKPREVIEW",
+      },
+    });
+  });
+});
+
+test("onUploadsChange omits previewDataUrl when the upload fails, even though preview generation succeeded", async () => {
+  const onPhotoUpload = vi.fn().mockResolvedValue({ ok: false, httpCode: 500 });
+  const onUploadsChange = vi.fn();
+  const fields: FormField[] = [
+    { id: "pic", type: "photo", label: "Take a photo" },
+  ];
+  const { container } = render(AppForm, {
+    props: { fields, onSubmit: vi.fn(), onPhotoUpload, onUploadsChange },
+  });
+  const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
+  const input = container.querySelector(".af-photo-input") as HTMLInputElement;
+  await fireEvent.change(input, { target: { files: [file] } });
+  await waitFor(() => {
+    expect(onUploadsChange).toHaveBeenLastCalledWith({
+      pic: { status: "error", httpCode: 500 },
     });
   });
 });

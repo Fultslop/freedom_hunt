@@ -1,8 +1,9 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import { Camera } from "lucide-svelte";
+  import { Image, Check } from "lucide-svelte";
   import type { FormField, FormFieldType, PhotoUploadStatus, FormValidationStatus } from "../types/data";
   import { buildNestedValues } from "../utils/formValues";
+  import { createPhotoPreview } from "../utils/photoPreview";
   import { getAvailableImages, type ImageEntry } from "../utils/images";
   import ImagePickerDialog from "./ImagePickerDialog.svelte";
   import CoordinatePicker from "./CoordinatePicker.svelte";
@@ -48,6 +49,7 @@
   interface PhotoFieldState {
     status: UploadState;
     httpCode?: number;
+    previewDataUrl?: string;
   }
 
   let {
@@ -144,8 +146,14 @@
   $effect(() => {
     const settled: Record<string, PhotoUploadStatus> = {};
     for (const [id, state] of Object.entries(uploadStates)) {
-      if (state.status === "success" || state.status === "error") {
-        settled[id] = { status: state.status, httpCode: state.httpCode ?? 0 };
+      if (state.status === "success") {
+        settled[id] = {
+          status: "success",
+          httpCode: state.httpCode ?? 0,
+          previewDataUrl: state.previewDataUrl,
+        };
+      } else if (state.status === "error") {
+        settled[id] = { status: "error", httpCode: state.httpCode ?? 0 };
       }
     }
     onUploadsChange?.(settled);
@@ -205,15 +213,20 @@
       const file = (evt.target as HTMLInputElement).files?.[0];
       if (file) {
         uploadStates = { ...uploadStates, [fieldId]: { status: "uploading" } };
-        try {
-          const data = await onPhotoUpload(file);
-          uploadStates = {
-            ...uploadStates,
-            [fieldId]: { status: data.ok ? "success" : "error", httpCode: data.httpCode },
-          };
-        } catch {
-          uploadStates = { ...uploadStates, [fieldId]: { status: "error", httpCode: 0 } };
-        }
+        const [uploadResult, previewResult] = await Promise.allSettled([
+          onPhotoUpload(file),
+          createPhotoPreview(file),
+        ]);
+        const upload =
+          uploadResult.status === "fulfilled" ? uploadResult.value : { ok: false, httpCode: 0 };
+        const previewDataUrl =
+          previewResult.status === "fulfilled" ? previewResult.value : undefined;
+        uploadStates = {
+          ...uploadStates,
+          [fieldId]: upload.ok
+            ? { status: "success", httpCode: upload.httpCode, previewDataUrl }
+            : { status: "error", httpCode: upload.httpCode ?? 0 },
+        };
       }
     }
   }
@@ -358,19 +371,30 @@
         {#if field.type === "photo"}
           {@const upload = uploadStates[id]}
           <div class="af-photo-wrap">
+            <label class="af-label" class:af-label--required={field.isRequired} for={domId}>{field.label}</label>
+            {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
             <button
-              class="af-photo-btn"
+              class="af-photo-tile"
+              class:af-photo-tile--uploading={upload?.status === "uploading"}
+              aria-label={upload?.status === "success"
+                ? `Retake photo — ${field.label}`
+                : upload?.status === "uploading"
+                  ? `Uploading photo — ${field.label}`
+                  : `Take a photo — ${field.label}`}
               onclick={() => (document.getElementById(domId) as HTMLInputElement | null)?.click()}
               disabled={upload?.status === "uploading"}
             >
-              <Camera size={16} aria-hidden="true" />
-              {upload?.status === "success"
-                ? "Photo uploaded ✓"
-                : upload?.status === "uploading"
-                  ? "Uploading…"
-                  : field.label}
+              {#if upload?.status === "success" && upload.previewDataUrl}
+                <img src={upload.previewDataUrl} alt={field.label} class="af-photo-tile__img" />
+              {:else if upload?.status === "success"}
+                <Check size={32} aria-hidden="true" />
+              {:else}
+                <Image size={32} aria-hidden="true" />
+              {/if}
+              {#if upload?.status === "uploading"}
+                <span class="af-photo-tile__spinner" aria-hidden="true"></span>
+              {/if}
             </button>
-            {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
             <input
               id={domId}
               type="file"

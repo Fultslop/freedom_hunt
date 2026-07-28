@@ -112,6 +112,7 @@ export interface HuntSettings {
 export interface PhotoUploadStatus {
   status: "success" | "error";
   httpCode: number;
+  previewDataUrl?: string;
 }
 
 export interface FormState {
