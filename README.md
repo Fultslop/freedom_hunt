@@ -80,6 +80,12 @@ See `doc/architecture.md` for a detailed breakdown of the YAML schema and projec
 - **Linting:** `npm run lint` (ESLint + Prettier)
 - **Type Checking:** `npm run typecheck` (TypeScript + Svelte-check)
 
+## Admin Scripts
+
+- `npm run list-remote-data` — prints every project/city/route that currently has photos or form submissions in the **live** remote D1 database, with counts at each level. Read-only; useful for finding valid scope values before running `clear-remote-data`. See [Part 6 of the Setup Guide](doc/setup.md).
+- `npm run clear-remote-data -- --project=<id> [--city=<id>] [--route=<id>] [--dry-run] [--yes]` — deletes photos/videos and form submissions for the given scope from the **live** remote D1 database and R2 bucket. Irreversible; see [Part 6 of the Setup Guide](doc/setup.md) for full details.
+- `npm run backfill-photos` — one-off migration for pre-existing event photos (see `scripts/backfill-photos.ts`).
+
 ## Documentation
 
 For more detailed information, please refer to:

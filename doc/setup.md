@@ -329,3 +329,40 @@ wrangler kv key put --binding=AUTH_STORE "admin:democrats_abroad" "your-admin-pa
 - The PAT gives write access to the repo. Treat it like a password — never commit it or expose it in logs.
 - Admin sessions last 30 days (same as participant sessions). If the admin password is compromised, rotate it in KV immediately. Existing admin sessions will continue until they expire — to invalidate all sessions, rotate `AUTH_SECRET` via `wrangler secret put AUTH_SECRET`.
 - The editor routes (`/editor/locations`, `/editor/location`) are protected by admin auth in the Worker. The PAT never reaches the browser.
+
+---
+
+## Part 6: Listing and Clearing Remote Hunt Data
+
+### Listing what exists
+
+`npm run list-remote-data` is read-only — it queries the remote `photos` and `form_submissions` tables and prints every project/city/route id that currently has data, with counts at each level:
+
+```
+demo (2 photos, 1 form)
+  new_york (1 photo, 0 forms)
+    museums_parks_route (1 photo, 0 forms)
+  paris (1 photo, 1 form)
+    montmartre_route (1 photo, 1 form)
+```
+
+Use this to find the exact ids to pass to `clear-remote-data` below — it only shows what actually has data, not everything defined in the YAML content (a project/city/route can exist in the app with no submissions yet, in which case it won't appear here).
+
+### Clearing data
+
+`npm run clear-remote-data` deletes uploaded photos/videos and form submissions for a project, city, or route from the **live** environment — the remote `AUTH_DB` D1 database and the `gwc-2026-photos` R2 bucket. Useful for resetting a project between events or wiping test data.
+
+```
+npm run clear-remote-data -- --project=<projectId> [--city=<cityId>] [--route=<routeId>] [--dry-run] [--yes]
+```
+
+- `--project` is required. Add `--city` to narrow to one city, and `--route` (requires `--city`) to narrow to one route.
+- `--dry-run` prints row/object counts without deleting anything.
+- Without `--dry-run`, the script prints what it found and asks you to type `yes` to confirm before deleting. Pass `--yes` to skip the prompt (e.g. for scripted use).
+- It authenticates via your existing `wrangler login` session — no extra secrets needed.
+
+**What it deletes:** rows in `photos` and `form_submissions` matching the given scope, plus every R2 object under each affected photo's key (image variants and, for video challenge responses, the video file and its poster variants).
+
+**What it never touches:** `participant_whitelist` and `participant_accounts` — these only carry a `project_id` (no city/route), so this tool leaves participant login accounts alone regardless of scope. Manage those manually per Part 4.
+
+This action is irreversible — there is no soft-delete or backup step. Double-check the scope (especially that you're not omitting `--city`/`--route` when you meant to scope narrower) before confirming.

@@ -16,6 +16,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,svelte,css,md}\"",
     "validate:yaml": "tsx scripts/validate-yaml.ts",
     "backfill-photos": "tsx scripts/backfill-photos.ts",
+    "clear-remote-data": "tsx scripts/clear-remote-data.ts",
+    "list-remote-data": "tsx scripts/list-remote-data.ts",
     "typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json",
     "prepare": "husky"
   },
