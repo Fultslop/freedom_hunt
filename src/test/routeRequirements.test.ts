@@ -12,15 +12,16 @@ function locationWithForm(title: string): RouteEntry {
   };
 }
 
+const routeLocations = ["loc_a", "text_t", "loc_b", "chck_1"];
 const entries: RouteEntry[] = [
-  locationWithForm("Loc A"), // ordinal 1
+  locationWithForm("Loc A"),
   { "template-type": "text", title: "T", text: "..." },
-  locationWithForm("Loc B"), // ordinal 2
+  locationWithForm("Loc B"),
   { "template-type": "checkpoint" }, // index 3 — the checkpoint being evaluated
 ];
 
 test("forms requirement passes trivially when the requirements list is empty", () => {
-  expect(evaluateGate(undefined, { entries, beforeIndex: 3, formStatusByIndex: {}, skippedIndices: new Set() })).toEqual({
+  expect(evaluateGate(undefined, { entries, beforeIndex: 3, formStatusByIndex: {}, skippedIndices: new Set(), routeLocations })).toEqual({
     met: true,
   });
 });
@@ -34,8 +35,9 @@ test("requires_all_forms_completed fails when any earlier form is incomplete, wi
   const result = evaluateGate([req], {
     entries,
     beforeIndex: 3,
-    formStatusByIndex: { 1: { submitted: true, missingLabels: [] } },
+    formStatusByIndex: { loc_a: { submitted: true, missingLabels: [] } },
     skippedIndices: new Set(),
+    routeLocations,
   });
   expect(result.met).toBe(false);
   expect(result.message).toContain("Please finish up");
@@ -52,10 +54,11 @@ test("requires_all_forms_completed passes once every earlier form is submitted",
     entries,
     beforeIndex: 3,
     formStatusByIndex: {
-      1: { submitted: true, missingLabels: [] },
-      2: { submitted: true, missingLabels: [] },
+      loc_a: { submitted: true, missingLabels: [] },
+      loc_b: { submitted: true, missingLabels: [] },
     },
     skippedIndices: new Set(),
+    routeLocations,
   });
   expect(result).toEqual({ met: true });
 });
@@ -69,8 +72,9 @@ test("include_skipped (default true) counts a skipped form as completed", () => 
   const result = evaluateGate([req], {
     entries,
     beforeIndex: 3,
-    formStatusByIndex: { 1: { submitted: true, missingLabels: [] } },
-    skippedIndices: new Set([2]),
+    formStatusByIndex: { loc_a: { submitted: true, missingLabels: [] } },
+    skippedIndices: new Set(["loc_b"]),
+    routeLocations,
   });
   expect(result).toEqual({ met: true });
 });
@@ -85,8 +89,9 @@ test("include_skipped: false does not count a skipped form as completed", () => 
   const result = evaluateGate([req], {
     entries,
     beforeIndex: 3,
-    formStatusByIndex: { 1: { submitted: true, missingLabels: [] } },
-    skippedIndices: new Set([2]),
+    formStatusByIndex: { loc_a: { submitted: true, missingLabels: [] } },
+    skippedIndices: new Set(["loc_b"]),
+    routeLocations,
   });
   expect(result.met).toBe(false);
 });
@@ -100,8 +105,9 @@ test("min_completed_forms passes once the threshold count is met, without requir
   const result = evaluateGate([req], {
     entries,
     beforeIndex: 3,
-    formStatusByIndex: { 1: { submitted: true, missingLabels: [] } },
+    formStatusByIndex: { loc_a: { submitted: true, missingLabels: [] } },
     skippedIndices: new Set(),
+    routeLocations,
   });
   expect(result).toEqual({ met: true });
 });
@@ -203,8 +209,9 @@ test("only counts locations strictly before beforeIndex, ignoring anything at or
   const result = evaluateGate([req], {
     entries,
     beforeIndex: 1,
-    formStatusByIndex: { 1: { submitted: true, missingLabels: [] } },
+    formStatusByIndex: { loc_a: { submitted: true, missingLabels: [] } },
     skippedIndices: new Set(),
+    routeLocations,
   });
   expect(result).toEqual({ met: true });
 });

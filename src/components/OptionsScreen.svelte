@@ -12,7 +12,7 @@
     title,
     text,
     options,
-    index,
+    locationId,
     project,
     city,
     route,
@@ -22,7 +22,7 @@
     title: string;
     text?: string;
     options: Array<{ text: string; target: OptionTarget; track?: boolean }>;
-    index: number;
+    locationId: string;
     project: string;
     city: string;
     route: string;
@@ -30,13 +30,13 @@
   } = $props();
 
   // Best-effort only: fires the same postFormSubmit path challenge forms use so
-  // organizers can see which teams clicked a tracked button (e.g. an EULA's "I
+  // organizers can see which teams clicked a tracked button (e.g. a EULA's "I
   // understand"), but never blocks navigation on the network call succeeding.
   async function trackSelection(optionText: string) {
     const auth = $authStore.activeAuth;
     try {
       await postFormSubmit({
-        locationId: index,
+        locationId,
         routeId: route,
         cityId: city,
         teamName: auth?.kind === "participant" ? auth.teamName : "",

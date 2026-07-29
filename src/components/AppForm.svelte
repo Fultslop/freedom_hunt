@@ -9,6 +9,7 @@
   import ImagePickerDialog from "./ImagePickerDialog.svelte";
   import CoordinatePicker from "./CoordinatePicker.svelte";
   import VideoRecorderField from "./VideoRecorderField.svelte";
+  import SourcedTextareaField from "./SourcedTextareaField.svelte";
   import "./AppForm.css";
 
   const STR_STRING = "string";
@@ -65,6 +66,8 @@
     baseValues = undefined,
     initialUploads = {},
     baseUploads = undefined,
+    touchedFields = [],
+    sourceValues = {},
     onSubmit,
     onPhotoUpload = undefined,
     onVideoUpload = undefined,
@@ -73,6 +76,7 @@
     onHasChangesChange = undefined,
     onStatusChange = undefined,
     onUploadsChange = undefined,
+    onTouchedFieldsChange = undefined,
     submitLabel = "Submit",
     confirmMessage = undefined,
   }: {
@@ -81,6 +85,8 @@
     baseValues?: Record<string, unknown>;
     initialUploads?: Record<string, PhotoUploadStatus>;
     baseUploads?: Record<string, PhotoUploadStatus>;
+    touchedFields?: string[];
+    sourceValues?: Record<string, string>;
     onSubmit: (values: Record<string, unknown>) => Promise<void>;
     onPhotoUpload?: (file: File) => Promise<{ ok: boolean; httpCode?: number }>;
     onVideoUpload?: (video: File, poster: File) => Promise<{ ok: boolean; httpCode?: number }>;
@@ -89,6 +95,7 @@
     onHasChangesChange?: (hasChanges: boolean) => void;
     onStatusChange?: (status: FormValidationStatus) => void;
     onUploadsChange?: (uploads: Record<string, PhotoUploadStatus>) => void;
+    onTouchedFieldsChange?: (fields: string[]) => void;
     submitLabel?: string;
     confirmMessage?: string;
   } = $props();
@@ -110,8 +117,14 @@
     untrack(() => {
       const seeded: FieldValues = { ...(initialValues as FieldValues) };
       for (const field of fields) {
-        if (
-          field.id &&
+        if (!field.id) {/* no-op */} else if (
+          field.type === STR_TEXTAREA &&
+          field.source &&
+          !touchedFields.includes(field.id) &&
+          sourceValues[field.id] !== undefined
+        ) {
+          seeded[field.id] = sourceValues[field.id];
+        } else if (
           field.value !== undefined &&
           !Object.prototype.hasOwnProperty.call(seeded, field.id)
         ) {
@@ -189,6 +202,17 @@
       }
     }
     onUploadsChange?.(settled);
+  });
+  let touchedFieldSet = $state<Set<string>>(new Set(untrack(() => touchedFields)));
+
+  function markTouched(fieldId: string) {
+    if (!touchedFieldSet.has(fieldId)) {
+      touchedFieldSet = new Set(touchedFieldSet).add(fieldId);
+    }
+  }
+
+  $effect(() => {
+    onTouchedFieldsChange?.([...touchedFieldSet]);
   });
   let errors = $state<Record<string, string>>({});
   let submitState = $state<SubmitState>("idle");
@@ -576,14 +600,36 @@
               bind:value={values[id] as string}
             />
           {:else if field.type === "textarea"}
-            <textarea
-              id={domId}
-              class="af-textarea"
-              class:af-textarea--error={err}
-              aria-describedby={describedBy}
-              rows={field.config?.lineCount ?? 5}
-              bind:value={values[id] as string}
-            ></textarea>
+            {#if field.source}
+              <SourcedTextareaField
+                domId={domId}
+                value={(values[id] as string) ?? ""}
+                hasError={!!err}
+                describedBy={describedBy}
+                rows={field.config?.lineCount ?? 5}
+                sourceValue={sourceValues[id]}
+                touched={touchedFieldSet.has(id)}
+                onChange={(v) => {
+                  values[id] = v;
+                  markTouched(id);
+                }}
+                onUpdateFromSource={() => {
+                  const resolved = sourceValues[id];
+                  if (resolved !== undefined) {
+                    values[id] = resolved;
+                  }
+                }}
+              />
+            {:else}
+              <textarea
+                id={domId}
+                class="af-textarea"
+                class:af-textarea--error={err}
+                aria-describedby={describedBy}
+                rows={field.config?.lineCount ?? 5}
+                bind:value={values[id] as string}
+              ></textarea>
+            {/if}
           {:else if field.type === "number"}
             <input
               id={domId}

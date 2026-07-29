@@ -529,7 +529,7 @@ test("badge number reflects location ordinal, not raw array position, when a non
   expect(screen.getByTestId("location-badge")).toHaveTextContent("2");
 });
 
-test("form answers persist under a key keyed by location ordinal, unaffected by a preceding non-location entry", async () => {
+test("form answers persist under a key keyed by the route's location id, unaffected by a preceding non-location entry", async () => {
   const { loadLocations } = await import("../utils/loadLocations");
   vi.mocked(loadLocations).mockResolvedValueOnce(mockPrecededByTextEntries as RouteEntry[]);
   render(RoutePage, {
@@ -542,7 +542,7 @@ test("form answers persist under a key keyed by location ordinal, unaffected by 
   await fireEvent.click(await screen.findByRole("button", { name: /submit/i }));
   await fireEvent.click(await screen.findByRole("button", { name: /confirm/i }));
   await waitFor(() => {
-    const stored = localStorage.getItem("democrats_abroad/den_haag/short_loop/1/form");
+    const stored = localStorage.getItem("democrats_abroad/den_haag/short_loop/002/form");
     expect(stored).not.toBeNull();
     expect(JSON.parse(stored!).submitted).toBe(true);
   });
@@ -696,7 +696,7 @@ test("clicking a tracked 'continue' option advances and submits a form even with
   await fireEvent.click(screen.getByText("I understand"));
   expect(await screen.findByText("Location 1")).toBeInTheDocument();
   expect(postFormSubmit).toHaveBeenCalledWith(
-    expect.objectContaining({ locationId: 0, answers: { selected: "I understand" } }),
+    expect.objectContaining({ locationId: "001", answers: { selected: "I understand" } }),
   );
   expect(screen.getByText("End of route")).toBeInTheDocument();
 });

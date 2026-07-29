@@ -33,7 +33,7 @@ afterEach(() => {
 test("postFormSubmit POSTs to /form-submit with payload and returns response", async () => {
   mockFetch({ ok: true });
   const payload = {
-    locationId: 1,
+    locationId: "1",
     routeId: "short_loop",
     cityId: "den_haag",
     teamName: "Team A",
@@ -52,7 +52,7 @@ test("postFormSubmit POSTs to /form-submit with payload and returns response", a
 test("postFormSubmit returns ok: false on server error", async () => {
   mockFetch({ ok: false });
   const result = await postFormSubmit({
-    locationId: 1,
+    locationId: "1",
     cityId: "den_haag",
     teamName: "",
     contact: "",
@@ -65,7 +65,7 @@ test("postPhotoUpload POSTs to /upload with FormData", async () => {
   mockFetch({ ok: true, id: "photo-1", key: "1_123" }, 200);
   const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
   const result = await postPhotoUpload({
-    locationId: 1,
+    locationId: "1",
     cityId: "den_haag",
     routeId: "short_loop",
     taskTitle: "The Final Civic Act",

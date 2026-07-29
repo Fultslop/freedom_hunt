@@ -7,6 +7,7 @@ const ROUTE_INDEX: RouteIndex = {
   riverside_route: [
     {
       ordinal: 1,
+      locationId: "1",
       name: "Eiffel Tower",
       fields: [{ id: "found", type: "boolean", label: "Found it?" }],
     },

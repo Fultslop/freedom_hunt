@@ -1,0 +1,14 @@
+- id: final_manifesto
+  type: textarea
+  label: What changed between your draft and final version? Whose voice is still missing?
+  source: 004_loc_lange_voorhout.form.manifesto
+  value: |
+    title:
+    In the name of ________, we pledge to ________.
+    To protect ________, we demand ________.
+    To honor ________, we will ________.
+    To fight against ________, we will ________.
+    To recruit others to join us, we will ________.
+
+
+

@@ -95,7 +95,20 @@ test("forwards form status changes tagged with the location's index", async () =
   });
   await waitFor(() => {
     expect(onFormStatusChange).toHaveBeenCalledWith(
-      3,
+      "3",
+      expect.objectContaining({ submitted: false }),
+    );
+  });
+});
+
+test("forwards form status changes tagged with the explicit locationKey when provided, not the display index", async () => {
+  const onFormStatusChange = vi.fn();
+  render(ChallengeCard, {
+    props: { location, index: 3, locationKey: "004_loc_lange_voorhout", onFormStatusChange },
+  });
+  await waitFor(() => {
+    expect(onFormStatusChange).toHaveBeenCalledWith(
+      "004_loc_lange_voorhout",
       expect.objectContaining({ submitted: false }),
     );
   });

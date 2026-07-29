@@ -7,7 +7,7 @@ import type { ResultsSubmission } from "../types/results";
 // ---------------------------------------------------------------------------
 
 export interface FormSubmitPayload {
-  locationId: number;
+  locationId: string;
   routeId?: string;
   cityId: string;
   teamName: string;
@@ -27,7 +27,7 @@ export async function postFormSubmit(
 }
 
 export interface PhotoUploadPayload {
-  locationId: number;
+  locationId: string;
   cityId: string;
   routeId?: string;
   taskTitle: string;
@@ -39,7 +39,7 @@ export async function postPhotoUpload(
 ): Promise<{ ok: boolean; id?: string; key?: string; httpCode: number }> {
   const body = new FormData();
   body.append("photo", payload.file);
-  body.append("locationId", String(payload.locationId));
+  body.append("locationId", payload.locationId);
   body.append("cityId", payload.cityId);
   if (payload.routeId) {
     body.append("routeId", payload.routeId);
@@ -51,7 +51,7 @@ export async function postPhotoUpload(
 }
 
 export interface VideoUploadPayload {
-  locationId: number;
+  locationId: string;
   cityId: string;
   routeId?: string;
   taskTitle: string;
@@ -65,7 +65,7 @@ export async function postVideoUpload(
   const body = new FormData();
   body.append("video", payload.video);
   body.append("poster", payload.poster);
-  body.append("locationId", String(payload.locationId));
+  body.append("locationId", payload.locationId);
   body.append("cityId", payload.cityId);
   if (payload.routeId) {
     body.append("routeId", payload.routeId);

@@ -1,12 +1,14 @@
 import type { RouteEntry, RouteRequirement, FormsRequirement, PeriodRequirement, LocationEntry } from "../types/data";
-import { isLocationEntry, locationOrdinalAt } from "./routeEntries";
+import { isLocationEntry, locationIdAt } from "./routeEntries";
 
 export interface RequirementContext {
   entries: RouteEntry[];
   /** Only entries with array index strictly less than this are in scope. */
   beforeIndex: number;
-  formStatusByIndex: Record<number, { submitted: boolean; missingLabels?: string[] }>;
-  skippedIndices: Set<number>;
+  formStatusByIndex: Record<string, { submitted: boolean; missingLabels?: string[] }>;
+  skippedIndices: Set<string>;
+  /** Raw route location ids (from routeData.locations) indexed by entry position. */
+  routeLocations?: string[];
   now?: Date;
 }
 
@@ -31,9 +33,9 @@ function isFormComplete(
   includeSkipped: boolean,
   index: number,
 ): boolean {
-  const locationId = locationOrdinalAt(ctx.entries, index);
-  const submitted = ctx.formStatusByIndex[locationId]?.submitted ?? false;
-  const skipped = ctx.skippedIndices.has(locationId);
+  const locKey = locationIdAt(ctx.routeLocations ?? [], index);
+  const submitted = ctx.formStatusByIndex[locKey]?.submitted ?? false;
+  const skipped = ctx.skippedIndices.has(locKey);
   return submitted || (includeSkipped && skipped);
 }
 

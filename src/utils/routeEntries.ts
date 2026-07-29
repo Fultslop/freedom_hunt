@@ -12,6 +12,10 @@ export function locationOrdinalAt(entries: RouteEntry[], index: number): number 
   return entries.slice(0, index + 1).filter(isLocationEntry).length;
 }
 
+export function locationIdAt(locations: string[], index: number): string {
+  return locations[index] ?? "";
+}
+
 interface NavBarEntry {
   "nav-bar"?: { visible?: boolean };
 }

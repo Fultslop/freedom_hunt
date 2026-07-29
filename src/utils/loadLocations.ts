@@ -1,5 +1,6 @@
 import { loadText } from "./loadText";
 import { findStatsRefs } from "./storylineBlocks";
+import { parseSourceRef } from "./locationFormLookup";
 import type {
   RouteEntry,
   LocationEntry,
@@ -25,6 +26,7 @@ const KNOWN_FORM_FIELD_KEYS = new Set([
   "value",
   "storeDefaultValue",
   "config",
+  "source",
 ]);
 
 const VALUE_SUPPORTED_TYPES = new Set<FormFieldType>([
@@ -83,6 +85,21 @@ function validateFieldConfig(field: FormField): string | null {
   return null;
 }
 
+const SOURCE_SUPPORTED_TYPES = new Set<FormFieldType>(["textarea"]);
+
+function validateFieldSource(field: FormField): string | null {
+  if (field.source === undefined) {
+    return null;
+  }
+  if (!SOURCE_SUPPORTED_TYPES.has(field.type)) {
+    return `'source' not supported on type '${field.type}'`;
+  }
+  if (!parseSourceRef(field.source)) {
+    return `'source' must match '<location_id>.form.<field_id>'`;
+  }
+  return null;
+}
+
 function validateFieldValue(field: FormField): string | null {
   const hasValue = Object.prototype.hasOwnProperty.call(field, "value");
   const hasStoreDefaultValue = Object.prototype.hasOwnProperty.call(
@@ -106,6 +123,7 @@ function buildFieldErrorMessages(
   unknownKeys: string[],
   valueError: string | null,
   configError: string | null,
+  sourceError: string | null,
 ): string[] {
   return [
     ...(unknownKeys.length > 0
@@ -113,6 +131,7 @@ function buildFieldErrorMessages(
       : []),
     ...(valueError ? [valueError] : []),
     ...(configError ? [configError] : []),
+    ...(sourceError ? [sourceError] : []),
   ];
 }
 
@@ -123,14 +142,15 @@ function withValidatedFields(fields: FormField[]): FormField[] {
     );
     const valueError = validateFieldValue(field);
     const configError = validateFieldConfig(field);
-    if (unknownKeys.length === 0 && !valueError && !configError) {
+    const sourceError = validateFieldSource(field);
+    if (unknownKeys.length === 0 && !valueError && !configError && !sourceError) {
       return field;
     }
     const fieldId = field.id ?? field.label;
     return {
       id: fieldId,
       type: "schema_error" as FormFieldType,
-      label: buildFieldErrorMessages(fieldId, unknownKeys, valueError, configError).join("; "),
+      label: buildFieldErrorMessages(fieldId, unknownKeys, valueError, configError, sourceError).join("; "),
     };
   });
 }

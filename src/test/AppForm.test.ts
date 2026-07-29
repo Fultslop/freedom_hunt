@@ -1372,3 +1372,76 @@ test("video field: required validation blocks submit until upload succeeds", asy
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   expect(onSubmit).not.toHaveBeenCalled();
 });
+
+// ---------------------------------------------------------------------------
+// Sourced textarea (field.source)
+// ---------------------------------------------------------------------------
+
+test("sourced textarea seeds its value from sourceValues when untouched", () => {
+  const fields: FormField[] = [
+    { id: "final", type: "textarea", label: "Final", source: "004_loc_lange_voorhout.form.manifesto" },
+  ];
+  render(AppForm, {
+    props: { fields, sourceValues: { final: "resolved draft text" }, onSubmit: vi.fn() },
+  });
+  expect((screen.getByLabelText("Final") as HTMLTextAreaElement).value).toBe("resolved draft text");
+});
+
+test("sourced textarea falls back to its own value default when the source hasn't resolved", () => {
+  const fields: FormField[] = [
+    {
+      id: "final",
+      type: "textarea",
+      label: "Final",
+      source: "004_loc_lange_voorhout.form.manifesto",
+      value: "placeholder text",
+    },
+  ];
+  render(AppForm, { props: { fields, sourceValues: {}, onSubmit: vi.fn() } });
+  expect((screen.getByLabelText("Final") as HTMLTextAreaElement).value).toBe("placeholder text");
+});
+
+test("a touched sourced field keeps the persisted value instead of the live source value", () => {
+  const fields: FormField[] = [
+    { id: "final", type: "textarea", label: "Final", source: "004_loc_lange_voorhout.form.manifesto" },
+  ];
+  render(AppForm, {
+    props: {
+      fields,
+      initialValues: { final: "my own edit" },
+      touchedFields: ["final"],
+      sourceValues: { final: "newer source text" },
+      onSubmit: vi.fn(),
+    },
+  });
+  expect((screen.getByLabelText("Final") as HTMLTextAreaElement).value).toBe("my own edit");
+});
+
+test("editing a sourced textarea reports it as touched via onTouchedFieldsChange", async () => {
+  const onTouchedFieldsChange = vi.fn();
+  const fields: FormField[] = [
+    { id: "final", type: "textarea", label: "Final", source: "004_loc_lange_voorhout.form.manifesto" },
+  ];
+  render(AppForm, {
+    props: {
+      fields,
+      sourceValues: { final: "resolved draft text" },
+      onTouchedFieldsChange,
+      onSubmit: vi.fn(),
+    },
+  });
+  await fireEvent.input(screen.getByLabelText("Final"), { target: { value: "my edit" } });
+  await waitFor(() => {
+    expect(onTouchedFieldsChange).toHaveBeenLastCalledWith(["final"]);
+  });
+});
+
+test("a plain textarea without source is unaffected by sourceValues/touchedFields props", () => {
+  const fields: FormField[] = [
+    { id: "story", type: "textarea", label: "Your story", value: "default" },
+  ];
+  render(AppForm, {
+    props: { fields, sourceValues: { story: "should not apply" }, onSubmit: vi.fn() },
+  });
+  expect((screen.getByLabelText("Your story") as HTMLTextAreaElement).value).toBe("default");
+});

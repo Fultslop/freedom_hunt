@@ -4,12 +4,20 @@ import { isLocationEntry } from "./routeEntries";
 import type { RoutesData, LocationEntry } from "../types/data";
 import type { RouteLocationEntry, RouteIndex } from "./resultsData";
 
-function toRouteLocationEntries(entries: LocationEntry[]): RouteLocationEntry[] {
+function toRouteLocationEntries(
+  entries: LocationEntry[],
+  locationIds: string[],
+): RouteLocationEntry[] {
   const withForm: RouteLocationEntry[] = [];
   entries.forEach((entry, index) => {
     const fields = entry.challenge.form ?? [];
     if (fields.length > 0) {
-      withForm.push({ ordinal: index + 1, name: entry.name.value, fields });
+      withForm.push({
+        ordinal: index + 1,
+        locationId: locationIds[index],
+        name: entry.name.value,
+        fields,
+      });
     }
   });
   return withForm;
@@ -30,8 +38,15 @@ export async function buildRouteIndex(
       (locationFile) => `projects/${project}/${city}/${locationFile}`,
     );
     const resolvedEntries = await loadLocations(lang, paths);
-    const locationEntries = resolvedEntries.filter(isLocationEntry);
-    index[routeId] = toRouteLocationEntries(locationEntries);
+    const locationEntries: LocationEntry[] = [];
+    const locationIds: string[] = [];
+    resolvedEntries.forEach((entry, i) => {
+      if (isLocationEntry(entry)) {
+        locationEntries.push(entry);
+        locationIds.push(route.locations[i]);
+      }
+    });
+    index[routeId] = toRouteLocationEntries(locationEntries, locationIds);
   }
   return index;
 }
