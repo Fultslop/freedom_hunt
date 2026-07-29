@@ -889,19 +889,14 @@ Replace the `values` seeding block:
     untrack(() => {
       const seeded: FieldValues = { ...(initialValues as FieldValues) };
       for (const field of fields) {
-        if (!field.id) {
-          continue;
-        }
-        if (
+        if (!field.id) {/* no-op */} else if (
           field.type === STR_TEXTAREA &&
           field.source &&
           !touchedFields.includes(field.id) &&
           sourceValues[field.id] !== undefined
         ) {
           seeded[field.id] = sourceValues[field.id];
-          continue;
-        }
-        if (
+        } else if (
           field.value !== undefined &&
           !Object.prototype.hasOwnProperty.call(seeded, field.id)
         ) {
@@ -912,6 +907,8 @@ Replace the `values` seeding block:
     }),
   );
 ```
+
+(Written as an `if`/`else-if` chain rather than `continue`-based early exits — this repo's ESLint config sets `"no-continue": "error"`, so the more natural `continue` version fails lint.)
 
 (An untouched sourced field with a resolved value always takes the fresh source content, overriding any stale persisted value from a previous mount — this is what makes it "live-synced while untouched." A touched field, or one whose source hasn't resolved yet, falls through unchanged to the existing default-seeding logic.)
 

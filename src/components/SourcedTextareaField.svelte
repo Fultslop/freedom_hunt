@@ -36,7 +36,7 @@
   oninput={(e) => onChange((e.target as HTMLTextAreaElement).value)}
 ></textarea>
 
-{#if touched && sourceValue !== undefined}
+{#if touched && sourceValue !== undefined && sourceValue !== value}
   {#if showConfirm}
     <div class="stf-confirm">
       <p class="stf-confirm-msg">Replace your edits with the latest source text? This can't be undone.</p>
