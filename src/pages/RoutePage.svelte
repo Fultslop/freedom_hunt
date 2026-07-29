@@ -451,11 +451,12 @@
   $effect(() => {
     function onKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable) return;
-      if (e.key === "ArrowLeft" && currentIndex > earliestAllowed) {
-        handleDragEnd(cardWidth);
-      } else if (e.key === "ArrowRight" && canGoForward) {
-        handleDragEnd(-cardWidth);
+      if (!(target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable)) {
+        if (e.key === "ArrowLeft" && currentIndex > earliestAllowed) {
+          handleDragEnd(cardWidth);
+        } else if (e.key === "ArrowRight" && canGoForward) {
+          handleDragEnd(-cardWidth);
+        }
       }
     }
     window.addEventListener("keydown", onKeyDown);
