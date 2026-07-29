@@ -1,0 +1,10 @@
+- id: manifesto_link
+  type: string
+  label: Share a link to your video
+
+- id: manifesto_message
+  type: textarea
+  label: Your message, who are you standing with, what are you defending ?
+  config:
+    lineCount: 6
+  

@@ -16,6 +16,7 @@ See `doc/architecture.md` for full project context.
 
 - **Architecture:** `doc/architecture.md` — project intent, stack, routing, data model
 - **Devlog:** `doc/devlog/_devlog.md` — dated log of decisions and changes (note: underscore prefix)
+- **Specs:** brainstorming/design specs go in `doc/superpowers/specs/` (this project uses `doc/`, not the skill's default `docs/`)
 
 ## Coding Conventions
 

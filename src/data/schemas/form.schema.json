@@ -17,7 +17,14 @@
       "options": { "type": "array", "items": { "type": "string" } },
       "values":  { "type": "array", "items": { "type": "string" } },
       "min":     { "type": "number" },
-      "max":     { "type": "number" }
+      "max":     { "type": "number" },
+      "value":   { "type": ["string", "number", "boolean", "array"], "items": { "type": "string" } },
+      "storeDefaultValue": { "type": "boolean" },
+      "config":  {
+        "type": "object",
+        "properties": { "lineCount": { "type": "number" } },
+        "additionalProperties": false
+      }
     }
   }
 }

@@ -22,21 +22,115 @@ const KNOWN_FORM_FIELD_KEYS = new Set([
   "min",
   "max",
   "isRequired",
+  "value",
+  "storeDefaultValue",
+  "config",
 ]);
+
+const VALUE_SUPPORTED_TYPES = new Set<FormFieldType>([
+  "string",
+  "textarea",
+  "number",
+  "boolean",
+  "radio",
+  "multiple",
+]);
+
+const VALUE_SHAPE_CHECKS: Record<string, (value: unknown, options: string[]) => boolean> = {
+  string: (value) => typeof value === "string",
+  textarea: (value) => typeof value === "string",
+  number: (value) => typeof value === "number",
+  boolean: (value) => typeof value === "boolean",
+  radio: (value, options) => typeof value === "string" && options.includes(value),
+  multiple: (value, options) =>
+    Array.isArray(value) && value.every((v) => typeof v === "string" && options.includes(v)),
+};
+
+const VALUE_SHAPE_MESSAGES: Record<string, string> = {
+  string: "'value' must be a string for type 'string'",
+  textarea: "'value' must be a string for type 'textarea'",
+  number: "'value' must be a number for type 'number'",
+  boolean: "'value' must be a boolean for type 'boolean'",
+  radio: "'value' must be one of this field's 'options'",
+  multiple: "'value' must be an array of this field's 'options'",
+};
+
+function getValueShapeError(field: FormField): string | null {
+  const isValidShape = VALUE_SHAPE_CHECKS[field.type](field.value, field.options ?? []);
+  return isValidShape ? null : VALUE_SHAPE_MESSAGES[field.type];
+}
+
+const CONFIG_SUPPORTED_TYPES = new Set<FormFieldType>(["textarea"]);
+const KNOWN_CONFIG_KEYS = new Set(["lineCount"]);
+
+function validateFieldConfig(field: FormField): string | null {
+  if (field.config === undefined) {
+    return null;
+  }
+  if (!CONFIG_SUPPORTED_TYPES.has(field.type)) {
+    return `'config' not supported on type '${field.type}'`;
+  }
+  const unknownConfigKeys = Object.keys(field.config).filter(
+    (key) => !KNOWN_CONFIG_KEYS.has(key),
+  );
+  if (unknownConfigKeys.length > 0) {
+    return `unknown config properties: ${unknownConfigKeys.join(", ")}`;
+  }
+  const { lineCount } = field.config;
+  if (lineCount !== undefined && !(Number.isInteger(lineCount) && lineCount > 0)) {
+    return `'config.lineCount' must be a positive integer`;
+  }
+  return null;
+}
+
+function validateFieldValue(field: FormField): string | null {
+  const hasValue = Object.prototype.hasOwnProperty.call(field, "value");
+  const hasStoreDefaultValue = Object.prototype.hasOwnProperty.call(
+    field,
+    "storeDefaultValue",
+  );
+  if (!hasValue && !hasStoreDefaultValue) {
+    return null;
+  }
+  if (!VALUE_SUPPORTED_TYPES.has(field.type)) {
+    return `'value'/'storeDefaultValue' not supported on type '${field.type}'`;
+  }
+  if (hasStoreDefaultValue && typeof field.storeDefaultValue !== "boolean") {
+    return `'storeDefaultValue' must be a boolean`;
+  }
+  return hasValue ? getValueShapeError(field) : null;
+}
+
+function buildFieldErrorMessages(
+  fieldId: string,
+  unknownKeys: string[],
+  valueError: string | null,
+  configError: string | null,
+): string[] {
+  return [
+    ...(unknownKeys.length > 0
+      ? [`unknown properties on '${fieldId}': ${unknownKeys.join(", ")}`]
+      : []),
+    ...(valueError ? [valueError] : []),
+    ...(configError ? [configError] : []),
+  ];
+}
 
 function withValidatedFields(fields: FormField[]): FormField[] {
   return fields.map((field) => {
     const unknownKeys = Object.keys(field as unknown as Record<string, unknown>).filter(
       (key) => !KNOWN_FORM_FIELD_KEYS.has(key),
     );
-    if (unknownKeys.length === 0) {
+    const valueError = validateFieldValue(field);
+    const configError = validateFieldConfig(field);
+    if (unknownKeys.length === 0 && !valueError && !configError) {
       return field;
     }
     const fieldId = field.id ?? field.label;
     return {
       id: fieldId,
       type: "schema_error" as FormFieldType,
-      label: `unknown properties on '${fieldId}': ${unknownKeys.join(", ")}`,
+      label: buildFieldErrorMessages(fieldId, unknownKeys, valueError, configError).join("; "),
     };
   });
 }
