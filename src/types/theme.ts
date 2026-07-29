@@ -12,6 +12,7 @@ export interface Theme {
   textSecondary: string;
   textMuted: string;
   accent: string;
+  defaultButtonColor: "primary" | "secondary";
   barBackground: string;
   barBorder: string;
   barText: string;

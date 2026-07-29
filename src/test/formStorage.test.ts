@@ -61,7 +61,7 @@ test("saveFormState writes a version envelope that loadFormState reads back tran
     touchedFields: [],
   });
   const raw = JSON.parse(localStorage.getItem(key)!);
-  expect(raw.version).toBe("1.1");
+  expect(raw.version).toBe("1.2");
   expect(loadFormState(key)).toEqual({
     values: { note: "hi" },
     uploads: {},
@@ -105,6 +105,36 @@ test("loadFormState treats a major-version mismatch as empty", () => {
     skipped: false,
     touchedFields: [],
   });
+});
+
+test("saveFormState then loadFormState round-trips submittedAt when present", () => {
+  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1");
+  const state = {
+    values: {},
+    uploads: {},
+    submitted: true,
+    skipped: false,
+    touchedFields: [],
+    submittedAt: 1690000000000,
+  };
+  saveFormState(key, state);
+  expect(loadFormState(key)).toEqual(state);
+});
+
+test("loadFormState reads a pre-submittedAt payload (version 1.1) with submittedAt undefined", () => {
+  const key = "pre-submittedat-key";
+  localStorage.setItem(
+    key,
+    JSON.stringify({
+      version: "1.1",
+      values: {},
+      uploads: {},
+      submitted: true,
+      skipped: false,
+      touchedFields: [],
+    }),
+  );
+  expect(loadFormState(key).submittedAt).toBeUndefined();
 });
 
 test("loadFormState reads a minor-version-only payload (pre-touchedFields shape) with touchedFields defaulting to empty", () => {

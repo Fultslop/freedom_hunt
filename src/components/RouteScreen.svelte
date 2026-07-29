@@ -3,7 +3,8 @@
   import TextScreen from "./TextScreen.svelte";
   import SplashScreen from "./SplashScreen.svelte";
   import OptionsScreen from "./OptionsScreen.svelte";
-  import type { RouteEntry, LocationEntry } from "../types/data";
+  import CompletionScreen from "./CompletionScreen.svelte";
+  import type { RouteEntry, LocationEntry, CompletionStats } from "../types/data";
 
   let {
     entry,
@@ -21,6 +22,7 @@
     onContinue = undefined,
     onPrev = undefined,
     isCurrent = true,
+    stats = undefined,
   }: {
     entry: RouteEntry;
     index: number;
@@ -40,6 +42,7 @@
     onContinue?: () => void;
     onPrev?: () => void;
     isCurrent?: boolean;
+    stats?: CompletionStats;
   } = $props();
 
   let resolvedLocationKey = $derived(locationKey ?? String(index));
@@ -62,6 +65,21 @@
     shader={entry.shader}
     effectConfig={entry.effect}
     anchor={entry.anchor}
+    {isCurrent}
+  />
+{:else if entry["template-type"] === "completion"}
+  <CompletionScreen
+    image={entry.image}
+    title={entry.title}
+    subtitle={entry.subtitle}
+    place={entry.place}
+    caption={entry.caption}
+    closingText={entry.closing_text}
+    buttons={entry.buttons}
+    hint={entry.hint}
+    stats={stats ?? { stopsCompleted: 0, stopsTotal: 0, photosCount: "—", timeOnFoot: "—" }}
+    project={project}
+    cityId={cityId ?? ""}
     {isCurrent}
   />
 {:else if entry["template-type"] === "options"}

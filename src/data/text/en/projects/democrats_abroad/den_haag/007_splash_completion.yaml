@@ -1,9 +1,0 @@
-template-type: splash
-image: celebration.png
-effect:
-  type: confetti
-  cooldown:
-    min: 0.26
-    max: 0.35
-  max: -1
-title: "Congratulations, you have completed the Democrats Abroad 2026 Scavenger Hunt!"

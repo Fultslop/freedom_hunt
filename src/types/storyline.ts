@@ -1,4 +1,4 @@
-export type StatVisibility = "visible" | "click_to_reveal";
+export type StatVisibility = "visible" | "click_to_reveal" | "count_up";
 
 export interface StatItem {
   value: number | string;

@@ -44,6 +44,7 @@
   let hasSubmittedOnce = $state(stored.submitted);
   let skipped = $state(stored.skipped);
   let touchedFields = $state<string[]>(stored.touchedFields);
+  let submittedAt = $state<number | undefined>(stored.submittedAt);
 
   const sourceValues = untrack(() => {
     const result: Record<string, string> = {};
@@ -67,9 +68,17 @@
     submitted: boolean,
     skp: boolean,
     touched: string[],
+    stampedAt: number | undefined,
   ) {
     if (storeInLocalStorage) {
-      saveFormState(storageKey, { values: vals, uploads: ups, submitted, skipped: skp, touchedFields: touched });
+      saveFormState(storageKey, {
+        values: vals,
+        uploads: ups,
+        submitted,
+        skipped: skp,
+        touchedFields: touched,
+        submittedAt: stampedAt,
+      });
     }
   }
 
@@ -81,6 +90,7 @@
       untrack(() => hasSubmittedOnce),
       untrack(() => skipped),
       untrack(() => touchedFields),
+      untrack(() => submittedAt),
     );
   }
 
@@ -92,6 +102,7 @@
       untrack(() => hasSubmittedOnce),
       untrack(() => skipped),
       untrack(() => touchedFields),
+      untrack(() => submittedAt),
     );
   }
 
@@ -103,6 +114,7 @@
       untrack(() => hasSubmittedOnce),
       untrack(() => skipped),
       fields,
+      untrack(() => submittedAt),
     );
   }
 
@@ -127,7 +139,10 @@
     hasSubmittedOnce = true;
     baseValues = latestValues;
     baseUploads = latestUploads;
-    persist(latestValues, latestUploads, true, skipped, untrack(() => touchedFields));
+    if (submittedAt === undefined) {
+      submittedAt = Date.now();
+    }
+    persist(latestValues, latestUploads, true, skipped, untrack(() => touchedFields), submittedAt);
     onFormStatusChange?.({ submitted: true, missingLabels: [] });
   }
 

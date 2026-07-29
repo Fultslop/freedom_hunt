@@ -3,6 +3,7 @@ import { titleBarStore } from "../stores/titleBarStore";
 import { themeStore } from "../stores/themeStore";
 import RoutePage from "../pages/RoutePage.svelte";
 import type { RouteEntry } from "../types/data";
+import { buildFormStorageKey, saveFormState } from "../utils/formStorage";
 
 const {
   mockLocations,
@@ -15,6 +16,7 @@ const {
   mockEulaEntries,
   mockCompletionEntries,
   mockRepeatSplashEntries,
+  mockFinishLineEntries,
   huntSettingsFixture,
 } = vi.hoisted(() => ({
   mockLocations: [
@@ -221,6 +223,41 @@ const {
         description: "Desc 1",
         form: [{ id: "note", type: "string" as const, label: "Your note" }],
       },
+    },
+  ],
+  mockFinishLineEntries: [
+    {
+      title: "Loc 1",
+      name: { value: "Location 1" },
+      coordinates: { latitude: 52.0, longitude: 4.0 },
+      storyline: "Story 1",
+      breadcrumb: "Step 1",
+      challenge: {
+        name: "Challenge 1",
+        description: "Desc 1",
+        form: [{ id: "note", type: "string" as const, label: "Your note", isRequired: true }],
+      },
+    },
+    {
+      title: "Loc 2",
+      name: { value: "Location 2" },
+      coordinates: { latitude: 52.1, longitude: 4.1 },
+      storyline: "Story 2",
+      breadcrumb: "Step 2",
+      challenge: {
+        name: "Challenge 2",
+        description: "Desc 2",
+        form: [{ id: "note2", type: "string" as const, label: "Second note", isRequired: true }],
+      },
+    },
+    {
+      "template-type": "completion",
+      image: "lange-vijverberg.jpg",
+      title: "You made it.",
+      subtitle: "Democrats Abroad 2026 Scavenger Hunt",
+      place: "The Hague · short loop",
+      registration: { text: "Check your registration", url: "https://example.org" },
+      "nav-bar": { visible: false },
     },
   ],
   huntSettingsFixture: {} as Record<string, unknown>,
@@ -755,4 +792,74 @@ test("regression: repeat-effect re-fires in carousel swipe mode after leaving an
   await screen.findByText("Congrats");
   // Back on the splash screen with repeat-effect budget remaining — must re-fire.
   await waitFor(() => expect(container.querySelector(".confetti-effect")).toBeInTheDocument());
+});
+
+test("computes stops-completed from real form-submission state, and shows it on the completion screen", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockFinishLineEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("Location 1");
+  await fireEvent.input(screen.getByLabelText("Your note"), { target: { value: "some text" } });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
+  await screen.findByRole("button", { name: /saved/i });
+
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await screen.findByText("Location 2");
+  await fireEvent.input(screen.getByLabelText("Second note"), { target: { value: "more text" } });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
+  await screen.findByRole("button", { name: /saved/i });
+
+  await fireEvent.click(await screen.findByRole("button", { name: /next stop/i }));
+  await screen.findByText("You made it.");
+
+  await vi.waitFor(() => {
+    expect(screen.getByText("2")).toBeInTheDocument();
+  });
+});
+
+test("shows photos-taken and time-on-foot from local storage, and stages the progress bar from the real stops-completed fraction to 100%", async () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(8_280_000);
+  localStorage.setItem("democrats_abroad/den_haag/short_loop", "2");
+  saveFormState(buildFormStorageKey("democrats_abroad", "den_haag", "short_loop", "001"), {
+    values: {},
+    uploads: { pic: { status: "success", httpCode: 200 } },
+    submitted: true,
+    skipped: false,
+    touchedFields: [],
+    submittedAt: 0,
+  });
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockFinishLineEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await screen.findByText("You made it.");
+
+  let progress: { current: number; total: number; animateMs?: number } | null = null;
+  titleBarStore.subscribe((state) => {
+    if (state.progress !== undefined) {
+      progress = state.progress;
+    }
+  })();
+  expect(progress).toEqual({ current: 1, total: 2, animateMs: 900 });
+
+  vi.advanceTimersByTime(2000);
+
+  await vi.waitFor(() => {
+    expect(screen.getAllByText("1").length).toBe(2);
+    expect(screen.getByText("2h 18m")).toBeInTheDocument();
+  });
+
+  titleBarStore.subscribe((state) => {
+    if (state.progress !== undefined) {
+      progress = state.progress;
+    }
+  })();
+  expect(progress).toEqual({ current: 2, total: 2, animateMs: 900 });
+  vi.useRealTimers();
 });

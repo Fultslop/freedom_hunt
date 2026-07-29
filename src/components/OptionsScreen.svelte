@@ -4,6 +4,7 @@
   import MarkdownText from "./MarkdownText.svelte";
   import { authStore } from "../stores/authStore";
   import { postFormSubmit } from "../utils/api";
+  import { resolvePageUrl } from "../utils/optionTargets";
   import type { OptionTarget } from "../types/data";
   import "./OptionsScreen.css";
 
@@ -49,17 +50,13 @@
   }
 
   function handlePageSelect(value: "title" | "project" | "start_route" | "gallery" | "continue") {
-    if (value === "title") {
-      push(`/${project}/${city}`);
-    } else if (value === "project") {
-      push(`/${project}`);
-    } else if (value === "gallery") {
-      push(`/${project}/${city}/gallery`);
-    } else if (value === "continue") {
+    if (value === "continue") {
       onContinue?.();
     } else {
-      localStorage.removeItem(`${project}/${city}/${route}`);
-      push(`/${project}/${city}/${route}`);
+      if (value === "start_route") {
+        localStorage.removeItem(`${project}/${city}/${route}`);
+      }
+      push(resolvePageUrl(value, { project, city, route }));
     }
   }
 </script>

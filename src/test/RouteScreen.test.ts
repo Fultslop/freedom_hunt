@@ -92,6 +92,55 @@ test("renders nothing for a checkpoint entry instead of falling through to Chall
   expect(screen.queryByTestId("location-badge")).not.toBeInTheDocument();
 });
 
+test("renders CompletionScreen for a completion entry", async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  render(RouteScreen, {
+    props: {
+      entry: {
+        "template-type": "completion",
+        image: "lange-vijverberg.jpg",
+        title: "You made it.",
+        subtitle: "Democrats Abroad 2026 Scavenger Hunt",
+        place: "The Hague · short loop",
+        buttons: [
+          { text: "Check your registration", target: { type: "link", value: "https://example.org" } },
+        ],
+      } as RouteEntry,
+      index: 9,
+      project: "demo",
+      cityId: "new_york",
+      stats: { stopsCompleted: 5, stopsTotal: 6, photosCount: 3, timeOnFoot: "1h 20m" },
+    },
+  });
+  await vi.advanceTimersByTimeAsync(2000);
+  expect(screen.getByText("You made it.")).toBeInTheDocument();
+  expect(screen.getByText("1h 20m")).toBeInTheDocument();
+  vi.useRealTimers();
+});
+
+test("passes a zeroed placeholder stats object to CompletionScreen when stats is not provided", async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  render(RouteScreen, {
+    props: {
+      entry: {
+        "template-type": "completion",
+        image: "x.jpg",
+        title: "Done",
+        subtitle: "s",
+        place: "p",
+        buttons: [
+          { text: "t", target: { type: "link", value: "u" } },
+        ],
+      } as RouteEntry,
+      index: 9,
+    },
+  });
+  await vi.advanceTimersByTimeAsync(2000);
+  expect(screen.getByText("Done")).toBeInTheDocument();
+  expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(2);
+  vi.useRealTimers();
+});
+
 test("does not show the effect on a splash entry when isCurrent is false", () => {
   const { container } = render(RouteScreen, {
     props: {

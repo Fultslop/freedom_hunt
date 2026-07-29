@@ -11,9 +11,8 @@ short_loop:
     - 005_loc_malieveld
     - 006_loc_grote_markt
     - 007_loc_binnenhof
-    - 011_checkpoint_completion
-    - 007_splash_completion
-    - 008_options_end_of_hunt
+    - 008_checkpoint_completion
+    - 009_completion_den_haag
 
 # disble the extended route for now
 # extended_route:
