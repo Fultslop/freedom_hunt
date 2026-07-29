@@ -428,6 +428,99 @@ describe("loadLocations", () => {
     expect(loc.challenge.form[0].type).toBe("schema_error");
     expect(loc.challenge.form[0].label).toContain("must be a positive integer");
   });
+
+  it("passes through a valid source on a textarea field", async () => {
+    vi.mocked(loadText)
+      .mockResolvedValueOnce({
+        title: "Test",
+        name: { value: "Test Location" },
+        coordinates: { latitude: 0, longitude: 0 },
+        storyline: "Test storyline",
+        breadcrumb: "Test breadcrumb",
+        challenge: {
+          name: "",
+          description: "Do the thing",
+          notes: "",
+          form: "001_form_test.yaml",
+        },
+      } as unknown as RouteEntry)
+      .mockResolvedValueOnce([
+        {
+          id: "final",
+          type: "textarea",
+          label: "Final manifesto",
+          source: "004_loc_lange_voorhout.form.manifesto",
+        },
+      ] as unknown as FormField[]);
+
+    const result = await loadLocations("en", ["projects/test/city/001_loc_test"]);
+
+    const loc = result[0] as unknown as LocationEntry;
+    expect(loc.challenge.form[0].type).toBe("textarea");
+    expect(loc.challenge.form[0].source).toBe("004_loc_lange_voorhout.form.manifesto");
+  });
+
+  it("flags source present on a non-textarea type as a schema_error", async () => {
+    vi.mocked(loadText)
+      .mockResolvedValueOnce({
+        title: "Test",
+        name: { value: "Test Location" },
+        coordinates: { latitude: 0, longitude: 0 },
+        storyline: "Test storyline",
+        breadcrumb: "Test breadcrumb",
+        challenge: {
+          name: "",
+          description: "Do the thing",
+          notes: "",
+          form: "001_form_test.yaml",
+        },
+      } as unknown as RouteEntry)
+      .mockResolvedValueOnce([
+        {
+          id: "note",
+          type: "string",
+          label: "Note",
+          source: "004_loc_lange_voorhout.form.manifesto",
+        },
+      ] as unknown as FormField[]);
+
+    const result = await loadLocations("en", ["projects/test/city/001_loc_test"]);
+
+    const loc = result[0] as unknown as LocationEntry;
+    expect(loc.challenge.form[0].type).toBe("schema_error");
+    expect(loc.challenge.form[0].label).toContain("not supported on type 'string'");
+  });
+
+  it("flags a malformed source shape as a schema_error", async () => {
+    vi.mocked(loadText)
+      .mockResolvedValueOnce({
+        title: "Test",
+        name: { value: "Test Location" },
+        coordinates: { latitude: 0, longitude: 0 },
+        storyline: "Test storyline",
+        breadcrumb: "Test breadcrumb",
+        challenge: {
+          name: "",
+          description: "Do the thing",
+          notes: "",
+          form: "001_form_test.yaml",
+        },
+      } as unknown as RouteEntry)
+      .mockResolvedValueOnce([
+        {
+          id: "final",
+          type: "textarea",
+          label: "Final manifesto",
+          source: "004_loc_lange_voorhout.manifesto",
+        },
+      ] as unknown as FormField[]);
+
+    const result = await loadLocations("en", ["projects/test/city/001_loc_test"]);
+
+    const loc = result[0] as unknown as LocationEntry;
+    expect(loc.challenge.form[0].type).toBe("schema_error");
+    expect(loc.challenge.form[0].label).toContain("must match");
+  });
 });
 
 describe("loadText content aliasing", () => {

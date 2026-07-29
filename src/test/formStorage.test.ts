@@ -22,6 +22,7 @@ test("loadFormState returns empty defaults when nothing is stored", () => {
     uploads: {},
     submitted: false,
     skipped: false,
+    touchedFields: [],
   });
 });
 
@@ -32,6 +33,7 @@ test("saveFormState then loadFormState round-trips the exact state", () => {
     uploads: { pic: { status: "success" as const, httpCode: 200 } },
     submitted: true,
     skipped: false,
+    touchedFields: ["note"],
   };
   saveFormState(key, state);
   expect(loadFormState(key)).toEqual(state);
@@ -45,19 +47,27 @@ test("loadFormState falls back to defaults on malformed JSON", () => {
     uploads: {},
     submitted: false,
     skipped: false,
+    touchedFields: [],
   });
 });
 
 test("saveFormState writes a version envelope that loadFormState reads back transparently", () => {
   const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1");
-  saveFormState(key, { values: { note: "hi" }, uploads: {}, submitted: false, skipped: false });
+  saveFormState(key, {
+    values: { note: "hi" },
+    uploads: {},
+    submitted: false,
+    skipped: false,
+    touchedFields: [],
+  });
   const raw = JSON.parse(localStorage.getItem(key)!);
-  expect(raw.version).toBe("1.0");
+  expect(raw.version).toBe("1.1");
   expect(loadFormState(key)).toEqual({
     values: { note: "hi" },
     uploads: {},
     submitted: false,
     skipped: false,
+    touchedFields: [],
   });
 });
 
@@ -72,6 +82,7 @@ test("loadFormState treats a pre-versioning payload (no version field) as empty"
     uploads: {},
     submitted: false,
     skipped: false,
+    touchedFields: [],
   });
 });
 
@@ -92,5 +103,27 @@ test("loadFormState treats a major-version mismatch as empty", () => {
     uploads: {},
     submitted: false,
     skipped: false,
+    touchedFields: [],
+  });
+});
+
+test("loadFormState reads a minor-version-only payload (pre-touchedFields shape) with touchedFields defaulting to empty", () => {
+  const key = "spec1-key";
+  localStorage.setItem(
+    key,
+    JSON.stringify({
+      version: "1.0",
+      values: { note: "kept" },
+      uploads: {},
+      submitted: true,
+      skipped: false,
+    }),
+  );
+  expect(loadFormState(key)).toEqual({
+    values: { note: "kept" },
+    uploads: {},
+    submitted: true,
+    skipped: false,
+    touchedFields: [],
   });
 });

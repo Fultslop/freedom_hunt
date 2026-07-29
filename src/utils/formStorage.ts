@@ -16,7 +16,7 @@ export function buildFormStorageKey(
 // discards mismatched-major data instead of misreading it. Bump only the MINOR
 // segment for additive, backward-compatible changes (e.g. a new optional field that
 // defaults sensibly when absent) — old data stays readable.
-const STORAGE_VERSION = "1.0";
+const STORAGE_VERSION = "1.1";
 
 function majorVersion(version: string): string {
   return version.split(".")[0];
@@ -27,6 +27,7 @@ const EMPTY_STATE: FormState = {
   uploads: {},
   submitted: false,
   skipped: false,
+  touchedFields: [],
 };
 
 export function loadFormState(key: string): FormState {
@@ -44,6 +45,7 @@ export function loadFormState(key: string): FormState {
       uploads: parsed.uploads ?? {},
       submitted: parsed.submitted ?? false,
       skipped: parsed.skipped ?? false,
+      touchedFields: parsed.touchedFields ?? [],
     };
   } catch {
     return { ...EMPTY_STATE, values: {}, uploads: {} };

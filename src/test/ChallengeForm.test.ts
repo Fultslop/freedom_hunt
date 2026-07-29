@@ -191,6 +191,7 @@ test("restores previously-entered values and submitted state from local storage 
     uploads: {},
     submitted: true,
     skipped: false,
+    touchedFields: [],
   });
   render(ChallengeForm, {
     props: { form: textOnlyForm, locationId: "1", routeId: "short_loop", cityId: "den_haag", project: "demo" },
@@ -241,4 +242,117 @@ test("reports submitted status and missing labels via onFormStatusChange", async
       missingLabels: [],
     });
   });
+});
+
+// ---------------------------------------------------------------------------
+// Sourced textarea (cross-location prefill)
+// ---------------------------------------------------------------------------
+
+test("a sourced textarea seeds its value from another location's already-saved answer", () => {
+  const sourceKey = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout");
+  saveFormState(sourceKey, {
+    values: { manifesto: "We pledge to keep fighting." },
+    uploads: {},
+    submitted: true,
+    skipped: false,
+    touchedFields: [],
+  });
+  const sourcedForm = [
+    {
+      id: "final_manifesto",
+      type: "textarea" as const,
+      label: "Final manifesto",
+      source: "004_loc_lange_voorhout.form.manifesto",
+    },
+  ];
+  render(ChallengeForm, {
+    props: {
+      form: sourcedForm,
+      locationId: "007_loc_binnenhof",
+      routeId: "short_loop",
+      cityId: "den_haag",
+      project: "demo",
+    },
+  });
+  expect((screen.getByLabelText("Final manifesto") as HTMLTextAreaElement).value).toBe(
+    "We pledge to keep fighting.",
+  );
+});
+
+test("a sourced textarea is empty when the source location was never visited", () => {
+  const sourcedForm = [
+    {
+      id: "final_manifesto",
+      type: "textarea" as const,
+      label: "Final manifesto",
+      source: "999_loc_never_visited.form.manifesto",
+    },
+  ];
+  render(ChallengeForm, {
+    props: {
+      form: sourcedForm,
+      locationId: "007_loc_binnenhof",
+      routeId: "short_loop",
+      cityId: "den_haag",
+      project: "demo",
+    },
+  });
+  expect((screen.getByLabelText("Final manifesto") as HTMLTextAreaElement).value).toBe("");
+});
+
+test("editing a sourced textarea and remounting keeps the edit instead of re-syncing from a changed source", async () => {
+  const sourceKey = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout");
+  const targetKey = buildFormStorageKey("demo", "den_haag", "short_loop", "007_loc_binnenhof");
+  saveFormState(sourceKey, {
+    values: { manifesto: "Original draft." },
+    uploads: {},
+    submitted: true,
+    skipped: false,
+    touchedFields: [],
+  });
+  const sourcedForm = [
+    {
+      id: "final_manifesto",
+      type: "textarea" as const,
+      label: "Final manifesto",
+      source: "004_loc_lange_voorhout.form.manifesto",
+    },
+  ];
+  const { unmount } = render(ChallengeForm, {
+    props: {
+      form: sourcedForm,
+      locationId: "007_loc_binnenhof",
+      routeId: "short_loop",
+      cityId: "den_haag",
+      project: "demo",
+    },
+  });
+  await fireEvent.input(screen.getByLabelText("Final manifesto"), {
+    target: { value: "My own final words." },
+  });
+  await waitFor(() => {
+    expect(JSON.parse(localStorage.getItem(targetKey)!).touchedFields).toEqual(["final_manifesto"]);
+  });
+  unmount();
+
+  saveFormState(sourceKey, {
+    values: { manifesto: "Revised draft." },
+    uploads: {},
+    submitted: true,
+    skipped: false,
+    touchedFields: [],
+  });
+
+  render(ChallengeForm, {
+    props: {
+      form: sourcedForm,
+      locationId: "007_loc_binnenhof",
+      routeId: "short_loop",
+      cityId: "den_haag",
+      project: "demo",
+    },
+  });
+  expect((screen.getByLabelText("Final manifesto") as HTMLTextAreaElement).value).toBe(
+    "My own final words.",
+  );
 });

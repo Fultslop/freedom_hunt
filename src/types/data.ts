@@ -28,6 +28,7 @@ export interface FormField {
   value?: string | number | boolean | string[];
   storeDefaultValue?: boolean;
   config?: { lineCount?: number };
+  source?: string;
 }
 
 export interface Challenge {
@@ -127,6 +128,7 @@ export interface FormState {
   uploads: Record<string, PhotoUploadStatus>;
   submitted: boolean;
   skipped: boolean;
+  touchedFields: string[];
 }
 
 export interface FormValidationStatus {

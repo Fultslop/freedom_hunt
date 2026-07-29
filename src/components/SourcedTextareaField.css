@@ -1,0 +1,75 @@
+.stf-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--field-border);
+  border-radius: 4px;
+  font-size: var(--font-size-base);
+  margin-top: var(--gap-field);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  resize: vertical;
+  min-height: var(--field-min-height);
+}
+
+.stf-textarea:focus {
+  outline: none;
+  border-color: var(--field-border-focus);
+  box-shadow: 0 0 0 2px var(--field-border-focus);
+}
+
+.stf-textarea--error {
+  border-color: var(--color-error);
+}
+
+.stf-update-btn {
+  margin-top: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.stf-confirm {
+  margin-top: 6px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+
+.stf-confirm-msg {
+  margin: 0 0 8px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.stf-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.stf-confirm-cancel,
+.stf-confirm-ok {
+  flex: 1;
+  padding: 6px 0;
+  border-radius: 6px;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.stf-confirm-cancel {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.stf-confirm-ok {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+}

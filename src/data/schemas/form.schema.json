@@ -24,7 +24,8 @@
         "type": "object",
         "properties": { "lineCount": { "type": "number" } },
         "additionalProperties": false
-      }
+      },
+      "source":  { "type": "string" }
     }
   }
 }

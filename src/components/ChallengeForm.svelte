@@ -4,6 +4,7 @@
   import type { FormField, PhotoUploadStatus } from "../types/data";
   import { postFormSubmit, postPhotoUpload, postVideoUpload } from "../utils/api";
   import { buildFormStorageKey, loadFormState, saveFormState } from "../utils/formStorage";
+  import { parseSourceRef, getLocationFormValue } from "../utils/locationFormLookup";
   import AppForm from "./AppForm.svelte";
   import "./ChallengeForm.css";
 
@@ -33,7 +34,7 @@
   const stored = untrack(() =>
     storeInLocalStorage
       ? loadFormState(storageKey)
-      : { values: {}, uploads: {}, submitted: false, skipped: false },
+      : { values: {}, uploads: {}, submitted: false, skipped: false, touchedFields: [] },
   );
 
   let baseValues = $state<Record<string, unknown>>(stored.values);
@@ -42,26 +43,67 @@
   let latestUploads = $state<Record<string, PhotoUploadStatus>>(stored.uploads);
   let hasSubmittedOnce = $state(stored.submitted);
   let skipped = $state(stored.skipped);
+  let touchedFields = $state<string[]>(stored.touchedFields);
+
+  const sourceValues = untrack(() => {
+    const result: Record<string, string> = {};
+    for (const field of form) {
+      if (field.type === "textarea" && field.source && field.id) {
+        const ref = parseSourceRef(field.source);
+        if (ref) {
+          const value = getLocationFormValue(project, cityId, routeId, ref.locationId, ref.fieldId);
+          if (value !== undefined) {
+            result[field.id] = value;
+          }
+        }
+      }
+    }
+    return result;
+  });
 
   function persist(
     vals: Record<string, unknown>,
     ups: Record<string, PhotoUploadStatus>,
     submitted: boolean,
     skp: boolean,
+    touched: string[],
   ) {
     if (storeInLocalStorage) {
-      saveFormState(storageKey, { values: vals, uploads: ups, submitted, skipped: skp });
+      saveFormState(storageKey, { values: vals, uploads: ups, submitted, skipped: skp, touchedFields: touched });
     }
   }
 
   function handleValuesChange(values: Record<string, unknown>) {
     latestValues = values;
-    persist(values, untrack(() => latestUploads), untrack(() => hasSubmittedOnce), untrack(() => skipped));
+    persist(
+      values,
+      untrack(() => latestUploads),
+      untrack(() => hasSubmittedOnce),
+      untrack(() => skipped),
+      untrack(() => touchedFields),
+    );
   }
 
   function handleUploadsChange(uploads: Record<string, PhotoUploadStatus>) {
     latestUploads = uploads;
-    persist(untrack(() => latestValues), uploads, untrack(() => hasSubmittedOnce), untrack(() => skipped));
+    persist(
+      untrack(() => latestValues),
+      uploads,
+      untrack(() => hasSubmittedOnce),
+      untrack(() => skipped),
+      untrack(() => touchedFields),
+    );
+  }
+
+  function handleTouchedFieldsChange(fields: string[]) {
+    touchedFields = fields;
+    persist(
+      untrack(() => latestValues),
+      untrack(() => latestUploads),
+      untrack(() => hasSubmittedOnce),
+      untrack(() => skipped),
+      fields,
+    );
   }
 
   function handleStatusChange(status: { missingLabels: string[] }) {
@@ -85,7 +127,7 @@
     hasSubmittedOnce = true;
     baseValues = latestValues;
     baseUploads = latestUploads;
-    persist(latestValues, latestUploads, true, skipped);
+    persist(latestValues, latestUploads, true, skipped, untrack(() => touchedFields));
     onFormStatusChange?.({ submitted: true, missingLabels: [] });
   }
 
@@ -112,12 +154,15 @@
         {baseValues}
         initialUploads={baseUploads}
         {baseUploads}
+        {touchedFields}
+        {sourceValues}
         onSubmit={handleSubmit}
         onPhotoUpload={handlePhotoUpload}
         onVideoUpload={handleVideoUpload}
         onSuccess={handleSuccess}
         onValuesChange={handleValuesChange}
         onUploadsChange={handleUploadsChange}
+        onTouchedFieldsChange={handleTouchedFieldsChange}
         onStatusChange={handleStatusChange}
         confirmMessage="Submit your answers?"
         submitLabel={hasSubmittedOnce ? "Re-submit" : "Submit"}
