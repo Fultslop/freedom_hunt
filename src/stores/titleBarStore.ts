@@ -2,7 +2,7 @@ import { writable } from "svelte/store";
 
 export interface TitleBarState {
   title?: string;
-  progress?: { current: number; total: number } | null;
+  progress?: { current: number; total: number; animateMs?: number } | null;
   backPath?: string | null;
   subtitle?: string;
   isDirty?: boolean;

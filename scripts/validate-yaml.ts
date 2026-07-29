@@ -22,6 +22,7 @@ const validateSplash = ajv.compile(loadSchema("splash.schema.json"));
 const validateOptions = ajv.compile(loadSchema("options.schema.json"));
 const validateCheckpoint = ajv.compile(loadSchema("checkpoint.schema.json"));
 const validateStats = ajv.compile(loadSchema("stats.schema.json"));
+const validateCompletion = ajv.compile(loadSchema("completion.schema.json"));
 
 function findFiles(dir: string, pattern: RegExp): string[] {
   const entries = readdirSync(dir, { withFileTypes: true });
@@ -96,6 +97,7 @@ const SPLASH_PATTERN = /^\d+_splash_.*\.yaml$/;
 const OPTIONS_PATTERN = /^\d+_options_.*\.yaml$/;
 const CHECKPOINT_PATTERN = /^\d+_checkpoint_.*\.yaml$/;
 const STATS_PATTERN = /^\d+_stats_.*\.yaml$/;
+const COMPLETION_PATTERN = /^\d+_completion_.*\.yaml$/;
 
 const violations = [
   ...findFiles(DATA_DIR, LOC_PATTERN).flatMap((filePath) => [
@@ -119,6 +121,9 @@ const violations = [
   ),
   ...findFiles(DATA_DIR, STATS_PATTERN).flatMap((filePath) =>
     checkStatsFile(filePath).map((msg) => ({ filePath, msg })),
+  ),
+  ...findFiles(DATA_DIR, COMPLETION_PATTERN).flatMap((filePath) =>
+    checkFile(filePath, validateCompletion).map((msg) => ({ filePath, msg })),
   ),
 ];
 

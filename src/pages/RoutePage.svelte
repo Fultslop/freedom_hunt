@@ -19,6 +19,7 @@
     isCheckpointEntry,
   } from "../utils/checkpointNav";
   import { evaluateGate } from "../utils/routeRequirements";
+  import { computePhotosTaken, computeElapsedSinceFirstSubmission, formatElapsed } from "../utils/completionStats";
   import CheckpointGateModal from "../components/CheckpointGateModal.svelte";
   import { swipe } from "../actions/swipe";
   import { preloadImages } from "../assets/AssetManager";
@@ -86,14 +87,29 @@
   });
 
   $effect(() => {
+    if (currentEntry?.["template-type"] === "completion") {
+      titleBarStore.set({
+        title: params.route.replace(/_/g, " "),
+        progress: { current: stopsCompleted, total: stopsTotal, animateMs: 900 },
+        backPath: `/${params.project}/${params.city}`,
+      });
+      const timer = setTimeout(() => {
+        titleBarStore.update((state) => ({
+          ...state,
+          progress: state.progress ? { ...state.progress, current: stopsTotal } : state.progress,
+        }));
+      }, 500);
+      return () => clearTimeout(timer);
+    }
     titleBarStore.set({
       title: params.route.replace(/_/g, " "),
       progress:
-        locationTotal(entries) > 0
-          ? { current: locationOrdinalAt(entries, currentIndex), total: locationTotal(entries) }
+        stopsTotal > 0
+          ? { current: locationOrdinalAt(entries, currentIndex), total: stopsTotal }
           : null,
       backPath: `/${params.project}/${params.city}`,
     });
+    return undefined;
   });
 
   $effect(() => {
@@ -342,6 +358,39 @@
       currentSkipped,
   );
 
+  let stopsTotal = $derived(locationTotal(entries));
+  let stopsCompleted = $derived(
+    entries.reduce((count, entry, i) => {
+      if (!isLocationEntry(entry)) {
+        return count;
+      }
+      const locId = locationIdAt(routeData?.locations ?? [], i);
+      const hasForm = (entry.challenge.form?.length ?? 0) > 0;
+      const resolved =
+        !hasForm || formStatusByIndex[locId]?.submitted === true || skippedIndices.has(locId);
+      return resolved ? count + 1 : count;
+    }, 0),
+  );
+  let photosCount = $derived(
+    huntSettings.storeFormsInLocalStorage
+      ? computePhotosTaken(params.project, params.city, params.route, routeData?.locations ?? [])
+      : ("—" as const),
+  );
+  let timeOnFoot = $derived.by(() => {
+    if (!huntSettings.storeFormsInLocalStorage) {
+      return "—";
+    }
+    const elapsed = computeElapsedSinceFirstSubmission(
+      params.project,
+      params.city,
+      params.route,
+      routeData?.locations ?? [],
+      Date.now(),
+    );
+    return elapsed === undefined ? "—" : formatElapsed(elapsed);
+  });
+  let completionStats = $derived({ stopsCompleted, stopsTotal, photosCount, timeOnFoot });
+
   function triggerBlockedToast() {
     toastMissingLabels = currentFormStatus.missingLabels;
     showToast = true;
@@ -495,6 +544,7 @@
           onContinue={() => handleDragEnd(-cardWidth)}
           onPrev={() => handleDragEnd(cardWidth)}
           isCurrent={true}
+          stats={completionStats}
         />
       </div>
     {:else}
@@ -528,6 +578,7 @@
                 onContinue={() => handleDragEnd(-cardWidth)}
                 onPrev={() => handleDragEnd(cardWidth)}
                 isCurrent={role === 0}
+                stats={role === 0 ? completionStats : undefined}
               />
             </div>
           {:else}

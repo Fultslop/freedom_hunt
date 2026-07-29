@@ -1,0 +1,14 @@
+template-type: completion
+image: lange-vijverberg.jpg
+title: "You made it."
+subtitle: "Democrats Abroad 2026 Scavenger Hunt"
+place: "The Hague · short loop"
+caption: "Completed with Democrats Abroad Netherlands · The Hague"
+closing_text: |
+  Thank you for spending your afternoon walking these streets. **Every registered voter counts** — take two minutes now while it's fresh, then come back and browse the photo gallery from today.
+registration:
+  text: "Check your voter registration"
+  url: "https://www.democratsabroad.org/nl"
+hint: "Takes about 2 minutes · vote.org"
+nav-bar:
+  visible: false

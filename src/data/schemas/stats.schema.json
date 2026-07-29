@@ -18,7 +18,7 @@
         "properties": {
           "value": { "type": ["number", "string"] },
           "label": { "type": "string" },
-          "visibility": { "type": "string", "enum": ["visible", "click_to_reveal"] }
+          "visibility": { "type": "string", "enum": ["visible", "click_to_reveal", "count_up"] }
         }
       }
     }

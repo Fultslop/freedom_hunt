@@ -129,6 +129,7 @@ export interface FormState {
   submitted: boolean;
   skipped: boolean;
   touchedFields: string[];
+  submittedAt?: number;
 }
 
 export interface FormValidationStatus {
@@ -230,4 +231,30 @@ export interface CheckpointEntry {
   "re-entry"?: boolean | CheckpointReEntryGate;
 }
 
-export type RouteEntry = LocationEntry | TextEntry | SplashEntry | OptionsEntry | CheckpointEntry;
+export interface CompletionEntry {
+  "template-type": "completion";
+  image: string;
+  title: string;
+  subtitle: string;
+  place: string;
+  caption?: string;
+  closing_text?: string;
+  registration: { text: string; url: string };
+  hint?: string;
+  "nav-bar"?: NavBarConfig;
+}
+
+export interface CompletionStats {
+  stopsCompleted: number;
+  stopsTotal: number;
+  photosCount: number | "—";
+  timeOnFoot: string;
+}
+
+export type RouteEntry =
+  | LocationEntry
+  | TextEntry
+  | SplashEntry
+  | OptionsEntry
+  | CheckpointEntry
+  | CompletionEntry;

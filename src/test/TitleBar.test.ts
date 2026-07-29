@@ -60,6 +60,32 @@ test("renders subtitle without asterisk when isDirty is false", () => {
   );
 });
 
+test("overrides the progress fill's transition duration when animateMs is set", () => {
+  titleBarStore.set({
+    title: "Test",
+    progress: { current: 6, total: 8, animateMs: 900 },
+    backPath: null,
+  });
+  render(TitleBar);
+  const fill = screen
+    .getByTestId("progress-bar")
+    .querySelector(".titlebar__progress-fill") as HTMLElement;
+  expect(fill.style.transitionDuration).toBe("900ms");
+});
+
+test("leaves the progress fill's transition duration unset when animateMs is absent", () => {
+  titleBarStore.set({
+    title: "Test",
+    progress: { current: 2, total: 3 },
+    backPath: null,
+  });
+  render(TitleBar);
+  const fill = screen
+    .getByTestId("progress-bar")
+    .querySelector(".titlebar__progress-fill") as HTMLElement;
+  expect(fill.style.transitionDuration).toBe("");
+});
+
 test("renders subtitle with asterisk when isDirty is true", () => {
   titleBarStore.set({
     title: "Test",

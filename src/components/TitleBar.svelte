@@ -198,7 +198,9 @@
         class="titlebar__progress-fill"
         style="width: {($titleBarStore.progress.current /
           $titleBarStore.progress.total) *
-          100}%"
+          100}%;{$titleBarStore.progress.animateMs !== undefined
+          ? ` transition-duration: ${$titleBarStore.progress.animateMs}ms;`
+          : ''}"
       ></div>
     </div>
   {/if}

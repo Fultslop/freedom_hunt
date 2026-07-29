@@ -244,6 +244,28 @@ test("reports submitted status and missing labels via onFormStatusChange", async
   });
 });
 
+test("stamps submittedAt on first successful submit and keeps it across a re-submit", async () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(1700000000000);
+  render(ChallengeForm, {
+    props: { form, locationId: "1", routeId: "short_loop", cityId: "den_haag", project: "demo" },
+  });
+  await fireEvent.input(screen.getByLabelText("Your note"), { target: { value: "some text" } });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
+  await screen.findByRole("button", { name: /saved/i });
+  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1");
+  expect(JSON.parse(localStorage.getItem(key)!).submittedAt).toBe(1700000000000);
+
+  vi.setSystemTime(1700000005000);
+  await fireEvent.input(screen.getByLabelText("Your note"), { target: { value: "updated text" } });
+  await fireEvent.click(screen.getByRole("button", { name: "Re-submit" }));
+  await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
+  await screen.findByRole("button", { name: /saved/i });
+  expect(JSON.parse(localStorage.getItem(key)!).submittedAt).toBe(1700000000000);
+  vi.useRealTimers();
+});
+
 // ---------------------------------------------------------------------------
 // Sourced textarea (cross-location prefill)
 // ---------------------------------------------------------------------------

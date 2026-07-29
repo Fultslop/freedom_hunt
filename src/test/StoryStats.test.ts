@@ -128,6 +128,82 @@ test("formats a numeric value with locale grouping, leaves a string value verbat
   expect(screen.getByText("1 in 4")).toBeInTheDocument();
 });
 
+test("count_up numeric item starts at 0 and animates up to its final value", async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  render(StoryStats, {
+    props: { block: block({ items: [{ value: 100, label: "stops", visibility: "count_up" }] }) },
+  });
+  expect(screen.getByText("0")).toBeInTheDocument();
+  await vi.advanceTimersByTimeAsync(700);
+  expect(screen.getByText("100")).toBeInTheDocument();
+  vi.useRealTimers();
+});
+
+test("count_up items honor staggerMs — a later item hasn't started while an earlier one already has", async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  const { container } = render(StoryStats, {
+    props: {
+      block: block({
+        items: [
+          { value: 100, label: "a", visibility: "count_up" },
+          { value: 100, label: "b", visibility: "count_up" },
+        ],
+      }),
+      staggerMs: 150,
+    },
+  });
+  await vi.advanceTimersByTimeAsync(60);
+  const values = container.querySelectorAll(".story-stats__value");
+  expect(Number(values[0].textContent)).toBeGreaterThan(0);
+  expect(Number(values[1].textContent)).toBe(0);
+  vi.useRealTimers();
+});
+
+test("a string value under count_up visibility renders verbatim and is never animated", () => {
+  render(StoryStats, {
+    props: {
+      block: block({ items: [{ value: "2h 18m", label: "time on foot", visibility: "count_up" }] }),
+    },
+  });
+  expect(screen.getByText("2h 18m")).toBeInTheDocument();
+});
+
+test("under prefers-reduced-motion, a count_up item shows its final value immediately with no ramp", () => {
+  const originalMatchMedia = window.matchMedia;
+  window.matchMedia = vi.fn().mockReturnValue({ matches: true });
+  render(StoryStats, {
+    props: { block: block({ items: [{ value: 100, label: "stops", visibility: "count_up" }] }) },
+  });
+  expect(screen.getByText("100")).toBeInTheDocument();
+  window.matchMedia = originalMatchMedia;
+});
+
+test("adds the pop class to a count_up item once its ramp finishes", async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  const { container } = render(StoryStats, {
+    props: { block: block({ items: [{ value: 5, label: "a", visibility: "count_up" }] }) },
+  });
+  await vi.advanceTimersByTimeAsync(700);
+  expect(container.querySelector(".story-stats__value--pop")).toBeInTheDocument();
+  vi.useRealTimers();
+});
+
+test("existing visible/click_to_reveal items are unaffected by the count_up addition", () => {
+  render(StoryStats, {
+    props: {
+      block: block({
+        items: [
+          { value: "6,870", label: "school book bans" },
+          { value: "23", label: "states", visibility: "click_to_reveal" },
+        ],
+      }),
+    },
+  });
+  expect(screen.getByText("6,870")).toBeInTheDocument();
+  expect(screen.queryByText("23")).not.toBeInTheDocument();
+  expect(screen.getByTestId("story-stats-cover-1")).toBeInTheDocument();
+});
+
 test("does not render a cover for items with visible flag", () => {
   render(StoryStats, {
     props: {
