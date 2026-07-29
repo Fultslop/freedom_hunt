@@ -29,6 +29,7 @@ See `doc/architecture.md` for full project context.
 - **New components** — create a co-located `ComponentName.css` file. Use BEM-like class names (`component-name__element--modifier`). Import the CSS file at the top of the `.svelte` file. Define props via `$props()` rune.
 - **Content data** — lives in `src/data/text/en/` as YAML. New cities = new directory + YAML files under `projects/<projectId>/<cityId>/`. See `src/data/text/en/projects/democrats_abroad/den_haag/` for the full shape
 - **No abstractions for one-off things** — keep it simple, follow existing patterns
+- **Form storage versioning** — `src/utils/formStorage.ts`'s `STORAGE_VERSION` ("major.minor") is independent of `package.json`'s app version — do not link them. Whenever a change alters the shape persisted by `saveFormState`/`loadFormState` (the `FormState` type, or the envelope itself) in a way that would make old stored data unsafe to read as-is, bump `STORAGE_VERSION`'s major segment so `loadFormState` discards mismatched-major data instead of misreading it. Purely additive, backward-compatible changes only need a minor bump (old data stays readable).
 
 ## Session Start
 

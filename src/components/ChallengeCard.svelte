@@ -14,6 +14,7 @@
     isLast = false,
     isFirst = false,
     index = undefined,
+    locationKey = undefined,
     routeId = undefined,
     cityId = undefined,
     project = "",
@@ -29,6 +30,7 @@
     isLast?: boolean;
     isFirst?: boolean;
     index?: number;
+    locationKey?: string;
     routeId?: string;
     cityId?: string;
     project?: string;
@@ -36,7 +38,7 @@
     allowResubmit?: boolean;
     badgeStatus?: "submitted" | "skipped";
     onFormStatusChange?: (
-      locationId: number,
+      locationId: string,
       status: { submitted: boolean; missingLabels: string[] },
     ) => void;
     onContinue?: () => void;
@@ -51,6 +53,8 @@
       ? [location.coordinates.latitude, location.coordinates.longitude]
       : null,
   );
+
+  let effectiveLocationKey = $derived(locationKey ?? String(index ?? -1));
 
   // Sync cache hit: runs before DOM commit, so heroSrc is correct on first paint.
   $effect.pre(() => {
@@ -166,14 +170,14 @@
       {#key `${project}/${cityId}/${routeId}/${index}`}
         <ChallengeForm
           form={location.challenge.form}
-          locationId={index ?? -1}
+          locationId={effectiveLocationKey}
           {routeId}
           {cityId}
           {project}
           storeInLocalStorage={storeFormsInLocalStorage}
           {allowResubmit}
           taskTitle={location.challenge.name}
-          onFormStatusChange={(status) => onFormStatusChange?.(index ?? -1, status)}
+          onFormStatusChange={(status) => onFormStatusChange?.(effectiveLocationKey, status)}
         />
       {/key}
     {/if}

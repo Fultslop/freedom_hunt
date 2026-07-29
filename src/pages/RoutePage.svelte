@@ -10,7 +10,7 @@
   } from "../utils/routeNav";
   import { getHuntSettings } from "../utils/huntSettings";
   import { buildFormStorageKey, loadFormState, saveFormState } from "../utils/formStorage";
-  import { isLocationEntry, locationTotal, locationOrdinalAt, isNavBarVisible } from "../utils/routeEntries";
+  import { isLocationEntry, locationTotal, locationOrdinalAt, locationIdAt, isNavBarVisible } from "../utils/routeEntries";
   import {
     nextNavigableIndex,
     prevNavigableIndex,
@@ -266,8 +266,8 @@
   let earliestAllowed = $derived(entries.length > 0 ? earliestAllowedIndex(entries, currentIndex) : currentIndex);
   let canGoForward = $derived(entries.length > 0 ? nextNavigableIndex(entries, currentIndex) !== currentIndex : false);
 
-  let formStatusByIndex = $state<Record<number, { submitted: boolean; missingLabels: string[] }>>({});
-  let skippedIndices = $state<Set<number>>(new Set());
+  let formStatusByIndex = $state<Record<string, { submitted: boolean; missingLabels: string[] }>>({});
+  let skippedIndices = $state<Set<string>>(new Set());
   let showToast = $state(false);
   let toastMissingLabels = $state<string[]>([]);
   let gateModal = $state<{ mode: "fail" | "succeed"; message: string; skippable: boolean; target: number } | null>(null);
@@ -275,10 +275,10 @@
 
   $effect(() => {
     if (entries.length > 0 && huntSettings.storeFormsInLocalStorage) {
-      const restoredStatus: Record<number, { submitted: boolean; missingLabels: string[] }> = {};
-      const restoredSkipped = new Set<number>();
+      const restoredStatus: Record<string, { submitted: boolean; missingLabels: string[] }> = {};
+      const restoredSkipped = new Set<string>();
       entries.forEach((_entry, i) => {
-        const locId = locationOrdinalAt(entries, i);
+        const locId = locationIdAt(routeData?.locations ?? [], i);
         const state = loadFormState(
           buildFormStorageKey(params.project, params.city, params.route, locId),
         );
@@ -297,7 +297,7 @@
   });
 
   function handleFormStatusChange(
-    locationId: number,
+    locationId: string,
     status: { submitted: boolean; missingLabels: string[] },
   ) {
     // This is invoked synchronously from deep inside AppForm's own $effect (via
@@ -311,29 +311,30 @@
     formStatusByIndex = { ...current, [locationId]: status };
   }
 
-  function computeBadgeStatus(locationId: number, hasForm: boolean): "submitted" | "skipped" | undefined {
+  function computeBadgeStatus(locationKey: string, hasForm: boolean): "submitted" | "skipped" | undefined {
     if (!hasForm) {
       return undefined;
     }
-    if (formStatusByIndex[locationId]?.submitted) {
+    if (formStatusByIndex[locationKey]?.submitted) {
       return "submitted";
     }
-    if (skippedIndices.has(locationId)) {
+    if (skippedIndices.has(locationKey)) {
       return "skipped";
     }
     return undefined;
   }
 
-  let currentLocationId = $derived(locationOrdinalAt(entries, currentIndex));
+  let currentDisplayIndex = $derived(locationOrdinalAt(entries, currentIndex));
+  let currentLocationKey = $derived(locationIdAt(routeData?.locations ?? [], currentIndex));
   let currentHasForm = $derived(
     currentEntry !== undefined &&
       isLocationEntry(currentEntry) &&
       (currentEntry.challenge.form?.length ?? 0) > 0,
   );
   let currentFormStatus = $derived(
-    formStatusByIndex[currentLocationId] ?? { submitted: false, missingLabels: [] },
+    formStatusByIndex[currentLocationKey] ?? { submitted: false, missingLabels: [] },
   );
-  let currentSkipped = $derived(skippedIndices.has(currentLocationId));
+  let currentSkipped = $derived(skippedIndices.has(currentLocationKey));
   let canAdvance = $derived(
     !huntSettings.formRequired ||
       !currentHasForm ||
@@ -347,7 +348,7 @@
   }
 
   function handleSkip() {
-    const locId = currentLocationId;
+    const locId = currentLocationKey;
     skippedIndices = new Set(skippedIndices).add(locId);
     if (huntSettings.storeFormsInLocalStorage) {
       const key = buildFormStorageKey(params.project, params.city, params.route, locId);
@@ -395,6 +396,7 @@
             beforeIndex: index,
             formStatusByIndex,
             skippedIndices,
+            routeLocations: routeData?.locations ?? [],
           });
           if (!result.met) {
             gateModal = {
@@ -478,14 +480,15 @@
           entry={currentEntry}
           isLast={!canGoForward}
           isFirst={currentIndex <= earliestAllowed}
-          index={currentLocationId}
+          index={currentDisplayIndex}
+          locationKey={currentLocationKey}
           routeId={params.route}
           cityId={params.city}
           project={params.project}
           storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
           allowResubmit={huntSettings.allowResubmit}
           onFormStatusChange={handleFormStatusChange}
-          badgeStatus={computeBadgeStatus(currentLocationId, currentHasForm)}
+          badgeStatus={computeBadgeStatus(currentLocationKey, currentHasForm)}
           onContinue={() => handleDragEnd(-cardWidth)}
           onPrev={() => handleDragEnd(cardWidth)}
           isCurrent={true}
@@ -511,13 +514,14 @@
                 isLast={nextNavigableIndex(entries, locIdx) === locIdx}
                 isFirst={locIdx <= earliestAllowedIndex(entries, locIdx)}
                 index={locationOrdinalAt(entries, locIdx)}
+                locationKey={locationIdAt(routeData?.locations ?? [], locIdx)}
                 routeId={params.route}
                 cityId={params.city}
                 project={params.project}
                 storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
                 allowResubmit={huntSettings.allowResubmit}
                 onFormStatusChange={handleFormStatusChange}
-                badgeStatus={computeBadgeStatus(locationOrdinalAt(entries, locIdx), isLocationEntry(slotEntry) && (slotEntry.challenge.form?.length ?? 0) > 0)}
+                badgeStatus={computeBadgeStatus(locationIdAt(routeData?.locations ?? [], locIdx), isLocationEntry(slotEntry) && (slotEntry.challenge.form?.length ?? 0) > 0)}
                 onContinue={() => handleDragEnd(-cardWidth)}
                 onPrev={() => handleDragEnd(cardWidth)}
                 isCurrent={role === 0}

@@ -19,7 +19,7 @@
     onFormStatusChange = undefined,
   }: {
     form: FormField[];
-    locationId: number;
+    locationId: string;
     routeId?: string;
     project?: string;
     cityId?: string;

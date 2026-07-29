@@ -1,4 +1,4 @@
-import { isLocationEntry, locationTotal, locationOrdinalAt, isNavBarVisible } from "../utils/routeEntries";
+import { isLocationEntry, locationTotal, locationOrdinalAt, locationIdAt, isNavBarVisible } from "../utils/routeEntries";
 import type { RouteEntry } from "../types/data";
 
 const location: RouteEntry = {
@@ -55,4 +55,12 @@ test("isNavBarVisible is true when nav-bar.visible is true", () => {
 
 test("isNavBarVisible is false when nav-bar.visible is false", () => {
   expect(isNavBarVisible({ ...location, "nav-bar": { visible: false } })).toBe(false);
+});
+
+test("locationIdAt returns the location id string at the given index", () => {
+  expect(locationIdAt(["001_loc_a", "002_loc_b"], 1)).toBe("002_loc_b");
+});
+
+test("locationIdAt falls back to an empty string when the index is out of range", () => {
+  expect(locationIdAt(["001_loc_a"], 5)).toBe("");
 });

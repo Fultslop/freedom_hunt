@@ -54,4 +54,11 @@ describe("buildRouteIndex", () => {
       "projects/demo/paris/003_loc_louvre",
     ]);
   });
+
+  it("attaches the route's declared location id to each entry", async () => {
+    (loadText as ReturnType<typeof vi.fn>).mockResolvedValue(ROUTES_DATA);
+    (loadLocations as ReturnType<typeof vi.fn>).mockResolvedValue(RIVERSIDE_ENTRIES);
+    const result = await buildRouteIndex("en", "demo", "paris");
+    expect(result.riverside_route[0].locationId).toBe("001_loc_eiffel");
+  });
 });

@@ -14,7 +14,7 @@ vi.mock("../utils/api", () => ({
   postFormSubmit: vi.fn().mockResolvedValue({ ok: true }),
 }));
 
-const baseProps = { project: "demo", city: "new_york", route: "brooklyn_route", index: 4 };
+const baseProps = { project: "demo", city: "new_york", route: "brooklyn_route", locationId: "4" };
 
 beforeEach(async () => {
   pushMock.mockClear();
@@ -129,7 +129,7 @@ test("fires a tracked form submission when a page-target option has track: true"
   });
   await fireEvent.click(screen.getByText("I understand"));
   expect(postFormSubmit).toHaveBeenCalledWith({
-    locationId: 4,
+    locationId: "4",
     routeId: "brooklyn_route",
     cityId: "new_york",
     teamName: "Team A",

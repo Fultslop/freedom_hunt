@@ -4,7 +4,7 @@ import type { ResultsSubmission } from "../types/results";
 import type { RouteLocationEntry } from "../utils/resultsData";
 
 const ENTRIES: RouteLocationEntry[] = [
-  { ordinal: 1, name: "Eiffel Tower", fields: [{ id: "found", type: "boolean", label: "Found?" }] },
+  { ordinal: 1, locationId: "1", name: "Eiffel Tower", fields: [{ id: "found", type: "boolean", label: "Found?" }] },
 ];
 
 const SUBMISSIONS: ResultsSubmission[] = [

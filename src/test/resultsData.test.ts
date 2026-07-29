@@ -23,6 +23,7 @@ function makeSubmission(overrides: Partial<ResultsSubmission>): ResultsSubmissio
 
 const ENTRY: RouteLocationEntry = {
   ordinal: 1,
+  locationId: "1",
   name: "Eiffel Tower",
   fields: [
     { id: "found", type: "boolean", label: "Did you find it?" },
@@ -43,14 +44,14 @@ describe("teamsForRoute", () => {
 });
 
 describe("submissionsForCell", () => {
-  it("matches on routeId, locationId (as a number), and teamName together", () => {
+  it("matches on routeId, locationId, and teamName together", () => {
     const submissions = [
       makeSubmission({ id: "s1", routeId: "riverside_route", locationId: "1", teamName: "Team A" }),
       makeSubmission({ id: "s2", routeId: "left_bank_route", locationId: "1", teamName: "Team A" }),
       makeSubmission({ id: "s3", routeId: "riverside_route", locationId: "2", teamName: "Team A" }),
       makeSubmission({ id: "s4", routeId: "riverside_route", locationId: "1", teamName: "Team B" }),
     ];
-    const result = submissionsForCell(submissions, "riverside_route", 1, "Team A");
+    const result = submissionsForCell(submissions, "riverside_route", "1", "Team A");
     expect(result.map((sub) => sub.id)).toEqual(["s1"]);
   });
 });

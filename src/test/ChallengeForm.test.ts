@@ -25,7 +25,7 @@ afterEach(() => {
 
 test("renders form fields", () => {
   render(ChallengeForm, {
-    props: { form, locationId: 1, routeId: "short_loop" },
+    props: { form, locationId: "1", routeId: "short_loop" },
   });
   expect(screen.getByText("Did you find it?")).toBeInTheDocument();
   expect(screen.getByText("Your note")).toBeInTheDocument();
@@ -33,7 +33,7 @@ test("renders form fields", () => {
 
 test("shows validation error when required field is empty", async () => {
   render(ChallengeForm, {
-    props: { form, locationId: 1, routeId: "short_loop" },
+    props: { form, locationId: "1", routeId: "short_loop" },
   });
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   expect(screen.getByText("Required")).toBeInTheDocument();
@@ -42,7 +42,7 @@ test("shows validation error when required field is empty", async () => {
 
 test("shows confirmation dialog when all required fields are filled", async () => {
   render(ChallengeForm, {
-    props: { form, locationId: 1, routeId: "short_loop" },
+    props: { form, locationId: "1", routeId: "short_loop" },
   });
   await fireEvent.input(screen.getByLabelText("Your note"), {
     target: { value: "some text" },
@@ -53,7 +53,7 @@ test("shows confirmation dialog when all required fields are filled", async () =
 
 test("calls postFormSubmit with correct payload on confirm", async () => {
   render(ChallengeForm, {
-    props: { form, locationId: 1, routeId: "short_loop", cityId: "den_haag" },
+    props: { form, locationId: "1", routeId: "short_loop", cityId: "den_haag" },
   });
   await fireEvent.input(screen.getByLabelText("Your note"), {
     target: { value: "some text" },
@@ -62,7 +62,7 @@ test("calls postFormSubmit with correct payload on confirm", async () => {
   await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
   expect(postFormSubmit).toHaveBeenCalledWith(
     expect.objectContaining({
-      locationId: 1,
+      locationId: "1",
       routeId: "short_loop",
       cityId: "den_haag",
       teamName: "Team A",
@@ -72,7 +72,7 @@ test("calls postFormSubmit with correct payload on confirm", async () => {
 });
 
 test("no longer renders a flag-glyph divider", () => {
-  render(ChallengeForm, { props: { form, locationId: 1, routeId: "short_loop" } });
+  render(ChallengeForm, { props: { form, locationId: "1", routeId: "short_loop" } });
   expect(document.querySelector(".cf-divider")).not.toBeInTheDocument();
 });
 
@@ -87,7 +87,7 @@ test("multiple field: blocks selection beyond max and shows warning", async () =
       options: ["Dutch", "EU", "American"],
     },
   ];
-  render(ChallengeForm, { props: { form: multiForm, locationId: 1 } });
+  render(ChallengeForm, { props: { form: multiForm, locationId: "1" } });
   await fireEvent.click(screen.getByLabelText("Dutch"));
   await fireEvent.click(screen.getByLabelText("EU"));
   await fireEvent.click(screen.getByLabelText("American"));
@@ -101,7 +101,7 @@ test("photo field uses label as button text", () => {
   const photoForm = [
     { id: "pic", type: "photo" as const, label: "Take a photo" },
   ];
-  render(ChallengeForm, { props: { form: photoForm, locationId: 1 } });
+  render(ChallengeForm, { props: { form: photoForm, locationId: "1" } });
   expect(
     screen.getByRole("button", { name: /take a photo/i }),
   ).toBeInTheDocument();
@@ -115,7 +115,7 @@ test("photo upload sends cityId and taskTitle from props", async () => {
   const { container } = render(ChallengeForm, {
     props: {
       form: photoForm,
-      locationId: 1,
+      locationId: "1",
       routeId: "short_loop",
       cityId: "den_haag",
       taskTitle: "The Final Civic Act",
@@ -126,7 +126,7 @@ test("photo upload sends cityId and taskTitle from props", async () => {
   await fireEvent.change(input, { target: { files: [file] } });
   expect(postPhotoUpload).toHaveBeenCalledWith(
     expect.objectContaining({
-      locationId: 1,
+      locationId: "1",
       cityId: "den_haag",
       routeId: "short_loop",
       taskTitle: "The Final Civic Act",
@@ -140,7 +140,7 @@ test("photo upload sends cityId and taskTitle from props", async () => {
 
 test("form stays visible with a disabled Re-submit button after a successful submit (allowResubmit default true)", async () => {
   render(ChallengeForm, {
-    props: { form, locationId: 1, routeId: "short_loop" },
+    props: { form, locationId: "1", routeId: "short_loop" },
   });
   await fireEvent.input(screen.getByLabelText("Your note"), {
     target: { value: "some text" },
@@ -154,7 +154,7 @@ test("form stays visible with a disabled Re-submit button after a successful sub
 
 test("Re-submit button enables after editing a previously-submitted form", async () => {
   render(ChallengeForm, {
-    props: { form, locationId: 1, routeId: "short_loop" },
+    props: { form, locationId: "1", routeId: "short_loop" },
   });
   await fireEvent.input(screen.getByLabelText("Your note"), {
     target: { value: "some text" },
@@ -170,7 +170,7 @@ test("Re-submit button enables after editing a previously-submitted form", async
 
 test("form is replaced by a static success message when allowResubmit is false", async () => {
   render(ChallengeForm, {
-    props: { form, locationId: 1, routeId: "short_loop", allowResubmit: false },
+    props: { form, locationId: "1", routeId: "short_loop", allowResubmit: false },
   });
   await fireEvent.input(screen.getByLabelText("Your note"), {
     target: { value: "some text" },
@@ -185,7 +185,7 @@ test("restores previously-entered values and submitted state from local storage 
   const textOnlyForm = [
     { id: "note", type: "string" as const, label: "Your note", isRequired: true },
   ];
-  const key = buildFormStorageKey("demo", "den_haag", "short_loop", 1);
+  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1");
   saveFormState(key, {
     values: { note: "restored text" },
     uploads: {},
@@ -193,7 +193,7 @@ test("restores previously-entered values and submitted state from local storage 
     skipped: false,
   });
   render(ChallengeForm, {
-    props: { form: textOnlyForm, locationId: 1, routeId: "short_loop", cityId: "den_haag", project: "demo" },
+    props: { form: textOnlyForm, locationId: "1", routeId: "short_loop", cityId: "den_haag", project: "demo" },
   });
   expect((screen.getByLabelText("Your note") as HTMLInputElement).value).toBe(
     "restored text",
@@ -206,7 +206,7 @@ test("does not read or write local storage when storeInLocalStorage is false", a
   render(ChallengeForm, {
     props: {
       form,
-      locationId: 1,
+      locationId: "1",
       routeId: "short_loop",
       cityId: "den_haag",
       project: "demo",
@@ -222,7 +222,7 @@ test("does not read or write local storage when storeInLocalStorage is false", a
 test("reports submitted status and missing labels via onFormStatusChange", async () => {
   const onFormStatusChange = vi.fn();
   render(ChallengeForm, {
-    props: { form, locationId: 1, routeId: "short_loop", onFormStatusChange },
+    props: { form, locationId: "1", routeId: "short_loop", onFormStatusChange },
   });
   await waitFor(() => {
     expect(onFormStatusChange).toHaveBeenCalledWith({

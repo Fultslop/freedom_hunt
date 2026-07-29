@@ -8,6 +8,7 @@
   let {
     entry,
     index,
+    locationKey = undefined,
     isLast = false,
     isFirst = false,
     routeId = undefined,
@@ -23,6 +24,7 @@
   }: {
     entry: RouteEntry;
     index: number;
+    locationKey?: string;
     isLast?: boolean;
     isFirst?: boolean;
     routeId?: string;
@@ -32,13 +34,15 @@
     allowResubmit?: boolean;
     badgeStatus?: "submitted" | "skipped";
     onFormStatusChange?: (
-      locationId: number,
+      locationId: string,
       status: { submitted: boolean; missingLabels: string[] },
     ) => void;
     onContinue?: () => void;
     onPrev?: () => void;
     isCurrent?: boolean;
   } = $props();
+
+  let resolvedLocationKey = $derived(locationKey ?? String(index));
 </script>
 
 {#if entry["template-type"] === "checkpoint"}
@@ -66,7 +70,7 @@
     title={entry.title}
     text={entry.text}
     options={entry.options}
-    {index}
+    locationId={resolvedLocationKey}
     project={project}
     city={cityId ?? ""}
     route={routeId ?? ""}
@@ -78,6 +82,7 @@
     {isLast}
     {isFirst}
     {index}
+    locationKey={resolvedLocationKey}
     {routeId}
     {cityId}
     {project}

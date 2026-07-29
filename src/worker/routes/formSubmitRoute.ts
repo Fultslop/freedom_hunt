@@ -23,7 +23,7 @@ export async function handleFormSubmitRoute(
   }
 
   let body: {
-    locationId?: number;
+    locationId?: string;
     routeId?: string;
     cityId?: string;
     answers?: Record<string, unknown>;
@@ -40,7 +40,7 @@ export async function handleFormSubmitRoute(
       project_id: authPayload.project,
       city_id: body.cityId ?? "unknown",
       route_id: body.routeId ?? null,
-      location_id: String(body.locationId ?? "unknown"),
+      location_id: body.locationId ?? "unknown",
       team_name: authPayload.teamName,
       contact: authPayload.contact || null,
       answers: JSON.stringify(body.answers ?? {}),
