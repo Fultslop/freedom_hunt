@@ -14,3 +14,6 @@ https://commons.wikimedia.org/wiki/Category:Nieuwe_Kerk_(The_Hague)#/media/File:
 Lange voorhout:
  M.M.Minderhoud or Wikipedia/Michiel1972
  https://commons.wikimedia.org/wiki/File:Lange_voorhout.jpg
+
+lange-vijverberg
+ https://denhaag.com/en/court-pond-lange-vijverberg

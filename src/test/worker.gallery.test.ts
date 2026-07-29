@@ -180,6 +180,71 @@ describe("cross-project access", () => {
     expect(response.status).toBe(403);
   });
 
+const VIDEO_PHOTO = {
+  id: "v1", project_id: "democrats_abroad", city_id: "den_haag", route_id: "short_loop",
+  location_id: "5", task_title: "Hear the Voices", team_name: "Team A",
+  contact: "a@b.com", r2_key: "5_3000", mime_type: "video/webm", uploaded_at: 3000, kind: "video",
+};
+
+describe("GET /photos/:id/video", () => {
+  it("streams the raw video object using the stored mime type", async () => {
+    const getMock = vi.fn().mockResolvedValue({ body: "fake-video-body" });
+    const request = new Request("https://example.com/photos/v1/video", {
+      headers: { Cookie: `freedom_hunt_auth=${authToken}` },
+    });
+    const response = await worker.fetch(request, {
+      AUTH_SECRET: TEST_SECRET,
+      AUTH_DB: makeDb([...SAMPLE_PHOTOS, VIDEO_PHOTO]),
+      PHOTOS: { get: getMock },
+    } as unknown as Env);
+    expect(response.status).toBe(200);
+    expect(getMock).toHaveBeenCalledWith("5_3000/video.webm");
+    expect(response.headers.get("Content-Type")).toBe("video/webm");
+  });
+
+  it("still serves the poster's thumb/medium/full variants for a video photo", async () => {
+    const getMock = vi.fn().mockResolvedValue({ body: "fake-poster-body" });
+    const request = new Request("https://example.com/photos/v1/thumb", {
+      headers: { Cookie: `freedom_hunt_auth=${authToken}` },
+    });
+    const response = await worker.fetch(request, {
+      AUTH_SECRET: TEST_SECRET,
+      AUTH_DB: makeDb([...SAMPLE_PHOTOS, VIDEO_PHOTO]),
+      PHOTOS: { get: getMock },
+    } as unknown as Env);
+    expect(response.status).toBe(200);
+    expect(getMock).toHaveBeenCalledWith("5_3000/thumb.jpg");
+    expect(response.headers.get("Content-Type")).toBe("image/jpeg");
+  });
+
+  it("returns 400 when requesting the 'video' variant of a photo-kind row", async () => {
+    const request = new Request("https://example.com/photos/p1/video", {
+      headers: { Cookie: `freedom_hunt_auth=${authToken}` },
+    });
+    const response = await worker.fetch(request, {
+      AUTH_SECRET: TEST_SECRET,
+      AUTH_DB: makeDb(),
+      PHOTOS: { get: vi.fn() },
+    } as unknown as Env);
+    expect(response.status).toBe(400);
+  });
+});
+
+describe("GET /gallery/:project/:city/photos \u2014 video kind passthrough", () => {
+  it("includes kind and videoUrl for a video row", async () => {
+    const request = new Request("https://example.com/gallery/democrats_abroad/den_haag/photos", {
+      headers: { Cookie: `freedom_hunt_auth=${authToken}` },
+    });
+    const response = await worker.fetch(request, {
+      AUTH_SECRET: TEST_SECRET,
+      AUTH_DB: makeDb([...SAMPLE_PHOTOS, VIDEO_PHOTO]),
+    } as unknown as Env);
+    const data = await response.json();
+    const videoEntry = data.photos.find((p: { id: string }) => p.id === "v1");
+    expect(videoEntry).toMatchObject({ kind: "video", videoUrl: "/photos/v1/video" });
+  });
+});
+
   it("returns 403 when requesting a photo belonging to a different project", async () => {
     const request = new Request("https://example.com/photos/p1/thumb", {
       headers: { Cookie: `freedom_hunt_auth=${otherProjectToken}` },

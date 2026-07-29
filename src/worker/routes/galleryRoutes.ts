@@ -5,13 +5,15 @@ import { requireAuth, requireParticipantForProject } from "../auth";
 import { isParticipantToken } from "../../types/auth";
 import { json } from "../utils";
 import { listPhotos, randomPhotos, getPhotoById } from "../db";
-import { buildVariantKey, PHOTO_VARIANTS, type PhotoVariant } from "../photoKeys";
+import { buildVariantKey, buildVideoKey, PHOTO_VARIANTS, type PhotoVariant } from "../photoKeys";
 
 const RANDOM_SAMPLE_SIZE = 12;
 
 function toGalleryPhoto(photo: DbPhoto): GalleryPhoto {
+  const kind = photo.kind === "video" ? "video" : undefined;
   return {
     id: photo.id,
+    kind,
     locationId: photo.location_id,
     taskTitle: photo.task_title,
     teamName: photo.team_name,
@@ -19,6 +21,7 @@ function toGalleryPhoto(photo: DbPhoto): GalleryPhoto {
     thumbUrl: `/photos/${photo.id}/thumb`,
     mediumUrl: `/photos/${photo.id}/medium`,
     fullUrl: `/photos/${photo.id}/full`,
+    videoUrl: kind === "video" ? `/photos/${photo.id}/video` : undefined,
   };
 }
 
@@ -69,10 +72,6 @@ export async function handleGalleryRoutes(
       return json({ ok: false, error: "Unauthorized" }, 401);
     }
     const [, id, variantParam] = photoMatch;
-    if (!(PHOTO_VARIANTS as readonly string[]).includes(variantParam)) {
-      return json({ ok: false, error: "Unknown variant" }, 400);
-    }
-    const variant = variantParam as PhotoVariant;
     const photo = await getPhotoById(env.AUTH_DB, id);
     if (!photo) {
       return json({ ok: false, error: "Not found" }, 404);
@@ -80,6 +79,25 @@ export async function handleGalleryRoutes(
     if (!isParticipantToken(authPayload) || authPayload.project !== photo.project_id) {
       return json({ ok: false, error: "Forbidden" }, 403);
     }
+
+    if (photo.kind === "video" && variantParam === "video") {
+      const key = buildVideoKey(photo.r2_key, photo.mime_type);
+      const object = await env.PHOTOS.get(key);
+      if (!object) {
+        return json({ ok: false, error: "Not found" }, 404);
+      }
+      return new Response(object.body, {
+        headers: {
+          "Content-Type": photo.mime_type,
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
+    }
+
+    if (!(PHOTO_VARIANTS as readonly string[]).includes(variantParam)) {
+      return json({ ok: false, error: "Unknown variant" }, 400);
+    }
+    const variant = variantParam as PhotoVariant;
     const key = buildVariantKey(photo.r2_key, variant);
     const object = await env.PHOTOS.get(key);
     if (!object) {

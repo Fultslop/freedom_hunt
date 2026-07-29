@@ -28,6 +28,16 @@ vi.mock("../utils/photoUpload", () => ({
   normalizePhotoForUpload: vi.fn((file: File) => Promise.resolve(file)),
 }));
 
+import * as videoCapture from "../utils/videoCapture";
+
+vi.mock("../utils/videoCapture", () => ({
+  isVideoRecordingSupported: vi.fn(() => true),
+  requestCameraStream: vi.fn(),
+  startVideoRecording: vi.fn(),
+  capturePosterFrame: vi.fn(),
+  MAX_RECORD_MS: 12000,
+}));
+
 beforeEach(() => {
   vi.mocked(leafletMap).mockClear();
 });
@@ -1308,4 +1318,57 @@ test("textarea renders with rows from config.lineCount when set", () => {
   ];
   render(AppForm, { props: { fields, onSubmit: vi.fn() } });
   expect(screen.getByLabelText("Your story")).toHaveAttribute("rows", "8");
+});
+
+// ---------------------------------------------------------------------------
+// video field
+// ---------------------------------------------------------------------------
+
+test("video field: renders the record button when no upload exists", () => {
+  const fields: FormField[] = [{ id: "clip", type: "video" as FormFieldType, label: "Your message" }];
+  render(AppForm, { props: { fields, onSubmit: vi.fn(), onVideoUpload: vi.fn() } });
+  expect(screen.getByRole("button", { name: /record a video/i })).toBeInTheDocument();
+});
+
+test("video field: recording end-to-end calls onVideoUpload and shows the success tile", async () => {
+  const fakeStream = { getTracks: () => [{ stop: vi.fn() }] } as unknown as MediaStream;
+  vi.mocked(videoCapture.requestCameraStream).mockResolvedValue(fakeStream);
+  const videoFile = new File(["clip"], "clip.webm", { type: "video/webm" });
+  let resolveDone: (file: File) => void = () => {};
+  const done = new Promise<File>((resolve) => {
+    resolveDone = resolve;
+  });
+  vi.mocked(videoCapture.startVideoRecording).mockReturnValue({
+    done,
+    stop: vi.fn(() => resolveDone(videoFile)),
+  });
+  const posterFile = new File(["poster"], "poster.jpg", { type: "image/jpeg" });
+  vi.mocked(videoCapture.capturePosterFrame).mockResolvedValue(posterFile);
+
+  const onVideoUpload = vi.fn().mockResolvedValue({ ok: true, httpCode: 200 });
+  const fields: FormField[] = [{ id: "clip", type: "video" as FormFieldType, label: "Your message" }];
+  render(AppForm, { props: { fields, onSubmit: vi.fn(), onVideoUpload } });
+
+  await fireEvent.click(screen.getByRole("button", { name: /record a video/i }));
+  await waitFor(() => screen.getByRole("button", { name: /start recording/i }));
+  await fireEvent.click(screen.getByRole("button", { name: /start recording/i }));
+  await waitFor(() => screen.getByRole("button", { name: /^stop$/i }));
+  await fireEvent.click(screen.getByRole("button", { name: /^stop$/i }));
+
+  await waitFor(() => expect(onVideoUpload).toHaveBeenCalledWith(videoFile, posterFile));
+  await waitFor(() =>
+    expect(screen.getByLabelText(/re-record video/i)).toBeInTheDocument(),
+  );
+});
+
+test("video field: required validation blocks submit until upload succeeds", async () => {
+  const fields: FormField[] = [
+    { id: "clip", type: "video" as FormFieldType, label: "Your message", isRequired: true },
+    { id: "note", type: "string", label: "Note" },
+  ];
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(AppForm, { props: { fields, onSubmit, onVideoUpload: vi.fn() } });
+  await fireEvent.input(screen.getByLabelText("Note"), { target: { value: "hi" } });
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  expect(onSubmit).not.toHaveBeenCalled();
 });

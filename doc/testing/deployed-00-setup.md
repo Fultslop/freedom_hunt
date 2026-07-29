@@ -46,9 +46,15 @@ Copy the `database_id` from the output. You'll need it in the next step.
 
 ```bash
 npx wrangler d1 execute scavenger_hunt_auth --file=migrations/001_init.sql
+npx wrangler d1 execute scavenger_hunt_auth --file=migrations/002_photos.sql
+npx wrangler d1 execute scavenger_hunt_auth --file=migrations/003_form_submissions.sql
+npx wrangler d1 execute scavenger_hunt_auth --file=migrations/004_participant_auth.sql
+npx wrangler d1 execute scavenger_hunt_auth --file=migrations/005_photo_kind.sql
 ```
 
-**Expected:** No errors.
+Apply all five in order — later ones depend on earlier ones (e.g. `005` alters a table that `002` creates), matching the same all-up-front approach as [local-00-setup.md](local-00-setup.md).
+
+**Expected:** All five complete with no errors.
 
 ---
 

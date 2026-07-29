@@ -2,6 +2,7 @@ import type { Env } from "./types/worker";
 import { handleAuthRoutes } from "./worker/routes/authRoutes";
 import { handleInviteRoutes } from "./worker/routes/inviteRoutes";
 import { handleUploadRoute } from "./worker/routes/uploadRoute";
+import { handleUploadVideoRoute } from "./worker/routes/uploadVideoRoute";
 import { handleFormSubmitRoute } from "./worker/routes/formSubmitRoute";
 import { handleGalleryRoutes } from "./worker/routes/galleryRoutes";
 import { handleEditorRoutes } from "./worker/routes/editorRoutes";
@@ -19,6 +20,7 @@ export default {
       (await handleAuthRoutes(request, url, env)) ??
       (await handleInviteRoutes(request, url, env)) ??
       (await handleUploadRoute(request, url, env)) ??
+      (await handleUploadVideoRoute(request, url, env)) ??
       (await handleFormSubmitRoute(request, url, env)) ??
       (await handleGalleryRoutes(request, url, env)) ??
       (await handleResultsRoutes(request, url, env)) ??

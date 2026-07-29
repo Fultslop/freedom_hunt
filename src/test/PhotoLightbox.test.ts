@@ -46,3 +46,25 @@ test("calls onClose when Escape is pressed", async () => {
   await fireEvent.keyDown(window, { key: "Escape" });
   expect(onClose).toHaveBeenCalledOnce();
 });
+
+const VIDEO_PHOTO_FIXTURE: GalleryPhoto = {
+  id: "v1",
+  kind: "video",
+  locationId: "5",
+  taskTitle: "Hear the Voices",
+  teamName: "Team A",
+  uploadedAt: 1,
+  thumbUrl: "/photos/v1/thumb",
+  mediumUrl: "/photos/v1/medium",
+  fullUrl: "/photos/v1/full",
+  videoUrl: "/photos/v1/video",
+};
+
+test("renders a <video> element with the poster and a Download Video button for a video photo", () => {
+  render(PhotoLightbox, { props: { photo: VIDEO_PHOTO_FIXTURE, onClose: vi.fn() } });
+  const video = document.querySelector("video");
+  expect(video).not.toBeNull();
+  expect(video?.getAttribute("src")).toBe("/photos/v1/video");
+  expect(video?.getAttribute("poster")).toBe("/photos/v1/medium");
+  expect(screen.getByRole("button", { name: /download video/i })).toBeInTheDocument();
+});

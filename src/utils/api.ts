@@ -50,6 +50,32 @@ export async function postPhotoUpload(
   return { ...data, httpCode: res.status };
 }
 
+export interface VideoUploadPayload {
+  locationId: number;
+  cityId: string;
+  routeId?: string;
+  taskTitle: string;
+  video: File;
+  poster: File;
+}
+
+export async function postVideoUpload(
+  payload: VideoUploadPayload,
+): Promise<{ ok: boolean; id?: string; key?: string; httpCode: number }> {
+  const body = new FormData();
+  body.append("video", payload.video);
+  body.append("poster", payload.poster);
+  body.append("locationId", String(payload.locationId));
+  body.append("cityId", payload.cityId);
+  if (payload.routeId) {
+    body.append("routeId", payload.routeId);
+  }
+  body.append("taskTitle", payload.taskTitle);
+  const res = await fetch("/upload-video", { method: "POST", body });
+  const data = (await res.json()) as { ok: boolean; id?: string; key?: string };
+  return { ...data, httpCode: res.status };
+}
+
 // ---------------------------------------------------------------------------
 // Editor — locations
 // ---------------------------------------------------------------------------

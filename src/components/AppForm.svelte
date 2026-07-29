@@ -8,6 +8,7 @@
   import { getAvailableImages, type ImageEntry } from "../utils/images";
   import ImagePickerDialog from "./ImagePickerDialog.svelte";
   import CoordinatePicker from "./CoordinatePicker.svelte";
+  import VideoRecorderField from "./VideoRecorderField.svelte";
   import "./AppForm.css";
 
   const STR_STRING = "string";
@@ -16,6 +17,7 @@
   const STR_RADIO = "radio";
   const STR_MULTIPLE = "multiple";
   const STR_PHOTO = "photo";
+  const STR_VIDEO = "video";
   const STR_TEXTAREA = "textarea";
   const STR_SECTION = "section";
   const STR_IMAGE_PICKER = "image-picker";
@@ -29,6 +31,7 @@
     STR_RADIO,
     STR_MULTIPLE,
     STR_PHOTO,
+    STR_VIDEO,
     STR_TEXTAREA,
     STR_SECTION,
     STR_IMAGE_PICKER,
@@ -64,6 +67,7 @@
     baseUploads = undefined,
     onSubmit,
     onPhotoUpload = undefined,
+    onVideoUpload = undefined,
     onSuccess = undefined,
     onValuesChange = undefined,
     onHasChangesChange = undefined,
@@ -79,6 +83,7 @@
     baseUploads?: Record<string, PhotoUploadStatus>;
     onSubmit: (values: Record<string, unknown>) => Promise<void>;
     onPhotoUpload?: (file: File) => Promise<{ ok: boolean; httpCode?: number }>;
+    onVideoUpload?: (video: File, poster: File) => Promise<{ ok: boolean; httpCode?: number }>;
     onSuccess?: () => void;
     onValuesChange?: (values: FieldValues) => void;
     onHasChangesChange?: (hasChanges: boolean) => void;
@@ -141,7 +146,7 @@
       .filter((f) => f.id && f.type !== STR_SECTION)
       .some((f) => {
         const id = f.id!;
-        if (f.type === STR_PHOTO) {
+        if (f.type === STR_PHOTO || f.type === STR_VIDEO) {
           const currentStatus = uploadStates[id]?.status;
           const baselineStatus = (baseUploads ?? initialUploads)[id]?.status;
           return currentStatus !== undefined && currentStatus !== baselineStatus;
@@ -267,6 +272,26 @@
     }
   }
 
+  async function handleVideoRecorded(fieldId: string, video: File, poster: File) {
+    if (onVideoUpload) {
+      uploadStates = { ...uploadStates, [fieldId]: { status: "uploading" } };
+      const [uploadResult, previewResult] = await Promise.allSettled([
+        onVideoUpload(video, poster),
+        createPhotoPreview(poster),
+      ]);
+      const upload =
+        uploadResult.status === "fulfilled" ? uploadResult.value : { ok: false, httpCode: 0 };
+      const previewDataUrl =
+        previewResult.status === "fulfilled" ? previewResult.value : undefined;
+      uploadStates = {
+        ...uploadStates,
+        [fieldId]: upload.ok
+          ? { status: "success", httpCode: upload.httpCode, previewDataUrl }
+          : { status: "error", httpCode: upload.httpCode ?? 0 },
+      };
+    }
+  }
+
   function removePhoto(fieldId: string) {
     const next = { ...uploadStates };
     delete next[fieldId];
@@ -300,7 +325,7 @@
         if (selected.length < min) {
           errs[field.id] = MSG_SELECT_MIN(min);
         }
-      } else if (field.type === STR_PHOTO) {
+      } else if (field.type === STR_PHOTO || field.type === STR_VIDEO) {
         if (uploadStates[field.id]?.status !== "success") {
           errs[field.id] = MSG_REQUIRED;
         }
@@ -373,8 +398,8 @@
   // (hasChanges goes false) so a later re-upload (allowResubmit) can
   // auto-submit too.
   const isPhotoOnlyForm = $derived(
-    fields.some((f) => f.type === STR_PHOTO) &&
-      fields.every((f) => f.type === STR_PHOTO || f.type === STR_SECTION),
+    fields.some((f) => f.type === STR_PHOTO || f.type === STR_VIDEO) &&
+      fields.every((f) => f.type === STR_PHOTO || f.type === STR_VIDEO || f.type === STR_SECTION),
   );
   const anyUploadInFlight = $derived(
     Object.values(uploadStates).some((upload) => upload.status === "uploading"),
@@ -485,6 +510,44 @@
               >
                 Retry
               </button>
+            {/if}
+          </div>
+        {:else if field.type === "video"}
+          {@const upload = uploadStates[id]}
+          <div class="af-photo-wrap">
+            <label class="af-label" class:af-label--required={field.isRequired} for={domId}>{field.label}</label>
+            {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
+            {#if upload?.status === "success"}
+              <div class="af-photo-tile af-photo-tile--filled">
+                {#if upload.previewDataUrl}
+                  <img src={upload.previewDataUrl} alt={field.label} class="af-photo-tile__img" />
+                  <span class="af-photo-tile__badge" aria-hidden="true"><Check size={14} /></span>
+                {:else}
+                  <Check size={32} aria-hidden="true" />
+                {/if}
+              </div>
+              <div class="af-photo-actions">
+                <button
+                  type="button"
+                  class="af-photo-action"
+                  aria-label={`Re-record video \u2014 ${field.label}`}
+                  onclick={() => removePhoto(id)}
+                >
+                  Re-record
+                </button>
+              </div>
+            {:else if upload?.status === "uploading"}
+              <div class="af-photo-tile af-photo-tile--uploading">
+                <span class="af-photo-tile__spinner" aria-hidden="true"></span>
+              </div>
+            {:else}
+              <VideoRecorderField
+                label={field.label}
+                onRecorded={(video, poster) => handleVideoRecorded(id, video, poster)}
+              />
+              {#if upload?.status === "error"}
+                <p class="af-photo-error" aria-live="polite">Upload failed. Try again.</p>
+              {/if}
             {/if}
           </div>
         {:else if field.type === "boolean"}

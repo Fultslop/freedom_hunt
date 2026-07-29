@@ -12,3 +12,8 @@ export function buildR2KeyPrefix(locationId: string, timestamp: number): string 
 export function buildVariantKey(prefix: string, variant: PhotoVariant): string {
   return `${prefix}/${variant}.jpg`;
 }
+
+export function buildVideoKey(prefix: string, mimeType: string): string {
+  const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+  return `${prefix}/video.${ext}`;
+}

@@ -27,13 +27,14 @@ npx wrangler d1 execute scavenger_hunt_auth --local --file=migrations/001_init.s
 npx wrangler d1 execute scavenger_hunt_auth --local --file=migrations/002_photos.sql
 npx wrangler d1 execute scavenger_hunt_auth --local --file=migrations/003_form_submissions.sql
 npx wrangler d1 execute scavenger_hunt_auth --local --file=migrations/004_participant_auth.sql
+npx wrangler d1 execute scavenger_hunt_auth --local --file=migrations/005_photo_kind.sql
 ```
 
-Apply all four here, even if you only plan to test users/organizers/editors right away — skipping 002–004 doesn't error at setup time, it just means `photos`/`form_submissions`/`participant_whitelist`/`participant_accounts` don't exist yet, so anything that touches them (photo upload, form submit, demo participant signup) fails later with an unrelated-looking 500. The `CREATE TABLE IF NOT EXISTS` statements make re-running any of these harmless.
+Apply all five here, even if you only plan to test users/organizers/editors right away — skipping 002–005 doesn't error at setup time, it just means `photos`/`form_submissions`/`participant_whitelist`/`participant_accounts` don't exist yet (or `photos.kind` is missing), so anything that touches them (photo/video upload, form submit, demo participant signup) fails later with an unrelated-looking 500. The `CREATE TABLE IF NOT EXISTS` statements in 002–004 make those harmless to re-run; `005`'s `ALTER TABLE ... ADD COLUMN` is not idempotent the same way — re-running it after it's already applied errors with `duplicate column name: kind`, which just means it's already done, not a problem.
 
 Note: local D1 is a real sqlite file under `.wrangler/state/v3/d1`, not transient — it persists across `npm run dev`/`npm run preview` restarts (both read the same local persistence directory), which is exactly why this step only needs to happen once per machine (see the "Done" note below), and also why it's easy to end up on a stale schema if you cloned the repo before a later migration was added.
 
-**Expected:** All four commands complete with no errors.
+**Expected:** All five commands complete with no errors.
 
 ---
 
