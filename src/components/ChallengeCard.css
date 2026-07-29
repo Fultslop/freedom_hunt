@@ -248,6 +248,7 @@
 .cc-inline-nav__btn--next {
   background: var(--color-accent);
   color: #000;
+  margin-inline-start: auto;
 }
 
 .cc-inline-nav__end {

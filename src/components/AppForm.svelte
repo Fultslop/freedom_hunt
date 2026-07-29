@@ -101,7 +101,21 @@
   // buildNestedValues expect.
   const instanceId = crypto.randomUUID();
 
-  let values = $state<FieldValues>(untrack(() => ({ ...(initialValues as FieldValues) })));
+  let values = $state<FieldValues>(
+    untrack(() => {
+      const seeded: FieldValues = { ...(initialValues as FieldValues) };
+      for (const field of fields) {
+        if (
+          field.id &&
+          field.value !== undefined &&
+          !Object.prototype.hasOwnProperty.call(seeded, field.id)
+        ) {
+          seeded[field.id] = field.value as FieldValues[string];
+        }
+      }
+      return seeded;
+    }),
+  );
   let uploadStates = $state<Record<string, PhotoFieldState>>(
     untrack(() => {
       const result: Record<string, PhotoFieldState> = {};
@@ -111,6 +125,17 @@
       return result;
     }),
   );
+  function getBaseline(field: FormField, id: string): unknown {
+    const source = (baseValues ?? initialValues) as Record<string, unknown>;
+    if (Object.prototype.hasOwnProperty.call(source, id)) {
+      return source[id];
+    }
+    if (field.value !== undefined && field.storeDefaultValue === false) {
+      return field.value;
+    }
+    return undefined;
+  }
+
   const hasChanges = $derived(
     fields
       .filter((f) => f.id && f.type !== STR_SECTION)
@@ -122,9 +147,7 @@
           return currentStatus !== undefined && currentStatus !== baselineStatus;
         }
         const curr = values[id];
-        const baseline = baseValues
-          ? (baseValues as Record<string, unknown>)[id]
-          : (initialValues as Record<string, unknown>)[id];
+        const baseline = getBaseline(f, id);
         if (Array.isArray(curr) || Array.isArray(baseline)) {
           return JSON.stringify(curr ?? []) !== JSON.stringify(baseline ?? []);
         } else if (typeof curr === "object" || typeof baseline === "object") {
@@ -495,6 +518,7 @@
               class="af-textarea"
               class:af-textarea--error={err}
               aria-describedby={describedBy}
+              rows={field.config?.lineCount ?? 5}
               bind:value={values[id] as string}
             ></textarea>
           {:else if field.type === "number"}

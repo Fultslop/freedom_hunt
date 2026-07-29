@@ -1,0 +1,12 @@
+- id: manifesto
+  type: textarea
+  label: Fill in the blanks
+  config:
+    lineCount: 6
+  value: |
+    WE, THE CITIZENS ABROAD, DECLARE:
+    In the name of __________, we pledge to __________.
+    To protect __________, we demand __________.
+    To honor __________, we will __________.
+    To fight against __________, we will __________.
+    To recruit others to join us, we will __________.

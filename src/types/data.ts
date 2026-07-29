@@ -11,7 +11,8 @@ export type FormFieldType =
   | "section"
   | "image-picker"
   | "coord-picker"
-  | "random_value";
+  | "random_value"
+  | "schema_error";
 
 export interface FormField {
   id?: string;
@@ -23,6 +24,9 @@ export interface FormField {
   min?: number;
   max?: number;
   isRequired?: boolean;
+  value?: string | number | boolean | string[];
+  storeDefaultValue?: boolean;
+  config?: { lineCount?: number };
 }
 
 export interface Challenge {

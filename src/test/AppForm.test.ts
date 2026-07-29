@@ -1195,3 +1195,117 @@ test("random_value: missing values array blocks submit with a definition error",
   expect(screen.getByText("random_value field missing values")).toBeInTheDocument();
   expect(onSubmit).not.toHaveBeenCalled();
 });
+
+// ---------------------------------------------------------------------------
+// field.value prefill
+// ---------------------------------------------------------------------------
+
+test("prefills a string field from field.value when there is no initialValues entry", () => {
+  const fields: FormField[] = [
+    { id: "note", type: "string", label: "Note", value: "Default text" },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.getByLabelText("Note")).toHaveValue("Default text");
+});
+
+test("field.value does not override an existing initialValues entry, even an empty string", () => {
+  const fields: FormField[] = [
+    { id: "note", type: "string", label: "Note", value: "Default text" },
+  ];
+  render(AppForm, {
+    props: { fields, initialValues: { note: "" }, onSubmit: vi.fn() },
+  });
+  expect(screen.getByLabelText("Note")).toHaveValue("");
+});
+
+test("boolean field.value seeds the checkbox as checked", () => {
+  const fields: FormField[] = [
+    { id: "agree", type: "boolean", label: "I agree", value: true },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.getByRole("checkbox")).toBeChecked();
+});
+
+test("radio field.value preselects the matching option", () => {
+  const fields: FormField[] = [
+    {
+      id: "time",
+      type: "radio",
+      label: "Time of day",
+      options: ["Morning", "Afternoon"],
+      value: "Afternoon",
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.getByLabelText("Afternoon")).toBeChecked();
+  expect(screen.getByLabelText("Morning")).not.toBeChecked();
+});
+
+test("multiple field.value preselects matching checkboxes", () => {
+  const fields: FormField[] = [
+    {
+      id: "interests",
+      type: "multiple",
+      label: "Interests",
+      options: ["History", "Food", "Art"],
+      min: 1,
+      max: 2,
+      value: ["History", "Art"],
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.getByLabelText("History")).toBeChecked();
+  expect(screen.getByLabelText("Art")).toBeChecked();
+  expect(screen.getByLabelText("Food")).not.toBeChecked();
+});
+
+test("storeDefaultValue defaults to true: submit is enabled immediately from field.value alone", async () => {
+  const fields: FormField[] = [
+    { id: "note", type: "string", label: "Note", value: "Default text", isRequired: true },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  const btn = await screen.findByRole("button", { name: /submit/i });
+  expect(btn).not.toBeDisabled();
+  expect(btn).not.toHaveTextContent(/no changes/i);
+});
+
+test("storeDefaultValue: false keeps submit disabled until the participant edits the field", async () => {
+  const fields: FormField[] = [
+    {
+      id: "note",
+      type: "string",
+      label: "Note",
+      value: "Default text",
+      storeDefaultValue: false,
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  const disabledBtn = await screen.findByRole("button", { name: /no changes/i });
+  expect(disabledBtn).toBeDisabled();
+
+  await fireEvent.input(screen.getByLabelText("Note"), {
+    target: { value: "Edited text" },
+  });
+  const enabledBtn = screen.getByRole("button", { name: /submit/i });
+  expect(enabledBtn).not.toBeDisabled();
+});
+
+// ---------------------------------------------------------------------------
+// textarea config.lineCount
+// ---------------------------------------------------------------------------
+
+test("textarea renders with rows=5 by default when no config is set", () => {
+  const fields: FormField[] = [
+    { id: "story", type: "textarea", label: "Your story" },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.getByLabelText("Your story")).toHaveAttribute("rows", "5");
+});
+
+test("textarea renders with rows from config.lineCount when set", () => {
+  const fields: FormField[] = [
+    { id: "story", type: "textarea", label: "Your story", config: { lineCount: 8 } },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.getByLabelText("Your story")).toHaveAttribute("rows", "8");
+});
