@@ -7,6 +7,7 @@ export type FormFieldType =
   | "radio"
   | "multiple"
   | "photo"
+  | "video"
   | "textarea"
   | "section"
   | "image-picker"

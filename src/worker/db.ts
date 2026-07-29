@@ -269,6 +269,7 @@ export interface DbPhoto {
   r2_key: string;
   mime_type: string;
   uploaded_at: number;
+  kind?: "photo" | "video";
 }
 
 export async function insertPhoto(
@@ -279,13 +280,14 @@ export async function insertPhoto(
     .prepare(
       `INSERT INTO photos
        (id, project_id, city_id, route_id, location_id, task_title,
-        team_name, contact, r2_key, mime_type, uploaded_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        team_name, contact, r2_key, mime_type, uploaded_at, kind)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       photo.id, photo.project_id, photo.city_id, photo.route_id ?? null,
       photo.location_id, photo.task_title, photo.team_name,
       photo.contact ?? null, photo.r2_key, photo.mime_type, photo.uploaded_at,
+      photo.kind ?? "photo",
     )
     .run();
 }

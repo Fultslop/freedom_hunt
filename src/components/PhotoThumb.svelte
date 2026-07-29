@@ -19,6 +19,9 @@
     class="photo-thumb__img"
     onerror={handleError}
   />
+  {#if photo.kind === "video"}
+    <span class="photo-thumb__video-badge" aria-hidden="true">&#9654;</span>
+  {/if}
   <div class="photo-thumb__caption">
     <span class="photo-thumb__team">{photo.teamName}</span>
     <span class="photo-thumb__task">{photo.taskTitle}</span>

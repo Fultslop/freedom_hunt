@@ -8,6 +8,7 @@
   cursor: pointer;
   overflow: hidden;
   text-align: left;
+  position: relative;
   transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
@@ -39,4 +40,19 @@
 .photo-thumb__task {
   font-size: var(--font-size-small);
   color: var(--color-text-secondary);
+}
+
+.photo-thumb__video-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
 }

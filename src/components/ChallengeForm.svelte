@@ -2,7 +2,7 @@
   import { untrack } from "svelte";
   import { authStore } from "../stores/authStore";
   import type { FormField, PhotoUploadStatus } from "../types/data";
-  import { postFormSubmit, postPhotoUpload } from "../utils/api";
+  import { postFormSubmit, postPhotoUpload, postVideoUpload } from "../utils/api";
   import { buildFormStorageKey, loadFormState, saveFormState } from "../utils/formStorage";
   import AppForm from "./AppForm.svelte";
   import "./ChallengeForm.css";
@@ -92,6 +92,13 @@
   async function handlePhotoUpload(file: File): Promise<{ ok: boolean; httpCode?: number }> {
     return postPhotoUpload({ locationId, cityId, routeId, taskTitle, file });
   }
+
+  async function handleVideoUpload(
+    video: File,
+    poster: File,
+  ): Promise<{ ok: boolean; httpCode?: number }> {
+    return postVideoUpload({ locationId, cityId, routeId, taskTitle, video, poster });
+  }
 </script>
 
 <div class="challenge-form">
@@ -107,6 +114,7 @@
         {baseUploads}
         onSubmit={handleSubmit}
         onPhotoUpload={handlePhotoUpload}
+        onVideoUpload={handleVideoUpload}
         onSuccess={handleSuccess}
         onValuesChange={handleValuesChange}
         onUploadsChange={handleUploadsChange}

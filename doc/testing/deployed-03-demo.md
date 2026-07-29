@@ -10,15 +10,18 @@ Replace `https://your-app.workers.dev` with your actual URL throughout.
 
 ## Steps
 
-**1. Apply the newer migrations**
+**1. Confirm migrations 002–005 are applied**
+
+`deployed-00-setup.md` step 4 now applies all five migrations up front. If this deployment was set up before that changed, apply the missing ones now:
 
 ```bash
 npx wrangler d1 execute scavenger_hunt_auth --file=migrations/002_photos.sql
 npx wrangler d1 execute scavenger_hunt_auth --file=migrations/003_form_submissions.sql
 npx wrangler d1 execute scavenger_hunt_auth --file=migrations/004_participant_auth.sql
+npx wrangler d1 execute scavenger_hunt_auth --file=migrations/005_photo_kind.sql
 ```
 
-**Expected:** All three complete with no errors. (`002` is likely already applied from the live photo gallery feature — harmless to rerun.)
+**Expected:** All four complete with no errors. (`002`-`004` are harmless to rerun — `CREATE TABLE IF NOT EXISTS`. `005`'s `ALTER TABLE ... ADD COLUMN` is not idempotent the same way — if it's already applied, it errors with `duplicate column name: kind`, which just means this step is already done.)
 
 ---
 
