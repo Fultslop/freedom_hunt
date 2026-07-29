@@ -122,37 +122,6 @@
   gap: 10px;
 }
 
-.cmpl-btn-primary {
-  display: block;
-  width: 100%;
-  background: var(--color-accent);
-  color: #000;
-  border: none;
-  font-weight: 800;
-  font-size: var(--font-size-base);
-  padding: 15px 18px;
-  border-radius: 10px;
-  text-align: center;
-  box-sizing: border-box;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.cmpl-btn-secondary {
-  display: block;
-  width: 100%;
-  background: var(--color-background);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  font-weight: 700;
-  font-size: var(--font-size-base);
-  padding: 13px 18px;
-  border-radius: 10px;
-  text-align: center;
-  box-sizing: border-box;
-  cursor: pointer;
-}
-
 .cmpl-hint {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);

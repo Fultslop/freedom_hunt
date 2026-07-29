@@ -13,10 +13,17 @@ const validDoc = {
   title: "You made it.",
   subtitle: "Democrats Abroad 2026 Scavenger Hunt",
   place: "The Hague · short loop",
-  registration: {
-    text: "Check your voter registration",
-    url: "https://www.democratsabroad.org/nl",
-  },
+  buttons: [
+    {
+      text: "Check your voter registration",
+      target: { type: "link", value: "https://www.democratsabroad.org/nl" },
+    },
+    {
+      text: "See your results",
+      target: { type: "page", value: "results" },
+      color: "secondary",
+    },
+  ],
 };
 
 test("accepts a well-formed completion entry", () => {
@@ -35,13 +42,26 @@ test("accepts the optional caption, closing_text, hint, and nav-bar fields", () 
   ).toBe(true);
 });
 
-test("rejects a completion entry missing registration", () => {
-  const { registration: _registration, ...withoutRegistration } = validDoc;
-  expect(validate(withoutRegistration)).toBe(false);
+test("rejects a completion entry missing buttons", () => {
+  const { buttons: _buttons, ...withoutButtons } = validDoc;
+  expect(validate(withoutButtons)).toBe(false);
 });
 
-test("rejects a registration object missing url", () => {
-  expect(validate({ ...validDoc, registration: { text: "Check" } })).toBe(false);
+test("rejects an empty buttons array", () => {
+  expect(validate({ ...validDoc, buttons: [] })).toBe(false);
+});
+
+test("rejects a button missing target", () => {
+  expect(validate({ ...validDoc, buttons: [{ text: "Go" }] })).toBe(false);
+});
+
+test("rejects a page-target button with value 'start_route'", () => {
+  expect(
+    validate({
+      ...validDoc,
+      buttons: [{ text: "Go", target: { type: "page", value: "start_route" } }],
+    }),
+  ).toBe(false);
 });
 
 test("rejects an unknown top-level property", () => {

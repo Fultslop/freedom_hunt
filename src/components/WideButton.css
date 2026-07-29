@@ -1,0 +1,28 @@
+/* src/components/WideButton.css */
+
+.wide-btn {
+  display: block;
+  width: 100%;
+  border: none;
+  font-size: var(--font-size-base);
+  padding: 15px 18px;
+  border-radius: 10px;
+  text-align: center;
+  box-sizing: border-box;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.wide-btn--primary {
+  background: var(--color-accent);
+  color: #000;
+  font-weight: 800;
+}
+
+.wide-btn--secondary {
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  font-weight: 700;
+  padding: 13px 18px;
+}

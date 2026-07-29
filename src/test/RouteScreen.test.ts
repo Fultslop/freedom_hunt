@@ -102,7 +102,9 @@ test("renders CompletionScreen for a completion entry", async () => {
         title: "You made it.",
         subtitle: "Democrats Abroad 2026 Scavenger Hunt",
         place: "The Hague · short loop",
-        registration: { text: "Check your registration", url: "https://example.org" },
+        buttons: [
+          { text: "Check your registration", target: { type: "link", value: "https://example.org" } },
+        ],
       } as RouteEntry,
       index: 9,
       project: "demo",
@@ -126,7 +128,9 @@ test("passes a zeroed placeholder stats object to CompletionScreen when stats is
         title: "Done",
         subtitle: "s",
         place: "p",
-        registration: { text: "t", url: "u" },
+        buttons: [
+          { text: "t", target: { type: "link", value: "u" } },
+        ],
       } as RouteEntry,
       index: 9,
     },

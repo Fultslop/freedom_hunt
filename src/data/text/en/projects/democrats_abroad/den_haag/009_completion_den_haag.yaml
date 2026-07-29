@@ -6,9 +6,13 @@ place: "The Hague · short loop"
 caption: "Completed with Democrats Abroad Netherlands · The Hague"
 closing_text: |
   Thank you for spending your afternoon walking these streets. **Every registered voter counts** — take two minutes now while it's fresh, then come back and browse the photo gallery from today.
-registration:
-  text: "Check your voter registration"
-  url: "https://www.democratsabroad.org/nl"
+buttons:
+  - text: "Check your voter registration"
+    target: { type: link, value: "https://www.democratsabroad.org/nl" }
+    color: primary
+  - text: "See your photos"
+    target: { type: page, value: gallery }
+    color: secondary
 hint: "Takes about 2 minutes · vote.org"
 nav-bar:
-  visible: false
+  visible: true

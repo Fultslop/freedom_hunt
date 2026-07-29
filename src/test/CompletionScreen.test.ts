@@ -16,10 +16,17 @@ const baseProps = {
   title: "You made it.",
   subtitle: "Democrats Abroad 2026 Scavenger Hunt",
   place: "The Hague · short loop",
-  registration: {
-    text: "Check your voter registration",
-    url: "https://www.democratsabroad.org/nl",
-  },
+  buttons: [
+    {
+      text: "Check your voter registration",
+      target: { type: "link" as const, value: "https://www.democratsabroad.org/nl" },
+    },
+    {
+      text: "See your results",
+      target: { type: "page" as const, value: "results" as const },
+      color: "secondary" as const,
+    },
+  ],
   stats: { stopsCompleted: 6, stopsTotal: 8, photosCount: 12 as number | "—", timeOnFoot: "2h 18m" },
   project: "democrats_abroad",
   cityId: "den_haag",
@@ -43,17 +50,17 @@ test("renders the hero as a background-image div, not a scaling <img>", () => {
   expect(heroImg.style.backgroundImage).toBe('url("blob:test")');
 });
 
-test("renders the registration link pointing at the authored URL", () => {
+test("renders the primary button as a real link to its authored URL", () => {
   render(CompletionScreen, { props: baseProps });
   const link = screen.getByRole("link", { name: "Check your voter registration" });
   expect(link).toHaveAttribute("href", "https://www.democratsabroad.org/nl");
   expect(link).toHaveAttribute("target", "_blank");
 });
 
-test("renders a secondary button that navigates to the route's results_download page", async () => {
+test("renders a second button that navigates to the route's results_download page", async () => {
   const { push } = await import("svelte-spa-router");
   render(CompletionScreen, { props: baseProps });
-  await fireEvent.click(screen.getByRole("button", { name: "See your answers" }));
+  await fireEvent.click(screen.getByRole("button", { name: "See your results" }));
   expect(push).toHaveBeenCalledWith("/democrats_abroad/den_haag/results_download");
 });
 

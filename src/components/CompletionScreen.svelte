@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { push } from "svelte-spa-router";
   import { Check, Sparkles } from "lucide-svelte";
   import { fetchImage, getCachedImageUrl } from "../assets/AssetManager";
   import { themeStore } from "../stores/themeStore";
   import MarkdownText from "./MarkdownText.svelte";
   import StoryStats from "./StoryStats.svelte";
   import ConfettiEffect from "./effects/ConfettiEffect.svelte";
+  import WideButton from "./WideButton.svelte";
   import type { StoryBlock } from "../types/storyline";
-  import type { CompletionStats } from "../types/data";
+  import type { CompletionStats, WideButtonConfig } from "../types/data";
   import "./CompletionScreen.css";
 
   let {
@@ -17,7 +17,7 @@
     place,
     caption = undefined,
     closingText = undefined,
-    registration,
+    buttons,
     hint = undefined,
     stats,
     project,
@@ -30,7 +30,7 @@
     place: string;
     caption?: string;
     closingText?: string;
-    registration: { text: string; url: string };
+    buttons: WideButtonConfig[];
     hint?: string;
     stats: CompletionStats;
     project: string;
@@ -138,10 +138,6 @@
       playKenBurns = false;
     };
   });
-
-  function goToResults() {
-    push(`/${project}/${cityId}/results_download`);
-  }
 </script>
 
 <div class="cmpl-root">
@@ -188,12 +184,9 @@
   {/if}
 
   <div class="cmpl-actions cmpl-reveal" class:cmpl-reveal--in={actionsIn}>
-    <a class="cmpl-btn-primary" href={registration.url} target="_blank" rel="noopener noreferrer">
-      {registration.text}
-    </a>
-    <button type="button" class="cmpl-btn-secondary" onclick={goToResults}>
-      See your answers
-    </button>
+    {#each buttons as button, i (i)}
+      <WideButton {...button} {project} {cityId} />
+    {/each}
     {#if hint}
       <p class="cmpl-hint">{hint}</p>
     {/if}

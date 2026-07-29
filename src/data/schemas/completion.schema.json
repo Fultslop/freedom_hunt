@@ -3,7 +3,7 @@
   "title": "Completion Screen",
   "type": "object",
   "additionalProperties": false,
-  "required": ["template-type", "image", "title", "subtitle", "place", "registration"],
+  "required": ["template-type", "image", "title", "subtitle", "place", "buttons"],
   "properties": {
     "template-type": { "const": "completion" },
     "image": { "type": "string" },
@@ -18,13 +18,39 @@
       "additionalProperties": false,
       "properties": { "visible": { "type": "boolean" } }
     },
-    "registration": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["text", "url"],
-      "properties": {
-        "text": { "type": "string" },
-        "url": { "type": "string" }
+    "buttons": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "target"],
+        "properties": {
+          "text": { "type": "string" },
+          "color": { "enum": ["primary", "secondary"] },
+          "target": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type", "value"],
+                "properties": {
+                  "type": { "const": "link" },
+                  "value": { "type": "string" }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type", "value"],
+                "properties": {
+                  "type": { "const": "page" },
+                  "value": { "enum": ["title", "project", "gallery", "results"] }
+                }
+              }
+            ]
+          }
+        }
       }
     }
   }

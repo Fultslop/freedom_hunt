@@ -182,7 +182,10 @@ export interface SplashEntry {
 
 export type OptionTarget =
   | { type: "link"; value: string }
-  | { type: "page"; value: "title" | "project" | "start_route" | "gallery" | "continue" };
+  | {
+      type: "page";
+      value: "title" | "project" | "start_route" | "gallery" | "continue" | "results";
+    };
 
 export interface OptionsEntry {
   "template-type": "options";
@@ -191,6 +194,16 @@ export interface OptionsEntry {
   text?: string;
   options: Array<{ text: string; target: OptionTarget; track?: boolean }>;
   "nav-bar"?: NavBarConfig;
+}
+
+export type WideButtonTarget =
+  | { type: "link"; value: string }
+  | { type: "page"; value: "title" | "project" | "gallery" | "results" };
+
+export interface WideButtonConfig {
+  text: string;
+  target: WideButtonTarget;
+  color?: "primary" | "secondary";
 }
 
 export interface FormsRequirement {
@@ -239,7 +252,7 @@ export interface CompletionEntry {
   place: string;
   caption?: string;
   closing_text?: string;
-  registration: { text: string; url: string };
+  buttons: WideButtonConfig[];
   hint?: string;
   "nav-bar"?: NavBarConfig;
 }

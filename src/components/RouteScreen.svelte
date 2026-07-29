@@ -75,7 +75,7 @@
     place={entry.place}
     caption={entry.caption}
     closingText={entry.closing_text}
-    registration={entry.registration}
+    buttons={entry.buttons}
     hint={entry.hint}
     stats={stats ?? { stopsCompleted: 0, stopsTotal: 0, photosCount: "—", timeOnFoot: "—" }}
     project={project}
