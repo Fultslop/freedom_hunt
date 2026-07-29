@@ -1,0 +1,9 @@
+- id: photo
+  type: photo
+  label: Photograph the still life and upload
+
+- id: caption
+  type: string
+  label: what is the common thread ?
+
+

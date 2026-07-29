@@ -4,11 +4,9 @@ Photo by <a href="https://unsplash.com/@rafael_ishkhanyan?utm_source=unsplash&ut
 
 
 Stumbling stone:
-
 https://commons.wikimedia.org/wiki/File:Stolperstein_for_Samuel_Henriquez_de_Granada.jpg
 
 Nieuwe kerk:
-
 https://commons.wikimedia.org/wiki/Category:Nieuwe_Kerk_(The_Hague)#/media/File:Den_Haag_Nieuwe_Kerk.jpg
 
 Lange voorhout:
@@ -16,4 +14,7 @@ Lange voorhout:
  https://commons.wikimedia.org/wiki/File:Lange_voorhout.jpg
 
 lange-vijverberg
- https://denhaag.com/en/court-pond-lange-vijverberg
+https://denhaag.com/en/court-pond-lange-vijverberg
+
+grote markt
+https://commons.wikimedia.org/wiki/File:Den_Haag_-_Grote_Markt_v1.JPG
