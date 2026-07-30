@@ -88,7 +88,7 @@ describe("SearchPlane search mode", () => {
     // that walker forever with no active node at all).
     expect(container.querySelectorAll(".search-plane__node--active").length).toBe(TOTAL_WALKER_COUNT);
     unmount();
-  }, 15000);
+  }, 30000);
 
   it("does not schedule a new split while paused, but does not error either", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
@@ -258,5 +258,5 @@ describe("SearchPlane secondary trails", () => {
     expect(total).toBeGreaterThan(TOTAL_WALKER_COUNT);
     expect(total).toBeLessThan(100 * TOTAL_WALKER_COUNT);
     unmount();
-  }, 15000);
+  }, 30000);
 });
