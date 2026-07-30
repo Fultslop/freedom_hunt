@@ -7,7 +7,10 @@ import * as loadTextApi from "../utils/loadText";
 
 const MOCK_PROJECT_META: Record<string, string> = { "project.name": "Democrats Abroad" };
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  localStorage.clear();
+});
 
 function baseProps(overrides: Record<string, unknown> = {}) {
   return {
@@ -134,5 +137,35 @@ describe("JoinSheet — found state", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: /join this hunt/i })).toBeInTheDocument());
     await fireEvent.click(screen.getByRole("button", { name: /join this hunt/i }));
     expect(onJoin).toHaveBeenCalledWith("democrats_abroad");
+  });
+
+  it("saves the code to localStorage as soon as it resolves, before 'Join this hunt' is ever tapped", async () => {
+    vi.spyOn(api, "postVerifyCode").mockResolvedValue({ ok: true, mode: "project", project: "democrats_abroad" });
+    vi.spyOn(huntSummaryApi, "resolveHuntSummary").mockResolvedValue(null);
+    vi.spyOn(loadTextApi, "loadText").mockResolvedValue(MOCK_PROJECT_META);
+    render(JoinSheet, { props: baseProps() });
+    await fireEvent.input(screen.getByLabelText("Hunt code"), { target: { value: "letmein" } });
+    await fireEvent.click(screen.getByRole("button", { name: /find hunt/i }));
+    await waitFor(() => expect(localStorage.getItem("lastHuntCode")).toBe("letmein"));
+  });
+});
+
+describe("JoinSheet — hunt-code prefill", () => {
+  it("prefills the code field from the last resolved code on mount", () => {
+    localStorage.setItem("lastHuntCode", "letmein");
+    render(JoinSheet, { props: baseProps() });
+    expect(screen.getByLabelText("Hunt code")).toHaveValue("letmein");
+  });
+
+  it("prefers a deep-link initialCode over the stored last code", () => {
+    localStorage.setItem("lastHuntCode", "oldcode");
+    vi.spyOn(api, "postVerifyCode").mockImplementation(() => new Promise(() => {}));
+    render(JoinSheet, { props: baseProps({ initialCode: "newcode" }) });
+    expect(screen.getByLabelText("Hunt code")).toHaveValue("newcode");
+  });
+
+  it("enables native autocomplete on the field", () => {
+    render(JoinSheet, { props: baseProps() });
+    expect(screen.getByLabelText("Hunt code")).toHaveAttribute("autocomplete", "on");
   });
 });

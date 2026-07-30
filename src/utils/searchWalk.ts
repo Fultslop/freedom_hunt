@@ -187,7 +187,7 @@ export function computeSurvivors<N extends PruneNode>(
  * angle correction" section of doc/superpowers/specs/2026-07-30-secondary-search-trails-design.md
  * for why a much larger radius made secondary trails effectively invisible.
  * Still expect this to need further by-eye tuning. */
-export const TELEPORT_RADIUS = 3500;
+export const TELEPORT_RADIUS = 2000;
 
 /** Number of independent secondary trails alongside the camera-tracked primary trail. */
 export const SECONDARY_TRAIL_COUNT = 3;

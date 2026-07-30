@@ -224,7 +224,7 @@ import {
                           // A brief rest once the search settles somewhere new, before
                           // the next fan-out. `paused`/`running` are re-checked when
                           // this fires, not when it's scheduled.
-                          const restMs = 1000 + Math.random() * 1000;
+                          const restMs = 400 + Math.random() * 650;
                           pendingTimers.push(
                             setTimeout(() => {
                               if (running) {
