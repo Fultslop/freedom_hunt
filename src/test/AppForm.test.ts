@@ -1160,6 +1160,39 @@ test("random_value: editable true renders a text input seeded with the picked va
   expect(screen.getByLabelText("Team name")).toHaveValue("Alpha");
 });
 
+test("random_value: editable + reroll renders the input and dice button as siblings in one row", () => {
+  const fields: FormField[] = [
+    {
+      id: "assigned_child",
+      type: "random_value" as FormFieldType,
+      label: "Team name",
+      values: ["Alpha"],
+      editable: true,
+      reroll: true,
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  const input = screen.getByLabelText("Team name");
+  const diceBtn = screen.getByRole("button", { name: /suggest another/i });
+  expect(input.parentElement).toBe(diceBtn.parentElement);
+  expect(input.parentElement).toHaveClass("af-random-value-row");
+});
+
+test("alwaysSubmittable keeps the submit button enabled and labeled even with no field changes", () => {
+  const fields: FormField[] = [{ id: "title", type: "string", label: "Title" }];
+  render(AppForm, {
+    props: {
+      fields,
+      initialValues: { title: "Binnenhof" },
+      onSubmit: vi.fn(),
+      submitLabel: "Continue",
+      alwaysSubmittable: true,
+    },
+  });
+  const button = screen.getByRole("button", { name: "Continue" });
+  expect(button).not.toBeDisabled();
+});
+
 test("uploaded photo tile is rendered at the larger filled size with a success badge", () => {
   const fields: FormField[] = [{ id: "pic", type: "photo", label: "Take a photo" }];
   render(AppForm, {

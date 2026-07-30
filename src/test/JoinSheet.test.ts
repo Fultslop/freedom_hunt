@@ -4,12 +4,15 @@ import JoinSheet from "../components/JoinSheet.svelte";
 import * as api from "../utils/api";
 import * as huntSummaryApi from "../utils/huntSummary";
 import * as loadTextApi from "../utils/loadText";
+import { authStore } from "../stores/authStore";
 
-const MOCK_PROJECT_META: Record<string, string> = { "project.name": "Democrats Abroad" };
+const MOCK_PROJECT_META: Record<string, string> = { "project.title": "Democrats Abroad" };
 
 afterEach(() => {
   vi.restoreAllMocks();
   localStorage.clear();
+  sessionStorage.clear();
+  authStore.setForTest({ activeAuth: null, authLoading: false, isLoggingOut: false });
 });
 
 function baseProps(overrides: Record<string, unknown> = {}) {
@@ -17,6 +20,7 @@ function baseProps(overrides: Record<string, unknown> = {}) {
     open: true,
     onResolved: vi.fn(),
     onJoin: vi.fn(),
+    onContinue: vi.fn(),
     onDemo: vi.fn(),
     onClose: vi.fn(),
     ...overrides,
@@ -102,6 +106,17 @@ describe("JoinSheet — found state", () => {
     expect(screen.getByText("No account needed. You'll pick a team name next.")).toBeInTheDocument();
   });
 
+  it("shows the project's display name (project.title), not the raw project id", async () => {
+    vi.spyOn(api, "postVerifyCode").mockResolvedValue({ ok: true, mode: "project", project: "democrats_abroad" });
+    vi.spyOn(huntSummaryApi, "resolveHuntSummary").mockResolvedValue(null);
+    vi.spyOn(loadTextApi, "loadText").mockResolvedValue(MOCK_PROJECT_META);
+    render(JoinSheet, { props: baseProps() });
+    await fireEvent.input(screen.getByLabelText("Hunt code"), { target: { value: "letmein" } });
+    await fireEvent.click(screen.getByRole("button", { name: /find hunt/i }));
+    await waitFor(() => expect(screen.getByText("Democrats Abroad")).toBeInTheDocument());
+    expect(screen.queryByText("democrats_abroad")).not.toBeInTheDocument();
+  });
+
   it("shows the found state without chips when the project has more than one city/route", async () => {
     vi.spyOn(api, "postVerifyCode").mockResolvedValue({ ok: true, mode: "project", project: "democrats_abroad" });
     vi.spyOn(huntSummaryApi, "resolveHuntSummary").mockResolvedValue(null);
@@ -139,6 +154,21 @@ describe("JoinSheet — found state", () => {
     expect(onJoin).toHaveBeenCalledWith("democrats_abroad");
   });
 
+  it("stashes pendingHuntAuth with the resolved project and code when 'Join this hunt' is tapped", async () => {
+    vi.spyOn(api, "postVerifyCode").mockResolvedValue({ ok: true, mode: "project", project: "democrats_abroad" });
+    vi.spyOn(huntSummaryApi, "resolveHuntSummary").mockResolvedValue(null);
+    vi.spyOn(loadTextApi, "loadText").mockResolvedValue(MOCK_PROJECT_META);
+    render(JoinSheet, { props: baseProps() });
+    await fireEvent.input(screen.getByLabelText("Hunt code"), { target: { value: "letmein" } });
+    await fireEvent.click(screen.getByRole("button", { name: /find hunt/i }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /join this hunt/i })).toBeInTheDocument());
+    await fireEvent.click(screen.getByRole("button", { name: /join this hunt/i }));
+    expect(JSON.parse(sessionStorage.getItem("pendingHuntAuth")!)).toEqual({
+      project: "democrats_abroad",
+      password: "letmein",
+    });
+  });
+
   it("saves the code to localStorage as soon as it resolves, before 'Join this hunt' is ever tapped", async () => {
     vi.spyOn(api, "postVerifyCode").mockResolvedValue({ ok: true, mode: "project", project: "democrats_abroad" });
     vi.spyOn(huntSummaryApi, "resolveHuntSummary").mockResolvedValue(null);
@@ -147,6 +177,87 @@ describe("JoinSheet — found state", () => {
     await fireEvent.input(screen.getByLabelText("Hunt code"), { target: { value: "letmein" } });
     await fireEvent.click(screen.getByRole("button", { name: /find hunt/i }));
     await waitFor(() => expect(localStorage.getItem("lastHuntCode")).toBe("letmein"));
+  });
+});
+
+describe("JoinSheet — already-authenticated participant", () => {
+  it("offers 'Continue as [team]' instead of 'Join this hunt' when already signed into the resolved project", async () => {
+    authStore.setForTest({
+      activeAuth: { kind: "participant", projectId: "democrats_abroad", teamName: "Rowdy Herring", contact: null, isAdmin: false },
+      authLoading: false,
+      isLoggingOut: false,
+    });
+    vi.spyOn(api, "postVerifyCode").mockResolvedValue({ ok: true, mode: "project", project: "democrats_abroad" });
+    vi.spyOn(huntSummaryApi, "resolveHuntSummary").mockResolvedValue({
+      cityId: "den_haag", routeId: "short_loop", stopCount: 15, distanceMeters: 2400, durationMinutes: 120,
+    });
+    vi.spyOn(loadTextApi, "loadText").mockResolvedValue(MOCK_PROJECT_META);
+    render(JoinSheet, { props: baseProps() });
+    await fireEvent.input(screen.getByLabelText("Hunt code"), { target: { value: "letmein" } });
+    await fireEvent.click(screen.getByRole("button", { name: /find hunt/i }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /continue as rowdy herring/i })).toBeInTheDocument(),
+    );
+    expect(screen.queryByRole("button", { name: /^join this hunt$/i })).not.toBeInTheDocument();
+  });
+
+  it("'Continue as [team]' navigates straight to the project page, skipping team setup", async () => {
+    authStore.setForTest({
+      activeAuth: { kind: "participant", projectId: "democrats_abroad", teamName: "Rowdy Herring", contact: null, isAdmin: false },
+      authLoading: false,
+      isLoggingOut: false,
+    });
+    vi.spyOn(api, "postVerifyCode").mockResolvedValue({ ok: true, mode: "project", project: "democrats_abroad" });
+    vi.spyOn(huntSummaryApi, "resolveHuntSummary").mockResolvedValue({
+      cityId: "den_haag", routeId: "short_loop", stopCount: 15, distanceMeters: 2400, durationMinutes: 120,
+    });
+    vi.spyOn(loadTextApi, "loadText").mockResolvedValue(MOCK_PROJECT_META);
+    const onContinue = vi.fn();
+    const onJoin = vi.fn();
+    render(JoinSheet, { props: baseProps({ onContinue, onJoin }) });
+    await fireEvent.input(screen.getByLabelText("Hunt code"), { target: { value: "letmein" } });
+    await fireEvent.click(screen.getByRole("button", { name: /find hunt/i }));
+    await waitFor(() => screen.getByRole("button", { name: /continue as rowdy herring/i }));
+    await fireEvent.click(screen.getByRole("button", { name: /continue as rowdy herring/i }));
+    expect(onContinue).toHaveBeenCalledWith("/democrats_abroad");
+    expect(onJoin).not.toHaveBeenCalled();
+  });
+
+  it("'Not you?' falls through to the normal new-team join flow", async () => {
+    authStore.setForTest({
+      activeAuth: { kind: "participant", projectId: "democrats_abroad", teamName: "Rowdy Herring", contact: null, isAdmin: false },
+      authLoading: false,
+      isLoggingOut: false,
+    });
+    vi.spyOn(api, "postVerifyCode").mockResolvedValue({ ok: true, mode: "project", project: "democrats_abroad" });
+    vi.spyOn(huntSummaryApi, "resolveHuntSummary").mockResolvedValue(null);
+    vi.spyOn(loadTextApi, "loadText").mockResolvedValue(MOCK_PROJECT_META);
+    const onJoin = vi.fn();
+    render(JoinSheet, { props: baseProps({ onJoin }) });
+    await fireEvent.input(screen.getByLabelText("Hunt code"), { target: { value: "letmein" } });
+    await fireEvent.click(screen.getByRole("button", { name: /find hunt/i }));
+    await waitFor(() => screen.getByRole("button", { name: /not you/i }));
+    await fireEvent.click(screen.getByRole("button", { name: /not you/i }));
+    expect(onJoin).toHaveBeenCalledWith("democrats_abroad");
+    expect(JSON.parse(sessionStorage.getItem("pendingHuntAuth")!)).toEqual({
+      project: "democrats_abroad",
+      password: "letmein",
+    });
+  });
+
+  it("still shows 'Join this hunt' when signed into a different project", async () => {
+    authStore.setForTest({
+      activeAuth: { kind: "participant", projectId: "other_project", teamName: "Rowdy Herring", contact: null, isAdmin: false },
+      authLoading: false,
+      isLoggingOut: false,
+    });
+    vi.spyOn(api, "postVerifyCode").mockResolvedValue({ ok: true, mode: "project", project: "democrats_abroad" });
+    vi.spyOn(huntSummaryApi, "resolveHuntSummary").mockResolvedValue(null);
+    vi.spyOn(loadTextApi, "loadText").mockResolvedValue(MOCK_PROJECT_META);
+    render(JoinSheet, { props: baseProps() });
+    await fireEvent.input(screen.getByLabelText("Hunt code"), { target: { value: "letmein" } });
+    await fireEvent.click(screen.getByRole("button", { name: /find hunt/i }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /^join this hunt$/i })).toBeInTheDocument());
   });
 });
 

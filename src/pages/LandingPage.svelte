@@ -30,6 +30,10 @@
     push(`/team/${project}`);
   }
 
+  function handleContinue(path: string) {
+    push(path);
+  }
+
   function handleDemo() {
     push("/login/demo");
   }
@@ -77,6 +81,7 @@
     {initialCode}
     onResolved={handleResolved}
     onJoin={handleJoin}
+    onContinue={handleContinue}
     onDemo={handleDemo}
     onClose={handleClose}
   />

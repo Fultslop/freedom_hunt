@@ -20,7 +20,7 @@ afterEach(() => {
 
 function stubProject(summary: huntSummaryApi.HuntSummary | null = null) {
   vi.spyOn(huntSummaryApi, "resolveHuntSummary").mockResolvedValue(summary);
-  vi.spyOn(loadTextApi, "loadText").mockResolvedValue({ "project.name": "Democrats Abroad" } as Record<
+  vi.spyOn(loadTextApi, "loadText").mockResolvedValue({ "project.title": "Democrats Abroad" } as Record<
     string,
     string
   >);
@@ -91,7 +91,7 @@ describe("TeamSetupPage", () => {
     );
   });
 
-  it("navigates straight into RoutePage when the project resolves to exactly one city/route", async () => {
+  it("navigates to the project page after a successful login, even when a single city/route is known", async () => {
     sessionStorage.setItem(
       "pendingHuntAuth",
       JSON.stringify({ project: "democrats_abroad", password: "letmein" }),
@@ -107,7 +107,7 @@ describe("TeamSetupPage", () => {
     render(TeamSetupPage, { props: { params: { project: "democrats_abroad" } } });
     await waitFor(() => screen.getByRole("button", { name: "Continue" }));
     await fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/democrats_abroad/den_haag/short_loop"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/democrats_abroad"));
   });
 
   it("navigates to the project's city picker when more than one city/route exists", async () => {

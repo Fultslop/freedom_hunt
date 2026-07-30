@@ -41,7 +41,7 @@
       loadText<Record<string, unknown>>(lang, `projects/${project}/${project}`),
       resolveHuntSummary(project, lang),
     ]);
-    projectName = (meta?.["project.name"] as string) ?? project;
+    projectName = (meta?.["project.title"] as string) ?? project;
     summary = sum;
   }
 
@@ -103,16 +103,7 @@
         localStorage.setItem(teamNameKey, teamName);
         sessionStorage.removeItem("pendingHuntAuth");
 
-        if (data.isAdmin) {
-          push("/editor");
-        } else {
-          // Skip the city/route picker entirely when there's only one real
-          // choice — for the one hunt actually live today, "Continue" drops
-          // straight into the route instead of a picker with nothing to pick.
-          const lang = $languageStore.currentLang;
-          const freshSummary = summary ?? (await resolveHuntSummary(project, lang));
-          push(freshSummary ? `/${project}/${freshSummary.cityId}/${freshSummary.routeId}` : `/${project}`);
-        }
+        push(data.isAdmin ? "/editor" : `/${project}`);
       } catch (err) {
         error = err instanceof Error ? err.message : "Connection error. Please try again.";
         throw err;
@@ -128,12 +119,15 @@
 
   <div class="team-setup-page__content">
     <DepthWordmark project={projectName || project} />
+  </div>
+
+  <div class="team-setup-page__panel">
     <p class="team-setup-page__eyebrow">Step 2 of 2</p>
     <h2 class="team-setup-page__heading">Name your team</h2>
     <p class="team-setup-page__help">It shows on the leaderboard and on every photo you take.</p>
     {#if error}
       <p class="team-setup-page__error" aria-live="polite">{error}</p>
     {/if}
-    <AppForm {fields} onSubmit={handleSubmit} submitLabel="Continue" />
+    <AppForm {fields} onSubmit={handleSubmit} submitLabel="Continue" alwaysSubmittable />
   </div>
 </div>

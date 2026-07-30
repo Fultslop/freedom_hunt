@@ -3,6 +3,7 @@
   import { resolveHuntSummary, type HuntSummary as Summary } from "../utils/huntSummary";
   import { loadText } from "../utils/loadText";
   import { languageStore } from "../stores/languageStore";
+  import { authStore } from "../stores/authStore";
   import HuntSummaryView from "./HuntSummary.svelte";
   import "./JoinSheet.css";
 
@@ -11,6 +12,7 @@
     initialCode?: string;
     onResolved: (project: string) => void;
     onJoin: (project: string) => void;
+    onContinue: (path: string) => void;
     onDemo: () => void;
     onClose: () => void;
   }
@@ -66,13 +68,43 @@
 
   let canSubmit = $derived(code.trim().length >= 3);
 
+  // A resolved code the participant is *already* signed into (same project,
+  // valid session cookie) shouldn't force them back through team naming —
+  // that's the "explicit decision to change teams" case: default to
+  // continuing as their existing team, with an escape hatch to join fresh.
+  let existingTeamAuth = $derived(
+    $authStore.activeAuth?.kind === "participant" &&
+      resolvedProject &&
+      $authStore.activeAuth.projectId === resolvedProject
+      ? $authStore.activeAuth
+      : null,
+  );
+
+  function joinAsNewTeam() {
+    if (resolvedProject) {
+      // TeamSetupPage reads this to complete postLogin — without it,
+      // it finds no stashed password and bounces back to /start.
+      sessionStorage.setItem(
+        "pendingHuntAuth",
+        JSON.stringify({ project: resolvedProject, password: code.trim() }),
+      );
+      props.onJoin(resolvedProject);
+    }
+  }
+
+  function continueAsExistingTeam() {
+    if (resolvedProject) {
+      props.onContinue(`/${resolvedProject}`);
+    }
+  }
+
   async function loadProjectData(project: string) {
     const lang = $languageStore.currentLang;
     const [projectMeta, huntSummary] = await Promise.all([
       loadText<Record<string, unknown>>(lang, `projects/${project}/${project}`),
       resolveHuntSummary(project, lang),
     ]);
-    projectName = (projectMeta?.["project.name"] as string) ?? project;
+    projectName = (projectMeta?.["project.title"] as string) ?? project;
     summary = huntSummary;
     props.onResolved(project);
   }
@@ -134,20 +166,21 @@
       cityLabel={summary ? "" : "multiple cities"}
       organiser={projectName}
     />
-    <button
-      type="button"
-      class="join-sheet__primary"
-      onclick={() => {
-        if (resolvedProject) {
-          props.onJoin(resolvedProject);
-        }
-      }}>Join this hunt</button
-    >
-    <p class="join-sheet__note">
-      {summary
-        ? "No account needed. You'll pick a team name next."
-        : "No account needed. You'll pick a team name, then a city and route, next."}
-    </p>
+    {#if existingTeamAuth}
+      <button type="button" class="join-sheet__primary" onclick={continueAsExistingTeam}>
+        Continue as {existingTeamAuth.teamName}
+      </button>
+      <button type="button" class="join-sheet__switch-team" onclick={joinAsNewTeam}>
+        Not you? Join as a different team
+      </button>
+    {:else}
+      <button type="button" class="join-sheet__primary" onclick={joinAsNewTeam}>Join this hunt</button>
+      <p class="join-sheet__note">
+        {summary
+          ? "No account needed. You'll pick a team name next."
+          : "No account needed. You'll pick a team name, then a city and route, next."}
+      </p>
+    {/if}
   {:else}
     <p class="join-sheet__eyebrow">Join a hunt</p>
     <h2 class="join-sheet__heading">Enter your hunt code</h2>
