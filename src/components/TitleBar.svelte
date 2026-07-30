@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { push } from "svelte-spa-router";
   import { titleBarStore } from "../stores/titleBarStore";
   import { themeStore } from "../stores/themeStore";
@@ -13,6 +14,23 @@
 
   let menuView = $state<string | null>(null);
   let menuWrapEl: HTMLDivElement | undefined;
+  let titlebarEl: HTMLDivElement | undefined;
+
+  // Publishes the bar's real rendered height (it varies with the progress
+  // rule and back-button) so full-viewport screens like LandingPage can
+  // size themselves to exactly `100dvh - this` instead of overflowing it.
+  onMount(() => {
+    if (!titlebarEl) {
+      return undefined;
+    }
+    const publishHeight = () => {
+      document.documentElement.style.setProperty("--titlebar-height", `${titlebarEl!.offsetHeight}px`);
+    };
+    publishHeight();
+    const observer = new ResizeObserver(publishHeight);
+    observer.observe(titlebarEl);
+    return () => observer.disconnect();
+  });
 
   function closeMenu() {
     menuView = null;
@@ -25,7 +43,14 @@
   }
 
   function handleWindowClick(event: MouseEvent) {
-    if (menuView && event.target instanceof Node && !menuWrapEl?.contains(event.target)) {
+    // `composedPath()` is captured at dispatch time, before any handler runs.
+    // Checking `.contains(event.target)` instead breaks for items whose own
+    // onclick swaps `menuView` (root -> a submenu): that swap detaches the
+    // clicked button synchronously, so by the time this bubbles up here,
+    // `event.target` is no longer in the tree and `contains()` reads it as
+    // "outside", closing the menu the same click that was meant to open a
+    // submenu.
+    if (menuView && menuWrapEl && !event.composedPath().includes(menuWrapEl)) {
       closeMenu();
     }
   }
@@ -39,7 +64,7 @@
 
 <svelte:window onclick={handleWindowClick} onkeydown={handleWindowKeydown} />
 
-<div class="titlebar">
+<div class="titlebar" bind:this={titlebarEl}>
   <div class="titlebar__row">
     <div class="titlebar__left">
       {#if $titleBarStore.backPath}

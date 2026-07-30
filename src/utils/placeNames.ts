@@ -8,6 +8,10 @@ export const PLACE_NAMES = [
   "North Gate", "Garden Court", "Merchant Row", "Clocktower",
   "Riverside Walk", "The Arcade", "Chapel Lane", "Harbor View",
   "Founders Square", "The Promenade", "Mill Corner", "East Bastion",
+  "Wall Walk", "Crumbly Castle", "Fearsome Fortress", "Marvelous Mall",
+  "Art District", "Breakaway Beach", "Middle Park", "Statue Square",
+  "Famous Building", "Slightly less Famous Building", "The Zoo",
+  "Botanical Garden"
 ];
 
 /** Picks an unused name if one exists, otherwise a random repeat. */

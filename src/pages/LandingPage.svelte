@@ -1,5 +1,6 @@
 <script lang="ts">
   import { push, location } from "svelte-spa-router";
+  import { Image, History, Github } from "lucide-svelte";
   import { themeStore } from "../stores/themeStore";
   import { titleBarStore } from "../stores/titleBarStore";
   import SearchPlane from "../components/SearchPlane.svelte";
@@ -57,9 +58,18 @@
       Start hunting
     </button>
     <nav class="landing-page__nav">
-      <button type="button" class="landing-page__nav-item">Gallery</button>
-      <button type="button" class="landing-page__nav-item">Past hunts</button>
-      <button type="button" class="landing-page__nav-item">Self-host</button>
+      <button type="button" class="landing-page__nav-item">
+        <Image size={18} aria-hidden="true" />
+        Gallery
+      </button>
+      <button type="button" class="landing-page__nav-item">
+        <History size={18} aria-hidden="true" />
+        Past hunts
+      </button>
+      <button type="button" class="landing-page__nav-item">
+        <Github size={18} aria-hidden="true" />
+        Self-host
+      </button>
     </nav>
   </div>
   <JoinSheet

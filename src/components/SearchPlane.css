@@ -88,7 +88,7 @@
 
 .search-plane__label {
   position: absolute;
-  font-size: 10px;
+  font-size: 14px;
   font-family: var(--font-map);
   color: var(--search-label);
   white-space: nowrap;
@@ -103,20 +103,20 @@
   animation: search-plane-pin-drop 600ms cubic-bezier(0.4, 0.05, 0.5, 1);
 }
 
-.search-plane__pin-stem {
-  width: 2px;
-  height: 14px;
-  margin: 0 auto;
-  background: var(--search-pin-stem);
-}
-
 .search-plane__pin-head {
   width: 10px;
   height: 10px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(45deg);
   background: var(--search-pin-head);
+  margin: 0 auto;
+}
+
+.search-plane__pin-stem {
+  width: 2px;
+  height: 14px;
   margin: -3px auto 0;
+  background: var(--search-pin-stem);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -126,11 +126,22 @@
   }
 }
 
+/*
+ * Perspective is 25% smaller (camera 25% closer) at md+. The fade radius is
+ * scaled down by the same 25% to match — a smaller perspective shrinks the
+ * radius before the tilted grid starts stretching into visibly non-square
+ * cells near the camera, so revealing the *same* radius as before would
+ * reveal exactly the newly-distorted part instead of more square grid.
+ */
 @media (min-width: 720px) {
-  .search-plane__grid { --search-fade-solid: 14%; --search-fade-edge: 46%; }
+  .search-plane { perspective: 390px; }
+  .search-plane__grid { --search-fade-solid: 8%; --search-fade-edge: 32%; }
 }
 @media (min-width: 1200px) {
-  .search-plane__grid { --search-fade-solid: 18%; --search-fade-edge: 54%; }
+  .search-plane__grid { --search-fade-solid: 9%; --search-fade-edge: 34%; }
+  .search-plane__label { font-size: 18px; }
+  .search-plane__pin-head { width: 13px; height: 13px; }
+  .search-plane__pin-stem { width: 3px; height: 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .search-plane__node--fading {

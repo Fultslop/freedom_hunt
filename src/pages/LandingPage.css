@@ -1,6 +1,6 @@
 .landing-page {
   position: relative;
-  min-height: 100vh;
+  height: calc(100dvh - var(--titlebar-height));
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -11,10 +11,11 @@
   z-index: 1;
   max-width: var(--content-max);
   margin: 0 auto;
-  padding: var(--gap-section) var(--gap-block) 0;
+  padding: calc(var(--gap-section) + var(--gap-block)) var(--gap-block) 0;
 }
 
 .landing-page__sub {
+  margin-top: 1.5rem;
   color: var(--color-text-secondary);
   font-size: var(--font-size-base);
 }
@@ -45,7 +46,6 @@
   z-index: 1;
   margin-top: auto;
   max-width: var(--content-max);
-  width: 100%;
   margin-inline: auto;
   padding: 0 var(--gap-block) var(--gap-block);
 }

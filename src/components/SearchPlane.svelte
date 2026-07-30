@@ -160,11 +160,23 @@
                   nodes = nodes.filter((n) => survivors.has(n.id));
                   edges = edges.filter((e) => survivors.has(e.fromId) && survivors.has(e.toId));
 
-                  if (paused) {
-                    pendingResumeHeadId = chosen.id;
-                  } else {
-                    runSplit(chosen.id);
-                  }
+                  // A brief rest once the search settles somewhere new, before
+                  // the next fan-out — reads as pausing to look around rather
+                  // than branching the instant it lands. `paused`/`running`
+                  // are re-checked when this fires, not when it's scheduled,
+                  // since either can flip during the rest.
+                  const restMs = 1000 + Math.random() * 1000;
+                  pendingTimers.push(
+                    setTimeout(() => {
+                      if (running) {
+                        if (paused) {
+                          pendingResumeHeadId = chosen.id;
+                        } else {
+                          runSplit(chosen.id);
+                        }
+                      }
+                    }, restMs),
+                  );
                 }
               }, 1050),
             );
@@ -309,15 +321,15 @@
     <div class="search-plane__pins">
       {#each displayNodes.filter((n) => n.hasPin) as nodeItem (nodeItem.id)}
         <div class="search-plane__pin" style={`left:${nodeItem.x}px; top:${nodeItem.y}px;`}>
-          <div class="search-plane__pin-stem"></div>
           <div class="search-plane__pin-head"></div>
+          <div class="search-plane__pin-stem"></div>
         </div>
       {/each}
     </div>
     <div class="search-plane__labels">
       {#each displayNodes as nodeItem (nodeItem.id)}
         {#if nodeItem.label}
-          <div class="search-plane__label" style={`left:${nodeItem.x}px; top:${nodeItem.y - 16}px;`}>
+          <div class="search-plane__label" style={`left:${nodeItem.x}px; top:${nodeItem.y + 14}px;`}>
             {nodeItem.label}
           </div>
         {/if}

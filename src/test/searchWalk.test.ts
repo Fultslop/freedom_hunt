@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   HEAD_ANGLE,
   pickChildCount,
-  angularSpacing,
   jitterHeading,
   edgeLength,
   splitDurationMs,
@@ -19,32 +18,21 @@ function seq(values: number[]): () => number {
 }
 
 describe("pickChildCount", () => {
-  it("returns 2 for the bottom 30% of the random range", () => {
-    expect(pickChildCount(seq([0.0]))).toBe(2);
-    expect(pickChildCount(seq([0.29]))).toBe(2);
+  it("returns 1 for the bottom 15% of the random range", () => {
+    expect(pickChildCount(seq([0.0]))).toBe(1);
+    expect(pickChildCount(seq([0.14]))).toBe(1);
   });
-  it("returns 3 for the next 38%", () => {
-    expect(pickChildCount(seq([0.3]))).toBe(3);
-    expect(pickChildCount(seq([0.67]))).toBe(3);
+  it("returns 2 for the next 25%", () => {
+    expect(pickChildCount(seq([0.15]))).toBe(2);
+    expect(pickChildCount(seq([0.39]))).toBe(2);
   });
-  it("returns 4 for the remaining 32%", () => {
-    expect(pickChildCount(seq([0.68]))).toBe(4);
+  it("returns 3 for the next 35%", () => {
+    expect(pickChildCount(seq([0.4]))).toBe(3);
+    expect(pickChildCount(seq([0.74]))).toBe(3);
+  });
+  it("returns 4 for the remaining 25%", () => {
+    expect(pickChildCount(seq([0.75]))).toBe(4);
     expect(pickChildCount(seq([0.999]))).toBe(4);
-  });
-});
-
-describe("angularSpacing", () => {
-  it("uses the base value for k=2 plus jitter in [0, 0.12)", () => {
-    const spacing = angularSpacing(2, seq([0]));
-    expect(spacing).toBeCloseTo(0.74, 5);
-    const spacingJittered = angularSpacing(2, seq([1]));
-    expect(spacingJittered).toBeCloseTo(0.74 + 0.12, 5);
-  });
-  it("uses the base value for k=3", () => {
-    expect(angularSpacing(3, seq([0]))).toBeCloseTo(0.6, 5);
-  });
-  it("uses the base value for k=4", () => {
-    expect(angularSpacing(4, seq([0]))).toBeCloseTo(0.5, 5);
   });
 });
 
@@ -72,6 +60,7 @@ describe("edgeLength", () => {
 
 describe("splitDurationMs", () => {
   it("matches (k-1) * 330 + 450", () => {
+    expect(splitDurationMs(1)).toBe(450);
     expect(splitDurationMs(2)).toBe(780);
     expect(splitDurationMs(3)).toBe(1110);
     expect(splitDurationMs(4)).toBe(1440);
@@ -91,12 +80,36 @@ describe("lerpCamera", () => {
 });
 
 describe("computeChildHeadings", () => {
-  it("returns k headings, evenly fanned around the parent heading by the spacing", () => {
-    const headings = computeChildHeadings(HEAD_ANGLE, 3, seq([0, 0, 0, 0, 0]));
+  const DEG15 = (15 * Math.PI) / 180;
+
+  it("returns exactly the parent heading for k=1 (no fork)", () => {
+    const headings = computeChildHeadings(HEAD_ANGLE, 1, seq([0]));
+    expect(headings).toEqual([HEAD_ANGLE]);
+  });
+
+  it("sweeps k children 15-30 degrees apart, re-centred on the parent heading", () => {
+    // direction draw -> "left" (-1), then two 15deg (minimum) rotation steps.
+    const headings = computeChildHeadings(HEAD_ANGLE, 3, seq([0, 0, 0]));
     expect(headings).toHaveLength(3);
-    expect(headings[0]).toBeCloseTo(HEAD_ANGLE - 0.6, 4);
-    expect(headings[1]).toBeCloseTo(HEAD_ANGLE, 4);
-    expect(headings[2]).toBeCloseTo(HEAD_ANGLE + 0.6, 4);
+    expect(headings[0]).toBeCloseTo(HEAD_ANGLE + DEG15, 5);
+    expect(headings[1]).toBeCloseTo(HEAD_ANGLE, 5);
+    expect(headings[2]).toBeCloseTo(HEAD_ANGLE - DEG15, 5);
+  });
+
+  it("flips the sweep direction when the direction draw crosses 0.5", () => {
+    const left = computeChildHeadings(HEAD_ANGLE, 2, seq([0, 0]));
+    const right = computeChildHeadings(HEAD_ANGLE, 2, seq([0.5, 0]));
+    expect(left[0]).toBeCloseTo(-right[0] + 2 * HEAD_ANGLE, 5);
+    expect(left[1]).toBeCloseTo(-right[1] + 2 * HEAD_ANGLE, 5);
+  });
+
+  it("still clamps to within ±1.15 of straight-ahead from an extreme parent heading", () => {
+    const extreme = HEAD_ANGLE + 1.1;
+    const headings = computeChildHeadings(extreme, 4, seq([1, 1, 1, 1]));
+    for (const heading of headings) {
+      expect(heading).toBeLessThanOrEqual(HEAD_ANGLE + 1.15);
+      expect(heading).toBeGreaterThanOrEqual(HEAD_ANGLE - 1.15);
+    }
   });
 });
 
