@@ -1,0 +1,166 @@
+.join-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  background: var(--color-surface);
+  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+  padding: var(--gap-block);
+  transform: translateY(100%);
+  transition: transform 320ms ease-out;
+}
+
+.join-sheet--open {
+  transform: translateY(0);
+}
+
+.join-sheet__eyebrow {
+  font-family: var(--font-map);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.join-sheet__eyebrow--success {
+  color: var(--color-success);
+}
+
+.join-sheet__heading {
+  margin: 0.5rem 0 0.5rem;
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.join-sheet__help {
+  margin: 0 0 var(--gap-block);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+}
+
+.join-sheet__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-field);
+}
+
+.join-sheet__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.join-sheet__input {
+  font-family: var(--font-map);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: var(--font-size-base);
+  min-height: var(--field-min-height);
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 1px solid var(--field-border);
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+.join-sheet__input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.join-sheet__input:focus {
+  outline: 2px solid var(--field-border-focus);
+  outline-offset: 1px;
+}
+
+.join-sheet__primary,
+.join-sheet__demo {
+  min-height: 46px;
+  width: 100%;
+  border-radius: 8px;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+.join-sheet__primary {
+  margin-top: var(--gap-field);
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-background);
+  font-weight: 700;
+}
+
+.join-sheet__primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.join-sheet__divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--gap-block) 0;
+}
+
+.join-sheet__demo {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.join-sheet__error {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  margin: 0.25rem 0 0;
+}
+
+.join-sheet__switch-team {
+  min-height: 44px;
+  width: 100%;
+  margin-top: var(--gap-field);
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.join-sheet__note {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-top: var(--gap-field);
+}
+
+@media (min-width: 720px) {
+  .join-sheet {
+    position: absolute;
+    left: 50%;
+    bottom: auto;
+    top: 50%;
+    transform: translate(-50%, calc(-50% + 6px));
+    opacity: 0;
+    max-width: var(--content-max);
+    border-radius: var(--sheet-radius);
+    transition: transform 320ms ease-out, opacity 320ms ease-out;
+  }
+  .join-sheet--open {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .join-sheet {
+    transition-duration: 1ms;
+  }
+}

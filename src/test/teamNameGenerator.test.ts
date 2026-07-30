@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   TEAM_NAME_ADJECTIVES,
   TEAM_NAME_NOUNS,
@@ -37,5 +37,29 @@ describe("teamNameGenerator", () => {
       `${TEAM_NAME_ADJECTIVES[TEAM_NAME_ADJECTIVES.length - 1]} ${TEAM_NAME_NOUNS[TEAM_NAME_NOUNS.length - 1]}`,
     );
     spy.mockRestore();
+  });
+});
+
+describe("generateTeamName with seedNouns", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("returns 'Adjective Noun' from the default global lists with no argument", () => {
+    const name = generateTeamName();
+    const [adjective, noun] = name.split(" ");
+    expect(TEAM_NAME_ADJECTIVES).toContain(adjective);
+    expect(TEAM_NAME_NOUNS).toContain(noun);
+  });
+
+  it("draws the noun from seedNouns when provided and non-empty", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const name = generateTeamName(["Vredespaleis", "Binnenhof"]);
+    expect(name.endsWith("Vredespaleis")).toBe(true);
+  });
+
+  it("falls back to the global noun list when seedNouns is empty", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const name = generateTeamName([]);
+    const [, noun] = name.split(" ");
+    expect(TEAM_NAME_NOUNS).toContain(noun);
   });
 });

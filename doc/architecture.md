@@ -30,9 +30,8 @@ Participants visit historically significant sites, complete challenges at each l
 ```
 src/
   pages/
-    AppPage.svelte      — Home: "Start Hunting" button → /start
-    CodeEntryPage.svelte — Scavenger hunt code entry → /login/demo or /join/:project
-    JoinTeamPage.svelte  — Team name (prefill + dice reroll) → completes login via stashed password
+    LandingPage.svelte  — Attract screen (SearchPlane background, DepthWordmark) hosting JoinSheet; "Start hunting" → /start
+    TeamSetupPage.svelte — Team name (AppForm random_value: reroll + editable) → completes login via stashed password; auto-skips to RoutePage when the project has exactly one city/route
     ProjectPage.svelte  — City picker for a chosen project
     CityPage.svelte     — Route picker for a chosen city
     RoutePage.svelte    — Swipe-based challenge flow
@@ -41,6 +40,10 @@ src/
     editor/             — Editor pages (admin)
   components/
     TitleBar.svelte     — Persistent top bar (back, title, progress, theme switcher)
+    SearchPlane.svelte  — Tilted 3D procedural-search background (frozen/search/route modes); shared by LandingPage and TeamSetupPage
+    JoinSheet.svelte    — Hunt-code entry sheet hosted on LandingPage: empty/checking/invalid/found states
+    HuntSummary.svelte  — Stat chips (stops/distance/duration) for JoinSheet's found state, shown only when a project resolves to exactly one city/route
+    DepthWordmark.svelte — Indented "Searchspace / Scavenger Hunt / <project>" wordmark with theme-gated sheen
     ChallengeCard.svelte — Card for one location (storyline, breadcrumb, challenge)
     ChallengeForm.svelte — Inline form embedded inside a ChallengeCard
     AppForm.svelte      — Generic data-driven form (renders all field types, calls onSubmit callback)
@@ -69,7 +72,11 @@ src/
     routeNav.ts         — Navigation helpers (clampedNext, clampedPrev)
     checkpointNav.ts    — Checkpoint-aware navigation: isCheckpointEntry, nextNavigableIndex, prevNavigableIndex, earliestAllowedIndex, isBackwardCrossingBlocked
     routeRequirements.ts — evaluateGate: resolve requirement check results against a gate (forms, period logic)
-    teamNameGenerator.ts — generateTeamName(): 32 adjectives × 32 nouns
+    teamNameGenerator.ts — generateTeamName(seedNouns?): 32 adjectives × 32 nouns by default, or a project-seeded noun list
+    normalizeCode.ts     — normalizeCode(): canonical uppercase/no-separator form for hunt-code/password comparison (client display + server matching)
+    searchWalk.ts        — Pure procedural-tree geometry for SearchPlane's search mode (child count, headings, camera lerp, aging)
+    placeNames.ts        — Decorative fictional place-name labels for SearchPlane (not the team-name generator)
+    huntSummary.ts        — resolveHuntSummary(): resolves a project to route stats only when it has exactly one city and one route; haversineMeters()
     api.ts              — All client HTTP functions (challenge, editor, auth); postVerifyCode resolves typed codes
     formValues.ts       — buildNestedValues (dotted-path → nested object) and flattenValues (inverse)
     routeEntries.ts     — isLocationEntry/locationTotal/locationOrdinalAt — location-vs-template discrimination; isNavBarVisible excludes checkpoints
@@ -115,10 +122,11 @@ doc/
 
 | Path                     | Component     | Notes                                               |
 | ------------------------ | ------------- | --------------------------------------------------- |
-| `/`                      | `AppPage`     | "Start Hunting" button → `/start`; replaced project-card browsing |
-| `/start`                 | `CodeEntryPage` | Enter scavenger-hunt code → routes to `/login/demo` or `/join/:project` via sessionStorage handoff |
-| `/join/:project`         | `JoinTeamPage` | Team name (prefill + dice reroll) + password (from stashed verify-code response); completes login |
-| `/login/demo`            | `DemoLoginPage` | Email+password login for the `demo` project only — matched before the `/login/:project` wildcard |
+| `/`                      | `LandingPage` | Attract screen, join sheet closed                    |
+| `/start`                 | `LandingPage` | Same page, join sheet open with an empty code field  |
+| `/join/:code`            | `LandingPage` | Same page, join sheet open and auto-verifying `:code` (deep link / QR target) — lands in the found state without flashing the empty form |
+| `/team/:project`         | `TeamSetupPage` | Team name (`AppForm` `random_value` field: reroll + editable) + password (from stashed verify-code response, `sessionStorage.pendingHuntAuth`); completes login. Skips straight to `/:project/:city/:route` when `resolveHuntSummary` finds exactly one city/route, otherwise lands on `/:project` |
+| `/login/demo`            | `DemoLoginPage` | Email+password login for the `demo` project only — matched before the `/login/:project` wildcard. `LandingPage`'s demo button and a code of literally `demo` both route here unchanged |
 | `/signup/demo`           | `DemoSignupPage` | Email+password signup for the `demo` project only — matched before the `/signup` route |
 | `/:project`              | `ProjectPage` | City picker; loads `projects/<project>/cities.yaml` |
 | `/:project/:city`        | `CityPage`    | Route picker; loads `<city>/routes.yaml`            |
@@ -321,10 +329,11 @@ EXIF orientation is corrected during this same resize step (`src/worker/imagePro
 
 Three theme presets defined in `themes.ts`: `wireframe`, `app`, `GWC` (Democrats Abroad branding — DA navy `#002868` / flag red `#BF0A30`).
 
-- **themeStore** holds the active token object (`background`, `surface`, `border`, `text`, `accent`, bar/progress/clue sub-tokens); components subscribe via `$themeStore`.
+- **themeStore** holds the active token object (`background`, `surface`, `border`, `text`, `accent`, bar/progress/clue sub-tokens, `search*`/`intro*`/`sheenImage` tokens for `SearchPlane`/`DepthWordmark`, and the `intro: { motion, sheen }` behavior value); components subscribe via `$themeStore`.
 - **titleBarStore** holds `{ title, progress, backPath }` for the persistent `TitleBar` component.
 - `App.svelte` syncs the active theme's tokens to CSS custom properties on `<html>` via a `$effect` on every theme change.
 - The `TitleBar` includes a style-switcher (☰) to toggle between themes at runtime.
+- `wireframe`'s `intro.motion` is `'static'` (a single frozen `SearchPlane` tree) and `intro.sheen` is `false`; `app` and `GWC` both animate (`'search'`), but only `app` has the wordmark sheen — a shimmering title would contradict `wireframe`'s low-fi purpose and `GWC`'s civic-brand tone.
 
 ## Image Handling
 

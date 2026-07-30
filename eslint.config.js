@@ -104,7 +104,7 @@ export default defineConfig([
       "max-len": ["error", { "code": 100 }],
       "curly": ["error", "all"],
       "brace-style": ["error", "1tbs", { "allowSingleLine": false }],
-      "id-length": ["error", { "min": 3, "exceptions": ["id", "to", "ok", "fs", "js", "vi", "m", "r", "e", "k", "v", "i", "c", "ip", "b", "f", "pr", "a"] }],
+      "id-length": ["error", { "min": 3, "exceptions": ["id", "to", "ok", "fs", "js", "vi", "m", "r", "e", "k", "v", "i", "c", "ip", "b", "f", "pr", "a", "x", "y"] }],
       ...sharedRules,
       "@typescript-eslint/no-unused-vars": [
         "error",
@@ -132,7 +132,7 @@ export default defineConfig([
       "max-len": ["error", { "code": 100, "ignorePattern": "^\\s*<" }],
       "curly": ["error", "all"],
       "brace-style": ["error", "1tbs", { "allowSingleLine": false }],
-      "id-length": ["error", { "min": 3, "exceptions": ["id", "to", "ok", "fs", "js", "vi", "m", "r", "e", "k", "v", "i", "c", "ip", "b", "f", "pr", "a", "p", "n"] }],
+      "id-length": ["error", { "min": 3, "exceptions": ["id", "to", "ok", "fs", "js", "vi", "m", "r", "e", "k", "v", "i", "c", "ip", "b", "f", "pr", "a", "p", "n", "_", "x", "y", "ts"] }],
       ...sharedRules,
       "@typescript-eslint/no-unused-vars": [
         "error",

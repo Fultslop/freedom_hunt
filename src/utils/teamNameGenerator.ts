@@ -13,10 +13,10 @@ export const TEAM_NAME_NOUNS = [
   "Tornado", "Walrus", "Yeti", "Detective",
 ];
 
-export function generateTeamName(): string {
+export function generateTeamName(seedNouns?: string[]): string {
   const adjective =
     TEAM_NAME_ADJECTIVES[Math.floor(Math.random() * TEAM_NAME_ADJECTIVES.length)];
-  const noun =
-    TEAM_NAME_NOUNS[Math.floor(Math.random() * TEAM_NAME_NOUNS.length)];
+  const nounPool = seedNouns && seedNouns.length > 0 ? seedNouns : TEAM_NAME_NOUNS;
+  const noun = nounPool[Math.floor(Math.random() * nounPool.length)];
   return `${adjective} ${noun}`;
 }

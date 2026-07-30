@@ -79,6 +79,7 @@
     onTouchedFieldsChange = undefined,
     submitLabel = "Submit",
     confirmMessage = undefined,
+    alwaysSubmittable = false,
   }: {
     fields: FormField[];
     initialValues?: Record<string, unknown>;
@@ -97,6 +98,12 @@
     onUploadsChange?: (uploads: Record<string, PhotoUploadStatus>) => void;
     onTouchedFieldsChange?: (fields: string[]) => void;
     submitLabel?: string;
+    // Bypasses the "disabled until changed" dirty-gate below for one-shot
+    // forms (e.g. team setup) that are pre-seeded with an already-valid
+    // value the participant is meant to be able to accept immediately,
+    // rather than edit-in-place forms where resubmitting an unchanged
+    // answer is meaningless.
+    alwaysSubmittable?: boolean;
     confirmMessage?: string;
   } = $props();
 
@@ -129,6 +136,20 @@
           !Object.prototype.hasOwnProperty.call(seeded, field.id)
         ) {
           seeded[field.id] = field.value as FieldValues[string];
+        }
+      }
+      // Auto-pick random_value fields when reroll or editable is set
+      for (const field of fields) {
+        if (
+          field.id &&
+          field.type === STR_RANDOM_VALUE &&
+          (field.reroll || field.editable) &&
+          !Object.prototype.hasOwnProperty.call(seeded, field.id)
+        ) {
+          const opts = field.values ?? [];
+          if (opts.length > 0) {
+            seeded[field.id] = opts[Math.floor(Math.random() * opts.length)];
+          }
         }
       }
       return seeded;
@@ -174,6 +195,8 @@
         return curr !== baseline;
       }),
   );
+
+  const submittable = $derived(alwaysSubmittable || hasChanges);
 
   $effect(() => {
     onValuesChange?.({ ...values });
@@ -760,24 +783,48 @@
             />
           {:else if field.type === "random_value"}
             {@const picked = values[id] as string | undefined}
-            {#if picked}
-              <p class="af-random-value-result">{picked}</p>
-            {:else}
-              <button
-                type="button"
-                class="af-random-value-btn"
-                disabled={!field.values || field.values.length === 0}
-                onclick={() => {
-                  const options = field.values ?? [];
-                  if (options.length > 0) {
-                    values[id] = options[Math.floor(Math.random() * options.length)];
-                  }
-                }}
-              >
-                <Dice5 size={18} aria-hidden="true" />
-                Reveal a name
-              </button>
-            {/if}
+            {@const options = field.values ?? []}
+            <div class="af-random-value-row">
+              {#if field.editable}
+                <input
+                  id={domId}
+                  type="text"
+                  value={picked ?? ""}
+                  oninput={(e) => { values[id] = (e.target as HTMLInputElement).value; }}
+                  class="af-input"
+                />
+              {:else if picked}
+                <p class="af-random-value-result" data-testid="random-value-result">{picked}</p>
+              {:else if !field.reroll}
+                <button
+                  type="button"
+                  class="af-random-value-btn"
+                  disabled={options.length === 0}
+                  onclick={() => {
+                    if (options.length > 0) {
+                      values[id] = options[Math.floor(Math.random() * options.length)];
+                    }
+                  }}
+                >
+                  <Dice5 size={18} aria-hidden="true" />
+                  Reveal a name
+                </button>
+              {/if}
+              {#if field.reroll}
+                <button
+                  type="button"
+                  onclick={() => {
+                    if (options.length > 0) {
+                      values[id] = options[Math.floor(Math.random() * options.length)];
+                    }
+                  }}
+                  aria-label="Suggest another name"
+                  class="af-random-value-reroll-btn"
+                >
+                  <Dice5 size={20} aria-hidden="true" />
+                </button>
+              {/if}
+            </div>
           {/if}
         {/if}
       </div>
@@ -804,26 +851,28 @@
       class="af-submit-btn"
       class:af-submit-btn--submitting={submitState === "submitting"}
       class:af-submit-btn--saved={submitState === "saved" && !hasChanges}
-      class:af-submit-btn--dirty={hasChanges}
+      class:af-submit-btn--dirty={submittable}
       onclick={handleSubmit}
-      disabled={submitState === "submitting" || !hasChanges}
+      disabled={submitState === "submitting" || !submittable}
     >
       {submitState === "submitting"
         ? "Submitting…"
         : submitState === "saved" && !hasChanges
           ? "Saved ✓"
-          : !hasChanges
+          : !submittable
             ? "No changes"
             : submitState === "error"
               ? "Try again"
               : submitLabel}
     </button>
-    <p class="af-status-line" aria-live="polite">
-      {#if hasChanges}
-        Unsaved changes
-      {:else if hasSubmittedButNoChanges}
-        All answers saved
-      {/if}
-    </p>
+    {#if !alwaysSubmittable}
+      <p class="af-status-line" aria-live="polite">
+        {#if hasChanges}
+          Unsaved changes
+        {:else if hasSubmittedButNoChanges}
+          All answers saved
+        {/if}
+      </p>
+    {/if}
   {/if}
 </div>

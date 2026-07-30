@@ -31,13 +31,31 @@
   --font-size-2xl: 28px;
   --font-size-3xl: 33px;
   --content-max: 480px; /* matches the max-width every other page already uses */
+  --titlebar-height: 45px; /* fallback until TitleBar publishes its real rendered height */
   --gap-section: 2.5rem;
   --gap-block: 1.5rem;
   --gap-field: 0.375rem;
   --field-min-height: 2.75rem; /* 44px touch target */
+  --font-size-display: 40px;
+  --font-map: 'Barlow Semi Condensed', 'Roboto Condensed', 'Arial Narrow', sans-serif;
+  --sheet-radius: 1.125rem;
+  --search-grid: #dddddd;
+  --search-edge: #dddddd;
+  --search-edge-active: #555555;
+  --search-edge-visited: #bbbbbb;
+  --search-node: #dddddd;
+  --search-node-active: #111111;
+  --search-node-halo: rgba(17,17,17,.12);
+  --search-label: #666666;
+  --search-pin-stem: #555555;
+  --search-pin-head: #111111;
+  --intro-fog: linear-gradient(#ffffff 40%, rgba(255,255,255,0));
+  --intro-scrim: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,.74) 44%, rgba(255,255,255,.94));
+  --sheen-image: none;
 }
 
 :root[data-fontsize="medium"] {
+  --font-size-display: 46px;
   --font-size-xs: 14px;
   --font-size-sm: 15px;
   --font-size-base: 17px;
@@ -48,6 +66,7 @@
 }
 
 :root[data-fontsize="large"] {
+  --font-size-display: 52px;
   --font-size-xs: 16px;
   --font-size-sm: 17px;
   --font-size-base: 19px;

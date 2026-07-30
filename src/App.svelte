@@ -11,9 +11,8 @@
   import { authStore } from "./stores/authStore";
   import { requireAuth, requireEditorAccess } from "./utils/authGuards";
   import TitleBar from "./components/TitleBar.svelte";
-  import AppPage from "./pages/AppPage.svelte";
-  import CodeEntryPage from "./pages/CodeEntryPage.svelte";
-  import JoinTeamPage from "./pages/JoinTeamPage.svelte";
+  import LandingPage from "./pages/LandingPage.svelte";
+  import TeamSetupPage from "./pages/TeamSetupPage.svelte";
   import LoginPage from "./pages/LoginPage.svelte";
   import DemoLoginPage from "./pages/DemoLoginPage.svelte";
   import DemoSignupPage from "./pages/DemoSignupPage.svelte";
@@ -38,9 +37,10 @@
   // more specific literal path (e.g. .../gallery) must be declared before a
   // wildcard route that would otherwise match the same URL and win first.
   const routes = {
-    "/": asRoute(AppPage),
-    "/start": asRoute(CodeEntryPage),
-    "/join/:project": asRoute(JoinTeamPage),
+    "/": asRoute(LandingPage),
+    "/start": asRoute(LandingPage),
+    "/join/:code": asRoute(LandingPage),
+    "/team/:project": asRoute(TeamSetupPage),
     "/login/demo": asRoute(DemoLoginPage),
     "/login/:project": asRoute(LoginPage),
     "/signup/demo": asRoute(DemoSignupPage),
@@ -108,6 +108,19 @@
     root.style.setProperty("--color-progress-fill", theme.progressFill);
     root.style.setProperty("--color-clue-background", theme.clueBackground);
     root.style.setProperty("--color-clue-border-color", theme.clueBorderColor);
+    root.style.setProperty("--search-grid", theme.searchGrid);
+    root.style.setProperty("--search-edge", theme.searchEdge);
+    root.style.setProperty("--search-edge-active", theme.searchEdgeActive);
+    root.style.setProperty("--search-edge-visited", theme.searchEdgeVisited);
+    root.style.setProperty("--search-node", theme.searchNode);
+    root.style.setProperty("--search-node-active", theme.searchNodeActive);
+    root.style.setProperty("--search-node-halo", theme.searchNodeHalo);
+    root.style.setProperty("--search-label", theme.searchLabel);
+    root.style.setProperty("--search-pin-stem", theme.searchPinStem);
+    root.style.setProperty("--search-pin-head", theme.searchPinHead);
+    root.style.setProperty("--intro-fog", theme.introFog);
+    root.style.setProperty("--intro-scrim", theme.introScrim);
+    root.style.setProperty("--sheen-image", theme.sheenImage);
     document.body.style.background = theme.background;
   });
 

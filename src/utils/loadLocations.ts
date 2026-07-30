@@ -27,6 +27,8 @@ const KNOWN_FORM_FIELD_KEYS = new Set([
   "storeDefaultValue",
   "config",
   "source",
+  "reroll",
+  "editable",
 ]);
 
 const VALUE_SUPPORTED_TYPES = new Set<FormFieldType>([

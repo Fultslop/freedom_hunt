@@ -26,6 +26,7 @@ import {
   insertParticipantAccount,
 } from "../db";
 import { json, checkOrigin } from "../utils";
+import { normalizeCode } from "../../utils/normalizeCode";
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -184,9 +185,10 @@ export async function handleAuthRoutes(
       }
 
       const list = await env.AUTH_STORE.list({ prefix: KV_PREFIX_PARTICIPANT });
+      const normalizedInput = normalizeCode(trimmed);
       for (const key of list.keys) {
         const storedPassword = await env.AUTH_STORE.get(key.name);
-        if (storedPassword !== null && storedPassword === trimmed) {
+        if (storedPassword !== null && normalizeCode(storedPassword) === normalizedInput) {
           return json({
             ok: true,
             mode: "project",
@@ -254,7 +256,7 @@ export async function handleAuthRoutes(
 
         const now = Math.floor(Date.now() / 1000);
 
-        if (adminPw !== null && password === adminPw) {
+        if (adminPw !== null && normalizeCode(password) === normalizeCode(adminPw)) {
           // Issue bootstrap token — valid only for /auth/bootstrap/promote
           const payload: BootstrapTokenPayload = {
             user_id: null,
@@ -270,7 +272,7 @@ export async function handleAuthRoutes(
           );
         }
 
-        if (participantPw === null || password !== participantPw) {
+        if (participantPw === null || normalizeCode(password) !== normalizeCode(participantPw)) {
           return json({ ok: false, error: "Incorrect password" }, 401);
         }
 
