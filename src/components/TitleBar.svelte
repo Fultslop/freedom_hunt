@@ -12,6 +12,7 @@
   const FONT_WEIGHT_NORMAL = 400;
 
   let menuView = $state<string | null>(null);
+  let menuWrapEl: HTMLDivElement | undefined;
 
   function closeMenu() {
     menuView = null;
@@ -22,7 +23,21 @@
       push($titleBarStore.backPath);
     }
   }
+
+  function handleWindowClick(event: MouseEvent) {
+    if (menuView && event.target instanceof Node && !menuWrapEl?.contains(event.target)) {
+      closeMenu();
+    }
+  }
+
+  function handleWindowKeydown(event: KeyboardEvent) {
+    if (menuView && event.key === "Escape") {
+      closeMenu();
+    }
+  }
 </script>
+
+<svelte:window onclick={handleWindowClick} onkeydown={handleWindowKeydown} />
 
 <div class="titlebar">
   <div class="titlebar__row">
@@ -47,7 +62,7 @@
       </div>
     </div>
 
-    <div class="titlebar__menu-wrap">
+    <div class="titlebar__menu-wrap" bind:this={menuWrapEl}>
       <button
         onclick={() => (menuView = menuView ? null : "root")}
         aria-label="Menu"

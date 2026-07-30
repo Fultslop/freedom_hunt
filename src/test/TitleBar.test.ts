@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/svelte/svelte5";
+import { render, screen, fireEvent } from "@testing-library/svelte/svelte5";
 import { vi } from "vitest";
 import { titleBarStore } from "../stores/titleBarStore";
 import { fontSizeStore } from "../stores/fontSizeStore";
@@ -98,4 +98,45 @@ test("renders subtitle with asterisk when isDirty is true", () => {
   expect(screen.getByTestId("titlebar-subtitle")).toHaveTextContent(
     "Dam Square *",
   );
+});
+
+test("closes the menu when clicking outside of it", async () => {
+  render(TitleBar);
+  await fireEvent.click(screen.getByLabelText("Menu"));
+  expect(screen.getByText("Profile")).toBeInTheDocument();
+
+  await fireEvent.click(document.body);
+
+  expect(screen.queryByText("Profile")).not.toBeInTheDocument();
+});
+
+test("does not close the menu when clicking inside the dropdown", async () => {
+  render(TitleBar);
+  await fireEvent.click(screen.getByLabelText("Menu"));
+
+  await fireEvent.click(screen.getByText("Profile"));
+
+  expect(screen.getByLabelText("Back to menu")).toBeInTheDocument();
+});
+
+test("closes the menu completely from a submenu when clicking outside", async () => {
+  render(TitleBar);
+  await fireEvent.click(screen.getByLabelText("Menu"));
+  await fireEvent.click(screen.getByText("Themes"));
+  expect(screen.getByLabelText("Back to menu")).toBeInTheDocument();
+
+  await fireEvent.click(document.body);
+
+  expect(screen.queryByLabelText("Back to menu")).not.toBeInTheDocument();
+  expect(screen.queryByText("Profile")).not.toBeInTheDocument();
+});
+
+test("closes the menu when Escape is pressed", async () => {
+  render(TitleBar);
+  await fireEvent.click(screen.getByLabelText("Menu"));
+  expect(screen.getByText("Profile")).toBeInTheDocument();
+
+  await fireEvent.keyDown(window, { key: "Escape" });
+
+  expect(screen.queryByText("Profile")).not.toBeInTheDocument();
 });
