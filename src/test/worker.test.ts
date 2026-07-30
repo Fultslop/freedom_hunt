@@ -580,6 +580,26 @@ describe("/auth/login — admin tier", () => {
     expect(data.isAdmin).toBe(false);
   });
 
+  it("logs in when the submitted password differs only in case/separators from the stored one", async () => {
+    const request = new Request("https://example.com/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        project: "test_project",
+        teamName: "Team A",
+        contact: "",
+        password: "USER-PASS", // stored value is "userpass"
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        "CF-Connecting-IP": "1.2.3.7",
+      },
+    });
+    const response = await worker.fetch(request, makeAuthEnv());
+    const data = await response.json();
+    expect(data.ok).toBe(true);
+    expect(data.isAdmin).toBe(false);
+  });
+
   it("returns 401 for wrong password", async () => {
     const request = new Request("https://example.com/auth/login", {
       method: "POST",
@@ -707,6 +727,18 @@ describe("/auth/verify-code", () => {
     const data = await response.json();
     expect(data.ok).toBe(true);
     expect(data.project).toBe("democrats_abroad");
+  });
+
+  it("matches regardless of case and separator style", async () => {
+    const env = makeEnv({ "auth:democrats_abroad": "Let-Me_In" });
+    const request = new Request("https://example.com/auth/verify-code", {
+      method: "POST",
+      body: JSON.stringify({ code: "let me in" }),
+      headers: { "Content-Type": "application/json", "CF-Connecting-IP": "5.5.5.7" },
+    });
+    const response = await worker.fetch(request, env);
+    const data = await response.json();
+    expect(data).toEqual({ ok: true, mode: "project", project: "democrats_abroad" });
   });
 
   it("returns ok:false with 401 for a code that matches nothing", async () => {

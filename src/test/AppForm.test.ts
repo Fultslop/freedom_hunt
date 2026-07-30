@@ -1120,6 +1120,46 @@ test("random_value: rolled value is passed to onSubmit", async () => {
   );
 });
 
+test("random_value: existing usage without reroll/editable behaves exactly as before (no reroll button, locked once picked)", () => {
+  const fields: FormField[] = [
+    { id: "assigned_child", type: "random_value" as FormFieldType, label: "Reveal", values: ["Alpha"] },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.queryByLabelText(/suggest another/i)).not.toBeInTheDocument();
+});
+
+test("random_value: reroll true renders a dice button that replaces the picked value", async () => {
+  const fields: FormField[] = [
+    {
+      id: "assigned_child",
+      type: "random_value" as FormFieldType,
+      label: "Team name",
+      values: ["Alpha", "Beta", "Gamma"],
+      reroll: true,
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  const before = screen.getByTestId("random-value-result").textContent;
+  await fireEvent.click(screen.getByRole("button", { name: /suggest another/i }));
+  const after = screen.getByTestId("random-value-result").textContent;
+  expect(["Alpha", "Beta", "Gamma"]).toContain(after);
+  expect(before).not.toBeNull();
+});
+
+test("random_value: editable true renders a text input seeded with the picked value instead of static text", () => {
+  const fields: FormField[] = [
+    {
+      id: "assigned_child",
+      type: "random_value" as FormFieldType,
+      label: "Team name",
+      values: ["Alpha"],
+      editable: true,
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.getByLabelText("Team name")).toHaveValue("Alpha");
+});
+
 test("uploaded photo tile is rendered at the larger filled size with a success badge", () => {
   const fields: FormField[] = [{ id: "pic", type: "photo", label: "Take a photo" }];
   render(AppForm, {

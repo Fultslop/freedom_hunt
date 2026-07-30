@@ -158,6 +158,11 @@ Once they submit, they're logged in on that device for **30 days** and can acces
 
 > **One password, whole project.** A single password covers the entire project — all cities and routes beneath it. The password is set in KV (`auth:<project_id>`) and verified by `POST /auth/verify-code`, which uses `AUTH_STORE.list()` to find the matching project.
 
+> **Case and separators don't matter.** `letmein`, `LetMeIn`, and `LET-ME-IN` are all the
+> same code to a participant — the app uppercases and strips `-`/`_`/spaces before
+> comparing. Choose whatever's easiest to read on a flyer or QR code; you don't need to
+> worry about participants mistyping the case.
+
 ### Setting a password for your project
 
 Passwords are stored in Cloudflare's KV store — a secure key-value database you manage through the Cloudflare dashboard. No code changes or redeployment needed.

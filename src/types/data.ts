@@ -29,6 +29,8 @@ export interface FormField {
   storeDefaultValue?: boolean;
   config?: { lineCount?: number };
   source?: string;
+  reroll?: boolean;
+  editable?: boolean;
 }
 
 export interface Challenge {

@@ -1,0 +1,42 @@
+.team-setup-page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.team-setup-page__bg {
+  position: absolute;
+  inset: 0;
+}
+
+.team-setup-page__content {
+  position: relative;
+  z-index: 1;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--gap-section) var(--gap-block) var(--gap-block);
+}
+
+.team-setup-page__eyebrow {
+  font-family: var(--font-map);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-top: var(--gap-block);
+}
+
+.team-setup-page__heading {
+  margin: var(--gap-field) 0 0;
+}
+
+.team-setup-page__help {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.team-setup-page__error {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  margin-top: var(--gap-field);
+}

@@ -1,0 +1,29 @@
+.depth-wordmark {
+  display: flex;
+  flex-direction: column;
+}
+
+.depth-wordmark__line {
+  font-family: var(--font-family);
+  font-size: var(--font-size-display);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+}
+
+.depth-wordmark__line--sheen {
+  background-image: var(--sheen-image);
+  background-size: 280% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: depth-wordmark-sheen 13s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .depth-wordmark__line--sheen {
+    animation: none;
+    background-position: 140% 0;
+  }
+}

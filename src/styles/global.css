@@ -77,3 +77,33 @@ body,
     opacity: 0;
   }
 }
+
+@keyframes depth-wordmark-sheen {
+  to {
+    background-position: 280% 0;
+  }
+}
+
+@keyframes search-plane-pin-drop {
+  0% {
+    transform: rotateX(-58deg) translate(-50%, -100%) translateY(-40px) scale(0.4);
+    opacity: 0;
+  }
+  78% {
+    transform: rotateX(-58deg) translate(-50%, -100%) translateY(4px) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateX(-58deg) translate(-50%, -100%) translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes search-plane-label-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

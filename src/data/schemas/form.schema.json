@@ -25,7 +25,9 @@
         "properties": { "lineCount": { "type": "number" } },
         "additionalProperties": false
       },
-      "source":  { "type": "string" }
+      "source":  { "type": "string" },
+      "reroll":   { "type": "boolean" },
+      "editable": { "type": "boolean" }
     }
   }
 }

@@ -131,6 +131,20 @@
           seeded[field.id] = field.value as FieldValues[string];
         }
       }
+      // Auto-pick random_value fields when reroll or editable is set
+      for (const field of fields) {
+        if (
+          field.id &&
+          field.type === STR_RANDOM_VALUE &&
+          (field.reroll || field.editable) &&
+          !Object.prototype.hasOwnProperty.call(seeded, field.id)
+        ) {
+          const opts = field.values ?? [];
+          if (opts.length > 0) {
+            seeded[field.id] = opts[Math.floor(Math.random() * opts.length)];
+          }
+        }
+      }
       return seeded;
     }),
   );
@@ -760,15 +774,23 @@
             />
           {:else if field.type === "random_value"}
             {@const picked = values[id] as string | undefined}
-            {#if picked}
-              <p class="af-random-value-result">{picked}</p>
-            {:else}
+            {@const options = field.values ?? []}
+            {#if field.editable}
+              <input
+                id={domId}
+                type="text"
+                value={picked ?? ""}
+                oninput={(e) => { values[id] = (e.target as HTMLInputElement).value; }}
+                class="af-input"
+              />
+            {:else if picked}
+              <p class="af-random-value-result" data-testid="random-value-result">{picked}</p>
+            {:else if !field.reroll}
               <button
                 type="button"
                 class="af-random-value-btn"
-                disabled={!field.values || field.values.length === 0}
+                disabled={options.length === 0}
                 onclick={() => {
-                  const options = field.values ?? [];
                   if (options.length > 0) {
                     values[id] = options[Math.floor(Math.random() * options.length)];
                   }
@@ -776,6 +798,20 @@
               >
                 <Dice5 size={18} aria-hidden="true" />
                 Reveal a name
+              </button>
+            {/if}
+            {#if field.reroll}
+              <button
+                type="button"
+                onclick={() => {
+                  if (options.length > 0) {
+                    values[id] = options[Math.floor(Math.random() * options.length)];
+                  }
+                }}
+                aria-label="Suggest another name"
+                class="af-random-value-reroll-btn"
+              >
+                <Dice5 size={20} aria-hidden="true" />
               </button>
             {/if}
           {/if}
