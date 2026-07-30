@@ -71,7 +71,12 @@
 }
 
 .search-plane__pins {
+  /* Preserves each pin's own rotateX(-58deg) counter-tilt in 3D space —
+     without this, .search-plane__pin's 3D transform flattens into this
+     element's 2D plane, warping the rounded pin-head into a saddle shape
+     instead of a square-on face. */
   transform: translateZ(2px);
+  transform-style: preserve-3d;
 }
 
 .search-plane__labels {
@@ -135,7 +140,7 @@
   width: 30px;
   height: 30px;
   border-radius: 50% 50% 50% 0;
-  transform: rotate(45deg);
+  transform: rotate(-45deg);
   background: var(--search-pin-head);
   margin: 0 auto;
 }
