@@ -2,7 +2,15 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  perspective: 520px;
+  /*
+   * Field of view is perspective ÷ how much of the (fixed-pixel-scale) world
+   * a viewport reveals — a bare pixel value that's a normal lens at 320px is
+   * a fisheye at 1870px, because a wider viewport shows more of the same
+   * grid, and that extra reach was creeping into the near-camera region
+   * where the tilted plane's perspective divide blows up. Scaling with vw
+   * keeps the same relative framing at every width.
+   */
+  perspective: clamp(520px, 160vw, 2400px);
   perspective-origin: 50% 22%;
   pointer-events: none;
 }
@@ -16,19 +24,37 @@
 
 .search-plane__grid {
   position: absolute;
-  width: 1700px;
-  height: 1700px;
-  left: -850px;
-  top: -850px;
+  /*
+   * Large and asymmetric, not a bigger square: the near half of a plane
+   * tilted 58deg rises toward the camera at z = y * sin(58deg) ~= 0.85y, so
+   * anything beyond perspective / 0.85 is at or past the camera and
+   * projects to garbage — that's the bottom of the frame, closest to the
+   * viewer. Pushing the element's own origin down to ~88% of its height
+   * keeps almost all of its bulk on the far/receding side instead.
+   */
+  width: 400vmax;
+  height: 400vmax;
+  margin-left: -200vmax;
+  margin-top: -352vmax;
+  /* Compensates the 58deg tilt's cos(58deg) ~= 0.53 vertical foreshortening
+     (46 / cos(58deg) ~= 86.8) so cells read square near the focus point. */
   background-image:
     repeating-linear-gradient(0deg, var(--search-grid) 0 1px, transparent 1px 46px),
     repeating-linear-gradient(90deg, var(--search-grid) 0 1px, transparent 1px 46px);
-  mask-image: radial-gradient(
-    circle at 50% 50%,
-    #000 0%,
-    #000 var(--search-fade-solid, 11%),
-    transparent var(--search-fade-edge, 40%)
-  );
+  background-size: 46px 86.8px;
+  /*
+   * `--search-fade-solid`/`--search-fade-edge` are declared here (not just
+   * as var() fallbacks) so the mask-image can never resolve against an
+   * undefined custom property — that makes the whole `mask-image`
+   * declaration invalid and drops it silently, leaving the grid's own
+   * rectangular bounds as the only visible edge (the hard straight lines
+   * converging on the vanishing point that a radial mask could never
+   * produce). The circle center matches the 88%-down origin above.
+   */
+  --search-fade-solid: 11%;
+  --search-fade-edge: 40%;
+  -webkit-mask-image: radial-gradient(circle at 50% 88%, #000 0%, #000 var(--search-fade-solid), transparent var(--search-fade-edge));
+  mask-image: radial-gradient(circle at 50% 88%, #000 0%, #000 var(--search-fade-solid), transparent var(--search-fade-edge));
   /* transform (camera-snapped counter-translate) is set inline — see SearchPlane.svelte */
 }
 
@@ -54,16 +80,16 @@
 
 .search-plane__node {
   position: absolute;
-  width: 10px;
-  height: 10px;
-  margin: -5px;
+  width: 30px;
+  height: 30px;
+  margin: -15px;
   border-radius: 50%;
   background: var(--search-node);
 }
 
 .search-plane__node--active {
   background: var(--search-node-active);
-  box-shadow: 0 0 0 8px var(--search-node-halo);
+  box-shadow: 0 0 0 24px var(--search-node-halo);
 }
 
 .search-plane__node--fading {
@@ -88,7 +114,9 @@
 
 .search-plane__label {
   position: absolute;
-  font-size: 14px;
+  /* 1.5x rather than the 3x applied to nodes/pins/edges — at a literal 3x
+     (42px) labels would render bigger than the page title itself. */
+  font-size: 21px;
   font-family: var(--font-map);
   color: var(--search-label);
   white-space: nowrap;
@@ -104,8 +132,8 @@
 }
 
 .search-plane__pin-head {
-  width: 10px;
-  height: 10px;
+  width: 30px;
+  height: 30px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(45deg);
   background: var(--search-pin-head);
@@ -113,9 +141,9 @@
 }
 
 .search-plane__pin-stem {
-  width: 2px;
-  height: 14px;
-  margin: -3px auto 0;
+  width: 6px;
+  height: 42px;
+  margin: -9px auto 0;
   background: var(--search-pin-stem);
 }
 
@@ -127,22 +155,22 @@
 }
 
 /*
- * Perspective is 40% smaller (camera ~40% closer, compounding the earlier
- * 25% with another 20%) at md+. The fade radius is scaled down by the same
- * factor to match — a smaller perspective shrinks the radius before the
- * tilted grid starts stretching into visibly non-square cells near the
- * camera, so revealing the *same* radius as before would reveal exactly the
- * newly-distorted part instead of more square grid.
+ * Perspective no longer needs a per-breakpoint override — the clamp() above
+ * scales it continuously with viewport width, so the same relative safe
+ * radius (~40%, set on the base rule) holds at every width. These two
+ * breakpoints widen it further now that there's room, so more of the tree
+ * fills the extra space on a wide screen rather than the camera sitting in
+ * an empty field (label/pin size are still bumped directly for desktop
+ * readability, independent of the fade radius).
  */
 @media (min-width: 720px) {
-  .search-plane { perspective: 312px; }
-  .search-plane__grid { --search-fade-solid: 6%; --search-fade-edge: 26%; }
+  .search-plane__grid { --search-fade-solid: 14%; --search-fade-edge: 46%; }
 }
 @media (min-width: 1200px) {
-  .search-plane__grid { --search-fade-solid: 7%; --search-fade-edge: 27%; }
-  .search-plane__label { font-size: 18px; }
-  .search-plane__pin-head { width: 13px; height: 13px; }
-  .search-plane__pin-stem { width: 3px; height: 18px; }
+  .search-plane__grid { --search-fade-solid: 18%; --search-fade-edge: 54%; }
+  .search-plane__label { font-size: 27px; }
+  .search-plane__pin-head { width: 39px; height: 39px; }
+  .search-plane__pin-stem { width: 8px; height: 55px; margin-top: -12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .search-plane__node--fading {

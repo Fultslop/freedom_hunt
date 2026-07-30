@@ -29,9 +29,9 @@ export function jitterHeading(baseHeading: number, rand: () => number = Math.ran
   return clampToHeadingRange(baseHeading + jitter);
 }
 
-/** Edge length in px, uniform in [68, 94]. */
+/** Edge length in px, uniform in [204, 282] (3x the original [68, 94] — makes the walk read as closer without touching the camera). */
 export function edgeLength(rand: () => number = Math.random): number {
-  return 68 + rand() * (94 - 68);
+  return 204 + rand() * (282 - 204);
 }
 
 /** Total time (ms) for a k-way split to fully resolve: (k - 1) * 330 + 450. */

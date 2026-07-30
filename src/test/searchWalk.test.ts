@@ -52,9 +52,9 @@ describe("jitterHeading", () => {
 });
 
 describe("edgeLength", () => {
-  it("returns a value in [68, 94]", () => {
-    expect(edgeLength(seq([0]))).toBe(68);
-    expect(edgeLength(seq([1]))).toBe(94);
+  it("returns a value in [204, 282]", () => {
+    expect(edgeLength(seq([0]))).toBe(204);
+    expect(edgeLength(seq([1]))).toBe(282);
   });
 });
 

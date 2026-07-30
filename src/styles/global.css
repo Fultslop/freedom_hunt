@@ -86,11 +86,14 @@ body,
 
 @keyframes search-plane-pin-drop {
   0% {
-    transform: rotateX(-58deg) translate(-50%, -100%) translateY(-40px) scale(0.4);
+    /* Drop height/overshoot scaled 3x along with the pin itself (see
+       SearchPlane.css) — at the old -40px/4px, a pin 3x its former size
+       barely moves relative to its own height and just seems to fade in. */
+    transform: rotateX(-58deg) translate(-50%, -100%) translateY(-120px) scale(0.4);
     opacity: 0;
   }
   78% {
-    transform: rotateX(-58deg) translate(-50%, -100%) translateY(4px) scale(1.05);
+    transform: rotateX(-58deg) translate(-50%, -100%) translateY(12px) scale(1.05);
     opacity: 1;
   }
   100% {
