@@ -97,8 +97,8 @@
   box-shadow: 0 0 0 24px var(--search-node-halo);
 }
 
-.search-plane__node--fading {
-  opacity: 0.3;
+.search-plane__node,
+.search-plane__pin {
   transition: opacity 400ms ease-out;
 }
 
@@ -107,6 +107,7 @@
   height: 2px;
   background: var(--search-edge);
   transform-origin: 0 50%;
+  transition: opacity 400ms ease-out;
 }
 
 .search-plane__edge--visited {
@@ -141,7 +142,7 @@
   height: 30px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
-  background: var(--search-pin-head);
+  background: var(--pin-team-color, var(--search-pin-head));
   margin: 0 auto;
 }
 
@@ -149,7 +150,7 @@
   width: 6px;
   height: 42px;
   margin: -9px auto 0;
-  background: var(--search-pin-stem);
+  background: var(--pin-team-color, var(--search-pin-stem));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -174,11 +175,13 @@
 @media (min-width: 1200px) {
   .search-plane__grid { --search-fade-solid: 18%; --search-fade-edge: 54%; }
   .search-plane__label { font-size: 27px; }
-  .search-plane__pin-head { width: 39px; height: 39px; }
-  .search-plane__pin-stem { width: 8px; height: 55px; margin-top: -12px; }
+  .search-plane__pin-head { width: 39px; height: 39px; background: var(--pin-team-color, var(--search-pin-head)); }
+  .search-plane__pin-stem { width: 8px; height: 55px; margin-top: -12px; background: var(--pin-team-color, var(--search-pin-stem)); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .search-plane__node--fading {
+  .search-plane__node,
+  .search-plane__pin,
+  .search-plane__edge {
     transition-duration: 1ms;
   }
 }

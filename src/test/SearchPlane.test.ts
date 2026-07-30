@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render } from "@testing-library/svelte/svelte5";
 import SearchPlane from "../components/SearchPlane.svelte";
+import { SECONDARY_TRAIL_COUNT } from "../utils/searchWalk";
+
+const FLANKING_TRAIL_COUNT = 3;
+const TOTAL_WALKER_COUNT = 1 + SECONDARY_TRAIL_COUNT + FLANKING_TRAIL_COUNT;
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -60,7 +64,10 @@ describe("SearchPlane search mode", () => {
     // Advance through several full split cycles (worst case ~2.7s each).
     await vi.advanceTimersByTimeAsync(20000);
     expect(container.querySelectorAll(".search-plane__node").length).toBeGreaterThan(1);
-    expect(container.querySelectorAll(".search-plane__node--active").length).toBeLessThanOrEqual(1);
+    // One active node per walker (primary + each secondary trail) is expected now.
+    expect(container.querySelectorAll(".search-plane__node--active").length).toBeLessThanOrEqual(
+      TOTAL_WALKER_COUNT,
+    );
     unmount();
   });
 
@@ -73,9 +80,15 @@ describe("SearchPlane search mode", () => {
       container.querySelectorAll(".search-plane__node").length +
       container.querySelectorAll(".search-plane__edge").length;
     expect(total).toBeGreaterThan(1);
-    expect(total).toBeLessThan(100);
+    // Scales with the number of concurrent walkers (primary + secondary trails).
+    expect(total).toBeLessThan(100 * TOTAL_WALKER_COUNT);
+    // Every walker must still have exactly one live head this far past the
+    // prune limit (regression: a pruning bug could cascade-delete the
+    // current node itself once its ancestry aged out, silently stalling
+    // that walker forever with no active node at all).
+    expect(container.querySelectorAll(".search-plane__node--active").length).toBe(TOTAL_WALKER_COUNT);
     unmount();
-  });
+  }, 15000);
 
   it("does not schedule a new split while paused, but does not error either", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
@@ -84,8 +97,10 @@ describe("SearchPlane search mode", () => {
       props: { mode: "search", anchor: 64, paused: true },
     });
     await vi.advanceTimersByTimeAsync(10000);
-    // Nothing beyond the initial root node should ever appear while paused.
-    expect(container.querySelectorAll(".search-plane__node").length).toBe(1);
+    // The primary root plus each secondary trail's root spawn (teleporting +
+    // flanking) appears immediately on mount regardless of `paused` — only
+    // further splits are gated by it.
+    expect(container.querySelectorAll(".search-plane__node").length).toBe(TOTAL_WALKER_COUNT);
     unmount();
   });
 
@@ -198,4 +213,50 @@ describe("SearchPlane route mode", () => {
     expect(rafSpy).not.toHaveBeenCalled();
     unmount();
   });
+});
+
+describe("SearchPlane secondary trails", () => {
+  it("spawns all secondary trails with colored pins and no labels, before any split has run", () => {
+    const { container, unmount } = render(SearchPlane, { props: { mode: "search", anchor: 64 } });
+    // 1 primary root pin + all secondary root pins (teleporting + flanking),
+    // present synchronously on mount, before any split timer has fired.
+    expect(container.querySelectorAll(".search-plane__pin").length).toBe(TOTAL_WALKER_COUNT);
+    const coloredPins = Array.from(
+      container.querySelectorAll<HTMLElement>(".search-plane__pin"),
+    ).filter((pin) => pin.style.getPropertyValue("--pin-team-color") !== "");
+    expect(coloredPins.length).toBe(TOTAL_WALKER_COUNT - 1);
+    expect(container.querySelectorAll(".search-plane__label").length).toBe(0);
+    unmount();
+  });
+
+  it("does not spawn secondary trails in frozen mode", () => {
+    const { container, unmount } = render(SearchPlane, { props: { mode: "frozen", anchor: 64 } });
+    expect(container.querySelectorAll(".search-plane__pin").length).toBe(1);
+    unmount();
+  });
+
+  it("does not spawn secondary trails in route mode", () => {
+    const stops = Array.from({ length: 5 }, (unused, index) => ({ id: `stop-${index}` }));
+    const { container, unmount } = render(SearchPlane, {
+      props: { mode: "route", anchor: 46, route: stops },
+    });
+    const coloredPins = Array.from(
+      container.querySelectorAll<HTMLElement>(".search-plane__pin"),
+    ).filter((pin) => pin.style.getPropertyValue("--pin-team-color") !== "");
+    expect(coloredPins.length).toBe(0);
+    unmount();
+  });
+
+  it("keeps running secondary trails without unbounded growth over an extended run", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+    const { container, unmount } = render(SearchPlane, { props: { mode: "search", anchor: 64 } });
+    await vi.advanceTimersByTimeAsync(60000);
+    const total =
+      container.querySelectorAll(".search-plane__node").length +
+      container.querySelectorAll(".search-plane__edge").length;
+    expect(total).toBeGreaterThan(TOTAL_WALKER_COUNT);
+    expect(total).toBeLessThan(100 * TOTAL_WALKER_COUNT);
+    unmount();
+  }, 15000);
 });

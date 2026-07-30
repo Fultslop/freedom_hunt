@@ -37,6 +37,7 @@ export interface Theme {
   searchLabel: string;
   searchPinStem: string;
   searchPinHead: string;
+  searchTeamColors: string[];
   introFog: string;
   introScrim: string;
   sheenImage: string;
