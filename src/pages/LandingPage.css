@@ -9,6 +9,7 @@
 .landing-page__content {
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
   max-width: var(--content-max);
   margin: 0 auto;
   padding: calc(var(--gap-section) + var(--gap-block)) var(--gap-block) 0;
@@ -44,6 +45,7 @@
 .landing-page__controls {
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
   margin-top: auto;
   max-width: var(--content-max);
   margin-inline: auto;
@@ -74,6 +76,7 @@
 .landing-page__nav {
   display: flex;
   justify-content: space-around;
+  gap: 0.75rem;
   margin-top: var(--gap-block);
 }
 

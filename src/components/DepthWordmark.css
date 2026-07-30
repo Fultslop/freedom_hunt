@@ -7,7 +7,7 @@
   font-family: var(--font-family);
   font-size: var(--font-size-display);
   font-weight: 700;
-  line-height: 0.98;
+  line-height: 1.1;
   letter-spacing: -0.03em;
   color: var(--color-text);
 }

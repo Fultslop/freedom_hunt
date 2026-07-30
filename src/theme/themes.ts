@@ -63,7 +63,7 @@ export const themes: Record<ThemeName, Theme> = {
     searchNode: "#33415c",
     searchNodeActive: "#f59e0b",
     searchNodeHalo: "rgba(245,158,11,.12)",
-    searchLabel: "#a7bad0",
+    searchLabel: "#d7e3f5",
     searchPinStem: "#b06f09",
     searchPinHead: "#f59e0b",
     introFog: "linear-gradient(#0f172a 40%, rgba(15,23,42,0))",

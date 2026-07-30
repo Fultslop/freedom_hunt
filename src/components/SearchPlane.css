@@ -127,18 +127,19 @@
 }
 
 /*
- * Perspective is 25% smaller (camera 25% closer) at md+. The fade radius is
- * scaled down by the same 25% to match — a smaller perspective shrinks the
- * radius before the tilted grid starts stretching into visibly non-square
- * cells near the camera, so revealing the *same* radius as before would
- * reveal exactly the newly-distorted part instead of more square grid.
+ * Perspective is 40% smaller (camera ~40% closer, compounding the earlier
+ * 25% with another 20%) at md+. The fade radius is scaled down by the same
+ * factor to match — a smaller perspective shrinks the radius before the
+ * tilted grid starts stretching into visibly non-square cells near the
+ * camera, so revealing the *same* radius as before would reveal exactly the
+ * newly-distorted part instead of more square grid.
  */
 @media (min-width: 720px) {
-  .search-plane { perspective: 390px; }
-  .search-plane__grid { --search-fade-solid: 8%; --search-fade-edge: 32%; }
+  .search-plane { perspective: 312px; }
+  .search-plane__grid { --search-fade-solid: 6%; --search-fade-edge: 26%; }
 }
 @media (min-width: 1200px) {
-  .search-plane__grid { --search-fade-solid: 9%; --search-fade-edge: 34%; }
+  .search-plane__grid { --search-fade-solid: 7%; --search-fade-edge: 27%; }
   .search-plane__label { font-size: 18px; }
   .search-plane__pin-head { width: 13px; height: 13px; }
   .search-plane__pin-stem { width: 3px; height: 18px; }
