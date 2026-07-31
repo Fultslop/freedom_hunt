@@ -2,6 +2,91 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Form",
   "type": "array",
+  "definitions": {
+    "operand": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["function"],
+          "properties": {
+            "function": { "type": "string" },
+            "params": { "type": "array", "items": { "$ref": "#/definitions/operand" } }
+          }
+        }
+      ]
+    },
+    "conditionLeaf": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "operator"],
+      "properties": {
+        "source": { "$ref": "#/definitions/operand" },
+        "operator": { "enum": ["=", "!=", "<", "<=", ">", ">=", "like", "is null", "is not null"] },
+        "value": { "$ref": "#/definitions/operand" }
+      },
+      "if": { "properties": { "operator": { "enum": ["is null", "is not null"] } }, "required": ["operator"] },
+      "then": { "not": { "required": ["value"] } },
+      "else": { "required": ["value"] }
+    },
+    "conditionNode": {
+      "oneOf": [
+        { "$ref": "#/definitions/conditionLeaf" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["any"],
+          "properties": { "any": { "type": "array", "items": { "$ref": "#/definitions/conditionNode" } } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["all"],
+          "properties": { "all": { "type": "array", "items": { "$ref": "#/definitions/conditionNode" } } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["not"],
+          "properties": { "not": { "$ref": "#/definitions/conditionNode" } }
+        }
+      ]
+    },
+    "visibilityConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initially"],
+      "properties": {
+        "initially": { "enum": ["visible", "hidden", "conditional"] },
+        "condition": { "$ref": "#/definitions/conditionNode" },
+        "any": { "type": "array", "items": { "$ref": "#/definitions/conditionNode" } },
+        "all": { "type": "array", "items": { "$ref": "#/definitions/conditionNode" } },
+        "not": { "$ref": "#/definitions/conditionNode" }
+      },
+      "if": { "properties": { "initially": { "const": "conditional" } }, "required": ["initially"] },
+      "then": {
+        "oneOf": [
+          { "required": ["condition"] },
+          { "required": ["any"] },
+          { "required": ["all"] },
+          { "required": ["not"] }
+        ]
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            { "required": ["condition"] },
+            { "required": ["any"] },
+            { "required": ["all"] },
+            { "required": ["not"] }
+          ]
+        }
+      }
+    }
+  },
   "items": {
     "type": "object",
     "additionalProperties": false,
@@ -27,7 +112,8 @@
       },
       "source":  { "type": "string" },
       "reroll":   { "type": "boolean" },
-      "editable": { "type": "boolean" }
+      "editable": { "type": "boolean" },
+      "isVisible": { "$ref": "#/definitions/visibilityConfig" }
     }
   }
 }

@@ -3,6 +3,7 @@ import { authStore } from "../stores/authStore";
 import ChallengeForm from "../components/ChallengeForm.svelte";
 import { postFormSubmit } from "../utils/api";
 import { buildFormStorageKey, saveFormState } from "../utils/formStorage";
+import type { FormField } from "../types/data";
 
 vi.mock("../utils/api", () => ({
   postFormSubmit: vi.fn().mockResolvedValue({ ok: true }),
@@ -377,4 +378,37 @@ test("editing a sourced textarea and remounting keeps the edit instead of re-syn
   expect((screen.getByLabelText("Final manifesto") as HTMLTextAreaElement).value).toBe(
     "My own final words.",
   );
+});
+
+// ---------------------------------------------------------------------------
+// Cross-form isVisible (formContext pass-through)
+// ---------------------------------------------------------------------------
+
+test("passes formContext through to AppForm so cross-form isVisible conditions resolve", () => {
+  localStorage.setItem(
+    "demo/den_haag/short_loop/004_loc_lange_voorhout/form",
+    JSON.stringify({
+      version: "1.2",
+      values: { manifesto: "the people" },
+      uploads: {},
+      submitted: true,
+      skipped: false,
+      touchedFields: [],
+    }),
+  );
+  const form: FormField[] = [
+    {
+      id: "echo",
+      type: "boolean",
+      label: "Echo",
+      isVisible: {
+        initially: "conditional",
+        condition: { source: "004_loc_lange_voorhout.form.manifesto", operator: "=", value: "the people" },
+      },
+    },
+  ];
+  render(ChallengeForm, {
+    props: { form, locationId: "1", project: "demo", cityId: "den_haag", routeId: "short_loop" },
+  });
+  expect(screen.getByText("Echo")).toBeInTheDocument();
 });

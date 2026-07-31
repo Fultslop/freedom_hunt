@@ -1,4 +1,5 @@
 import type { StatsDoc } from "./storyline";
+import type { VisibilityConfig } from "./conditions";
 
 export type FormFieldType =
   | "boolean"
@@ -27,6 +28,7 @@ export interface FormField {
   isRequired?: boolean;
   value?: string | number | boolean | string[];
   storeDefaultValue?: boolean;
+  isVisible?: VisibilityConfig;
   config?: { lineCount?: number };
   source?: string;
   reroll?: boolean;

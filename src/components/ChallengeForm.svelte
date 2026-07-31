@@ -53,7 +53,7 @@
         const ref = parseSourceRef(field.source);
         if (ref) {
           const value = getLocationFormValue(project, cityId, routeId, ref.locationId, ref.fieldId);
-          if (value !== undefined) {
+          if (typeof value === "string") {
             result[field.id] = value;
           }
         }
@@ -171,6 +171,7 @@
         {baseUploads}
         {touchedFields}
         {sourceValues}
+        formContext={{ project, city: cityId, route: routeId }}
         onSubmit={handleSubmit}
         onPhotoUpload={handlePhotoUpload}
         onVideoUpload={handleVideoUpload}

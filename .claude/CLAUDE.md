@@ -24,6 +24,8 @@ See `doc/architecture.md` for full project context.
 
 ## Coding Conventions
 
+- **Dependencies over hand-rolled code, when it reduces maintenance surface.** The project no longer defaults to zero-new-dependencies for every feature. For a well-scoped problem with a strong, small, well-maintained existing library, prefer the dependency over new hand-rolled logic when it measurably reduces what we maintain long-term. This replaces an earlier blanket "no new runtime dependency" stance from the project's smaller days — evaluate case by case now, not by rule. A library is still the wrong call when its data model doesn't actually fit (e.g. it would require reshaping an already-designed YAML/schema authoring shape, or can't integrate with this app's specific state/storage model without a translation layer that offsets the maintenance win) — being a library isn't automatically a win, but no longer needing a dependency-count justification not to use one.
+
 - **TypeScript only** — components use `.svelte` with `<script lang="ts">`, utilities use `.ts`. No `.js`, `.jsx`, or `.tsx` files in `src/`.
 - **CSS custom properties** — all styling via co-located `.css` files imported into each component/page. Use CSS `var(--color-*)` tokens for all colours. No CSS modules, no Tailwind.
 - **Global resets and keyframes** — live in `src/styles/global.css`, imported once in `main.ts`. Do not inject `<style>` reset tags in page components.

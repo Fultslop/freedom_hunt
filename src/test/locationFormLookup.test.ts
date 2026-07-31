@@ -64,10 +64,10 @@ describe("getLocationFormValue", () => {
     ).toBeUndefined();
   });
 
-  it("returns undefined when the stored value isn't a string", () => {
+  it("returns the raw stored value even when it isn't a string", () => {
     const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout");
     saveFormState(key, {
-      values: { manifesto: 42 as unknown as string },
+      values: { manifesto: 42 },
       uploads: {},
       submitted: true,
       skipped: false,
@@ -75,6 +75,20 @@ describe("getLocationFormValue", () => {
     });
     expect(
       getLocationFormValue("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "manifesto"),
-    ).toBeUndefined();
+    ).toBe(42);
+  });
+
+  it("returns a boolean value unchanged", () => {
+    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout");
+    saveFormState(key, {
+      values: { agreed: true },
+      uploads: {},
+      submitted: true,
+      skipped: false,
+      touchedFields: [],
+    });
+    expect(
+      getLocationFormValue("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "agreed"),
+    ).toBe(true);
   });
 });

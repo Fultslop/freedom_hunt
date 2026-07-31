@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { load as loadYaml } from "js-yaml";
 import Ajv, { type ValidateFunction, type ErrorObject } from "ajv";
 import { parseStoryline, validateStoryline, validateStatsDoc, findStatsRefs } from "../src/utils/storylineBlocks";
+import { findReservedFunctionUsage } from "../src/utils/visibility";
 import type { StatsDoc } from "../src/types/storyline";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
@@ -90,6 +91,17 @@ function checkStatsFile(filePath: string): string[] {
   return validateStatsDoc(doc);
 }
 
+function checkVisibilityFunctions(filePath: string): string[] {
+  const content = readFileSync(filePath, "utf8");
+  const data = loadYaml(content);
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return findReservedFunctionUsage(data).map(
+    (msg) => `${msg} (not yet implemented — see doc/superpowers/specs/2026-07-31-conditional-visibility-design.md §4.3)`,
+  );
+}
+
 const LOC_PATTERN = /^\d+_loc_.*\.yaml$/;
 const FORM_PATTERN = /^\d+_form_.*\.yaml$/;
 const TEXT_PATTERN = /^\d+_text_.*\.yaml$/;
@@ -104,9 +116,10 @@ const violations = [
     ...checkFile(filePath, validateLoc).map((msg) => ({ filePath, msg })),
     ...checkStoryline(filePath).map((msg) => ({ filePath, msg })),
   ]),
-  ...findFiles(DATA_DIR, FORM_PATTERN).flatMap((filePath) =>
-    checkFile(filePath, validateForm).map((msg) => ({ filePath, msg })),
-  ),
+  ...findFiles(DATA_DIR, FORM_PATTERN).flatMap((filePath) => [
+    ...checkFile(filePath, validateForm).map((msg) => ({ filePath, msg })),
+    ...checkVisibilityFunctions(filePath).map((msg) => ({ filePath, msg })),
+  ]),
   ...findFiles(DATA_DIR, TEXT_PATTERN).flatMap((filePath) =>
     checkFile(filePath, validateText).map((msg) => ({ filePath, msg })),
   ),

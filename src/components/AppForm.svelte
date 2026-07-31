@@ -10,6 +10,8 @@
   import CoordinatePicker from "./CoordinatePicker.svelte";
   import VideoRecorderField from "./VideoRecorderField.svelte";
   import SourcedTextareaField from "./SourcedTextareaField.svelte";
+  import { evaluateVisibility, type VisibilityContext } from "../utils/visibility";
+  import type { VisibilityResult } from "../types/conditions";
   import "./AppForm.css";
 
   const STR_STRING = "string";
@@ -68,6 +70,7 @@
     baseUploads = undefined,
     touchedFields = [],
     sourceValues = {},
+    formContext = undefined,
     onSubmit,
     onPhotoUpload = undefined,
     onVideoUpload = undefined,
@@ -88,6 +91,7 @@
     baseUploads?: Record<string, PhotoUploadStatus>;
     touchedFields?: string[];
     sourceValues?: Record<string, string>;
+    formContext?: { project: string; city: string; route?: string };
     onSubmit: (values: Record<string, unknown>) => Promise<void>;
     onPhotoUpload?: (file: File) => Promise<{ ok: boolean; httpCode?: number }>;
     onVideoUpload?: (video: File, poster: File) => Promise<{ ok: boolean; httpCode?: number }>;
@@ -204,6 +208,27 @@
   $effect(() => {
     onHasChangesChange?.(hasChanges);
   });
+  function fieldKey(field: FormField): string {
+    return field.id ?? field.label;
+  }
+
+  const fieldIds = $derived(
+    new Set(fields.map((f) => f.id).filter((id): id is string => !!id)),
+  );
+
+  const visibilityByKey = $derived.by(() => {
+    const ctx: VisibilityContext = { values: values as Record<string, unknown>, fieldIds, formContext };
+    const result = new Map<string, VisibilityResult>();
+    for (const field of fields) {
+      result.set(fieldKey(field), evaluateVisibility(field.isVisible, ctx));
+    }
+    return result;
+  });
+
+  function visibilityFor(field: FormField): VisibilityResult {
+    return visibilityByKey.get(fieldKey(field)) ?? { status: "visible" };
+  }
+
   const liveErrors = $derived(validateValues());
   const missingLabels = $derived(
     fields.filter((f) => f.id && liveErrors[f.id]).map((f) => f.label),
@@ -236,6 +261,17 @@
 
   $effect(() => {
     onTouchedFieldsChange?.([...touchedFieldSet]);
+  });
+  $effect(() => {
+    for (const field of fields) {
+      if (field.id) {
+        if (visibilityFor(field).status === "hidden" && Object.prototype.hasOwnProperty.call(values, field.id)) {
+          const next = { ...values };
+          delete next[field.id];
+          values = next;
+        }
+      }
+    }
   });
   let errors = $state<Record<string, string>>({});
   let submitState = $state<SubmitState>("idle");
@@ -352,7 +388,9 @@
   function validateValues(): Record<string, string> {
     const errs: Record<string, string> = {};
     for (const field of fields) {
-      if (!field.id || canSkipValidation(field) || !field.isRequired) {
+      if (visibilityFor(field).status !== "visible") {
+        // hidden or errored — never validated, never blocks submit
+      } else if (!field.id || canSkipValidation(field) || !field.isRequired) {
         // skip validation for these types
       } else if (field.type === STR_STRING || field.type === STR_TEXTAREA || field.type === STR_RANDOM_VALUE) {
         const v = values[field.id] as string | undefined;
@@ -392,8 +430,8 @@
   function handleSubmit() {
     const defErrors: Record<string, string> = {};
     for (const field of fields) {
-      if (!field.id || field.type === STR_SECTION) {
-        // skip def check for section
+      if (!field.id || field.type === STR_SECTION || visibilityFor(field).status !== "visible") {
+        // skip def check for section, hidden, and errored fields
       } else {
         const def = checkDefinition(field);
         if (def) {
@@ -475,7 +513,11 @@
 
 <div class="app-form">
   {#each fields as field (field.id ?? field.label)}
-    {#if !VALID_TYPES.includes(field.type)}
+    {@const visibility = visibilityFor(field)}
+    {#if visibility.status === "hidden"}
+    {:else if visibility.status === "error"}
+      <div class="af-field af-field--unknown">{visibility.message}</div>
+    {:else if !VALID_TYPES.includes(field.type)}
       <div class="af-field af-field--unknown">
         {field.label}
       </div>

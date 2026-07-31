@@ -23,8 +23,7 @@ export function getLocationFormValue(
   route: string | undefined,
   locationId: string,
   fieldId: string,
-): string | undefined {
+): unknown {
   const key = buildFormStorageKey(project, city, route, locationId);
-  const value = loadFormState(key).values[fieldId];
-  return typeof value === "string" ? value : undefined;
+  return loadFormState(key).values[fieldId];
 }
