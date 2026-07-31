@@ -6,15 +6,28 @@ beforeEach(() => {
 });
 
 describe("parseSourceRef", () => {
-  it("parses a well-formed reference into locationId and fieldId", () => {
+  it("parses a well-formed reference into locationId, formId, and fieldId", () => {
     expect(parseSourceRef("004_loc_lange_voorhout.form.manifesto")).toEqual({
       locationId: "004_loc_lange_voorhout",
+      formId: "form",
       fieldId: "manifesto",
+    });
+  });
+
+  it("preserves dots inside the fieldId segment (dotted-path field ids)", () => {
+    expect(parseSourceRef("004_loc_lange_voorhout.form.coordinates.latitude")).toEqual({
+      locationId: "004_loc_lange_voorhout",
+      formId: "form",
+      fieldId: "coordinates.latitude",
     });
   });
 
   it("returns null when the '.form.' separator is missing", () => {
     expect(parseSourceRef("004_loc_lange_voorhout.manifesto")).toBeNull();
+  });
+
+  it("returns null for a formId other than 'form' (no multi-form support yet)", () => {
+    expect(parseSourceRef("004_loc_lange_voorhout.checkin_form.manifesto")).toBeNull();
   });
 
   it("returns null for an empty string", () => {

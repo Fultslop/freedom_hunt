@@ -18,6 +18,10 @@ See `doc/architecture.md` for full project context.
 - **Devlog:** `doc/devlog/_devlog.md` — dated log of decisions and changes (note: underscore prefix)
 - **Specs:** brainstorming/design specs go in `doc/superpowers/specs/` (this project uses `doc/`, not the skill's default `docs/`)
 
+## Design Process
+
+- **YAML-first for data-driven components.** When designing a new form field type, template-type, or other content-authored capability, design and review the YAML declaration shape *before* the technical implementation. Content editability is a first-class concern in this project (see `project.title`, form field types, template-types) — work out how an organiser/editor would author the thing in YAML, get that reviewed, and only then derive the Svelte/TS implementation from it. Don't design the component API first and back into a YAML shape that merely exposes it.
+
 ## Coding Conventions
 
 - **TypeScript only** — components use `.svelte` with `<script lang="ts">`, utilities use `.ts`. No `.js`, `.jsx`, or `.tsx` files in `src/`.
