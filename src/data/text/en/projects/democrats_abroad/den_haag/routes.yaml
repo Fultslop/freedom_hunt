@@ -1,7 +1,7 @@
 short_loop:
   description: "Short Loop is a 2.5 to 3-hour route. It turns back through the city's public life, cafés, streets, and coalition-building spaces before returning to the finish at the Binnenhof / Het Plein."
   locations:
-    - 000_options_eula
+    - 000_consent_eula
     - 000_checkpoint_eula
     - 000_loc_stumbling_stones
     - 001_loc_abc

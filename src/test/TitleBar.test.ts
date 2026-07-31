@@ -2,6 +2,8 @@ import { render, screen, fireEvent } from "@testing-library/svelte/svelte5";
 import { vi } from "vitest";
 import { titleBarStore } from "../stores/titleBarStore";
 import { fontSizeStore } from "../stores/fontSizeStore";
+import { authStore } from "../stores/authStore";
+import * as api from "../utils/api";
 import TitleBar from "../components/TitleBar.svelte";
 
 beforeEach(() => {
@@ -139,4 +141,37 @@ test("closes the menu when Escape is pressed", async () => {
   await fireEvent.keyDown(window, { key: "Escape" });
 
   expect(screen.queryByText("Profile")).not.toBeInTheDocument();
+});
+
+test("Photo permissions menu item fetches and shows the current promo consent state", async () => {
+  authStore.setForTest({ activeAuth: { kind: "participant", projectId: "den_haag", teamName: "Team A", contact: null, isAdmin: false }, authLoading: false, isLoggingOut: false });
+  vi.spyOn(api, "fetchConsent").mockResolvedValue({ ok: true, record: { all_sixteen_plus: 1, promo_consent: 0, promo_approved: 0, consent_version: 1 } });
+  render(TitleBar);
+  await fireEvent.click(screen.getByLabelText("Menu"));
+  await fireEvent.click(screen.getByText("Photo permissions"));
+  expect(await screen.findByRole("checkbox")).not.toBeChecked();
+});
+
+test("declined-state (all_sixteen_plus false) shows explanatory copy instead of a toggle", async () => {
+  authStore.setForTest({ activeAuth: { kind: "participant", projectId: "den_haag", teamName: "Team A", contact: null, isAdmin: false }, authLoading: false, isLoggingOut: false });
+  vi.spyOn(api, "fetchConsent").mockResolvedValue({ ok: true, record: { all_sixteen_plus: 0, promo_consent: 0, promo_approved: 0, consent_version: 1 } });
+  render(TitleBar);
+  await fireEvent.click(screen.getByLabelText("Menu"));
+  await fireEvent.click(screen.getByText("Photo permissions"));
+  expect(await screen.findByText(/won't use your photos/i)).toBeInTheDocument();
+  expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+});
+
+test("toggling the checkbox auto-saves via postConsentUpdate", async () => {
+  authStore.setForTest({ activeAuth: { kind: "participant", projectId: "den_haag", teamName: "Team A", contact: null, isAdmin: false }, authLoading: false, isLoggingOut: false });
+  vi.spyOn(api, "fetchConsent").mockResolvedValue({ ok: true, record: { all_sixteen_plus: 1, promo_consent: 0, promo_approved: 0, consent_version: 1 } });
+  const postSpy = vi.spyOn(api, "postConsentUpdate").mockResolvedValue({
+    ok: true,
+    record: { all_sixteen_plus: 1, promo_consent: 0, promo_approved: 0, consent_version: 1 },
+  });
+  render(TitleBar);
+  await fireEvent.click(screen.getByLabelText("Menu"));
+  await fireEvent.click(screen.getByText("Photo permissions"));
+  await fireEvent.click(await screen.findByRole("checkbox"));
+  expect(postSpy).toHaveBeenCalledWith("", "", { allSixteenPlus: true, promoConsent: true, acknowledge: false });
 });

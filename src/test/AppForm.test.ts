@@ -1518,3 +1518,202 @@ test("a plain textarea without source is unaffected by sourceValues/touchedField
   });
   expect((screen.getByLabelText("Your story") as HTMLTextAreaElement).value).toBe("default");
 });
+
+// ---------------------------------------------------------------------------
+// Conditional visibility (isVisible)
+// ---------------------------------------------------------------------------
+
+test("a field with isVisible hidden by default does not render", () => {
+  const fields: FormField[] = [
+    { id: "age", type: "radio", label: "Age", options: ["Yes", "No"] },
+    {
+      id: "promo",
+      type: "boolean",
+      label: "Promo consent",
+      isVisible: { initially: "conditional", condition: { source: "age", operator: "=", value: "Yes" } },
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.queryByText("Promo consent")).not.toBeInTheDocument();
+});
+
+test("a conditional field appears when its driving field's answer matches", async () => {
+  const fields: FormField[] = [
+    { id: "age", type: "radio", label: "Age", options: ["Yes", "No"] },
+    {
+      id: "promo",
+      type: "boolean",
+      label: "Promo consent",
+      isVisible: { initially: "conditional", condition: { source: "age", operator: "=", value: "Yes" } },
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  await fireEvent.click(screen.getByLabelText("Yes"));
+  expect(screen.getByText("Promo consent")).toBeInTheDocument();
+});
+
+test("switching the driving field away clears the dependent field's value and hides it again", async () => {
+  const onValuesChange = vi.fn();
+  const fields: FormField[] = [
+    { id: "age", type: "radio", label: "Age", options: ["Yes", "No"] },
+    {
+      id: "promo",
+      type: "boolean",
+      label: "Promo consent",
+      isVisible: { initially: "conditional", condition: { source: "age", operator: "=", value: "Yes" } },
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn(), onValuesChange } });
+  await fireEvent.click(screen.getByLabelText("Yes"));
+  await fireEvent.click(screen.getByRole("checkbox"));
+  expect(onValuesChange).toHaveBeenLastCalledWith(expect.objectContaining({ promo: true }));
+
+  await fireEvent.click(screen.getByLabelText("No"));
+  expect(screen.queryByText("Promo consent")).not.toBeInTheDocument();
+  expect(onValuesChange).toHaveBeenLastCalledWith(
+    expect.not.objectContaining({ promo: expect.anything() }),
+  );
+});
+
+test("a malformed isVisible condition renders a visible error sentinel, not a crash", () => {
+  const fields: FormField[] = [
+    {
+      id: "orphan",
+      type: "boolean",
+      label: "Orphan",
+      isVisible: {
+        initially: "conditional",
+        condition: { source: "does_not_exist", operator: "=", value: "x" },
+      },
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit: vi.fn() } });
+  expect(screen.getByText(/isVisible:.*does_not_exist/)).toBeInTheDocument();
+});
+
+test("a hidden required field does not block submit", async () => {
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  const fields: FormField[] = [
+    { id: "age", type: "radio", label: "Age", options: ["Yes", "No"] },
+    {
+      id: "promo",
+      type: "string",
+      label: "Promo detail",
+      isRequired: true,
+      isVisible: { initially: "conditional", condition: { source: "age", operator: "=", value: "Yes" } },
+    },
+  ];
+  render(AppForm, { props: { fields, onSubmit, alwaysSubmittable: true } });
+  // "age" left unanswered — "promo" stays hidden and required-but-empty.
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  expect(onSubmit).toHaveBeenCalled();
+});
+
+test("renders a note field's label and subtext as body copy, not a section heading", () => {
+  render(AppForm, {
+    fields: [
+      { type: "note", label: "We won't use your photos for promotion.", subtext: "Your photos still appear in the gallery." },
+    ],
+    onSubmit: async () => {},
+  });
+  expect(screen.getByText("We won't use your photos for promotion.")).toHaveClass("af-note");
+  expect(screen.getByText("Your photos still appear in the gallery.")).toHaveClass("af-subtext");
+});
+
+test("a note field never renders as unknown-type and produces no value on submit", async () => {
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(AppForm, {
+    fields: [
+      { id: "x", type: "string", label: "X", value: "seed" },
+      { type: "note", label: "Some note" },
+    ],
+    onSubmit,
+    alwaysSubmittable: true,
+  });
+  expect(screen.queryByText(/unknown/i)).not.toBeInTheDocument();
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  expect(onSubmit).toHaveBeenCalledWith({ x: "seed" });
+});
+
+test("formContext resolves a cross-form isVisible reference", () => {
+  localStorage.setItem(
+    "demo/den_haag/short_loop/004_loc_lange_voorhout/form",
+    JSON.stringify({
+      version: "1.2",
+      values: { manifesto: "the people" },
+      uploads: {},
+      submitted: true,
+      skipped: false,
+      touchedFields: [],
+    }),
+  );
+  const fields: FormField[] = [
+    {
+      id: "echo",
+      type: "boolean",
+      label: "Echo",
+      isVisible: {
+        initially: "conditional",
+        condition: { source: "004_loc_lange_voorhout.form.manifesto", operator: "=", value: "the people" },
+      },
+    },
+  ];
+  render(AppForm, {
+    props: {
+      fields,
+      onSubmit: vi.fn(),
+      formContext: { project: "demo", city: "den_haag", route: "short_loop" },
+    },
+  });
+  expect(screen.getByText("Echo")).toBeInTheDocument();
+});
+
+test("radio variant segmented renders as buttons, not native radio inputs", () => {
+  render(AppForm, {
+    fields: [{ id: "age", type: "radio", variant: "segmented", label: "16+?", options: ["Yes", "No"] }],
+    onSubmit: async () => {},
+  });
+  expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Yes" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "No" })).toBeInTheDocument();
+});
+
+test("clicking a segmented option selects it and submits its value", async () => {
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(AppForm, {
+    fields: [{ id: "age", type: "radio", variant: "segmented", label: "16+?", options: ["Yes", "No"] }],
+    onSubmit,
+    alwaysSubmittable: true,
+  });
+  await fireEvent.click(screen.getByRole("button", { name: "Yes" }));
+  expect(screen.getByRole("button", { name: "Yes" })).toHaveAttribute("aria-pressed", "true");
+  await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+  expect(onSubmit).toHaveBeenCalledWith({ age: "Yes" });
+});
+
+test("a boolean field's subtext is wired via aria-describedby", () => {
+  render(AppForm, {
+    fields: [{ id: "promo", type: "boolean", label: "Promo consent", subtext: "Optional — change it any time." }],
+    onSubmit: async () => {},
+  });
+  const checkbox = screen.getByRole("checkbox");
+  const describedBy = checkbox.getAttribute("aria-describedby");
+  expect(describedBy).toBeTruthy();
+  expect(screen.getByText("Optional — change it any time.")).toHaveAttribute("id", describedBy);
+});
+
+test("a conditionally-visible field is wrapped in an aria-live=polite region", async () => {
+  render(AppForm, {
+    fields: [
+      { id: "age", type: "radio", label: "16+?", options: ["Yes", "No"] },
+      {
+        id: "promo", type: "boolean", label: "Promo consent",
+        isVisible: { initially: "conditional", condition: { source: "age", operator: "=", value: "Yes" } },
+      },
+    ],
+    onSubmit: async () => {},
+  });
+  await fireEvent.click(screen.getByLabelText("Yes"));
+  const label = screen.getByText("Promo consent");
+  expect(label.closest('[aria-live="polite"]')).not.toBeNull();
+});

@@ -10,6 +10,8 @@
   import CoordinatePicker from "./CoordinatePicker.svelte";
   import VideoRecorderField from "./VideoRecorderField.svelte";
   import SourcedTextareaField from "./SourcedTextareaField.svelte";
+  import { evaluateVisibility, type VisibilityContext } from "../utils/visibility";
+  import type { VisibilityResult } from "../types/conditions";
   import "./AppForm.css";
 
   const STR_STRING = "string";
@@ -21,6 +23,7 @@
   const STR_VIDEO = "video";
   const STR_TEXTAREA = "textarea";
   const STR_SECTION = "section";
+  const STR_NOTE = "note";
   const STR_IMAGE_PICKER = "image-picker";
   const STR_COORD_PICKER = "coord-picker";
   const STR_RANDOM_VALUE = "random_value";
@@ -35,11 +38,11 @@
     STR_VIDEO,
     STR_TEXTAREA,
     STR_SECTION,
+    STR_NOTE,
     STR_IMAGE_PICKER,
     STR_COORD_PICKER,
     STR_RANDOM_VALUE,
   ];
-
   const MSG_UNKNOWN_TYPE = (type: FormFieldType) => `unknown type "${type}"`;
   const MSG_RADIO_MISSING = 'radio field missing options';
   const MSG_MULTIPLE_MISSING = 'multiple field missing options';
@@ -68,6 +71,7 @@
     baseUploads = undefined,
     touchedFields = [],
     sourceValues = {},
+    formContext = undefined,
     onSubmit,
     onPhotoUpload = undefined,
     onVideoUpload = undefined,
@@ -88,6 +92,7 @@
     baseUploads?: Record<string, PhotoUploadStatus>;
     touchedFields?: string[];
     sourceValues?: Record<string, string>;
+    formContext?: { project: string; city: string; route?: string };
     onSubmit: (values: Record<string, unknown>) => Promise<void>;
     onPhotoUpload?: (file: File) => Promise<{ ok: boolean; httpCode?: number }>;
     onVideoUpload?: (video: File, poster: File) => Promise<{ ok: boolean; httpCode?: number }>;
@@ -204,6 +209,27 @@
   $effect(() => {
     onHasChangesChange?.(hasChanges);
   });
+  function fieldKey(field: FormField): string {
+    return field.id ?? field.label;
+  }
+
+  const fieldIds = $derived(
+    new Set(fields.map((f) => f.id).filter((id): id is string => !!id)),
+  );
+
+  const visibilityByKey = $derived.by(() => {
+    const ctx: VisibilityContext = { values: values as Record<string, unknown>, fieldIds, formContext };
+    const result = new Map<string, VisibilityResult>();
+    for (const field of fields) {
+      result.set(fieldKey(field), evaluateVisibility(field.isVisible, ctx));
+    }
+    return result;
+  });
+
+  function visibilityFor(field: FormField): VisibilityResult {
+    return visibilityByKey.get(fieldKey(field)) ?? { status: "visible" };
+  }
+
   const liveErrors = $derived(validateValues());
   const missingLabels = $derived(
     fields.filter((f) => f.id && liveErrors[f.id]).map((f) => f.label),
@@ -236,6 +262,17 @@
 
   $effect(() => {
     onTouchedFieldsChange?.([...touchedFieldSet]);
+  });
+  $effect(() => {
+    for (const field of fields) {
+      if (field.id) {
+        if (visibilityFor(field).status === "hidden" && Object.prototype.hasOwnProperty.call(values, field.id)) {
+          const next = { ...values };
+          delete next[field.id];
+          values = next;
+        }
+      }
+    }
   });
   let errors = $state<Record<string, string>>({});
   let submitState = $state<SubmitState>("idle");
@@ -271,7 +308,7 @@
     if (!VALID_TYPES.includes(field.type)) {
       return MSG_UNKNOWN_TYPE(field.type);
     }
-    if (field.type === STR_SECTION) {
+    if (field.type === STR_SECTION || field.type === STR_NOTE) {
       return null;
     }
     if (field.type === STR_RADIO || field.type === STR_MULTIPLE) {
@@ -352,7 +389,9 @@
   function validateValues(): Record<string, string> {
     const errs: Record<string, string> = {};
     for (const field of fields) {
-      if (!field.id || canSkipValidation(field) || !field.isRequired) {
+      if (visibilityFor(field).status !== "visible") {
+        // hidden or errored — never validated, never blocks submit
+      } else if (!field.id || canSkipValidation(field) || !field.isRequired) {
         // skip validation for these types
       } else if (field.type === STR_STRING || field.type === STR_TEXTAREA || field.type === STR_RANDOM_VALUE) {
         const v = values[field.id] as string | undefined;
@@ -392,8 +431,8 @@
   function handleSubmit() {
     const defErrors: Record<string, string> = {};
     for (const field of fields) {
-      if (!field.id || field.type === STR_SECTION) {
-        // skip def check for section
+      if (!field.id || field.type === STR_SECTION || visibilityFor(field).status !== "visible") {
+        // skip def check for section, hidden, and errored fields
       } else {
         const def = checkDefinition(field);
         if (def) {
@@ -475,12 +514,21 @@
 
 <div class="app-form">
   {#each fields as field (field.id ?? field.label)}
-    {#if !VALID_TYPES.includes(field.type)}
+    {@const visibility = visibilityFor(field)}
+    {@const isConditional = field.isVisible?.initially === "conditional"}
+    <div aria-live={isConditional ? "polite" : undefined} data-field-key={fieldKey(field)}>
+    {#if visibility.status === "hidden"}
+    {:else if visibility.status === "error"}
+      <div class="af-field af-field--unknown">{visibility.message}</div>
+    {:else if !VALID_TYPES.includes(field.type)}
       <div class="af-field af-field--unknown">
         {field.label}
       </div>
     {:else if field.type === "section"}
       <div class="af-section-heading">{field.label}</div>
+      {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
+    {:else if field.type === "note"}
+      <div class="af-note">{field.label}</div>
       {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
     {:else}
       {@const id = field.id!}
@@ -605,9 +653,10 @@
               type="checkbox"
               class="af-checkbox"
               bind:checked={values[id] as boolean}
+              aria-describedby={field.subtext ? `${domId}-help` : undefined}
             />
           </label>
-          {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
+          {#if field.subtext}<p class="af-subtext" id={`${domId}-help`}>{field.subtext}</p>{/if}
         {:else}
           <label class="af-label" class:af-label--required={field.isRequired} for={domId}>{field.label}</label>
           {#if field.subtext}<p class="af-subtext" id={`${domId}-help`}>{field.subtext}</p>{/if}
@@ -669,6 +718,20 @@
                 inputEl.value = inputEl.value.replace(/[^0-9]/g, "");
               }}
             />
+          {:else if field.type === "radio" && field.variant === "segmented"}
+            <div class="af-segmented" role="radiogroup" aria-label={field.label}>
+              {#each field.options ?? [] as opt (opt)}
+                <button
+                  type="button"
+                  class="af-segmented__option"
+                  class:af-segmented__option--selected={values[id] === opt}
+                  aria-pressed={values[id] === opt}
+                  onclick={() => { values[id] = opt; }}
+                >
+                  {opt}
+                </button>
+              {/each}
+            </div>
           {:else if field.type === "radio"}
             <div class="af-radio-group">
               {#each field.options ?? [] as opt (opt)}
@@ -829,6 +892,7 @@
         {/if}
       </div>
     {/if}
+    </div>
   {/each}
 
   {#if showConfirm}

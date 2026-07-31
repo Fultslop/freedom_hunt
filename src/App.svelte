@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  export { requireAuth, requireEditorAccess } from "./utils/authGuards";
+  export { requireAuth, requireEditorAccess, requireOrganizerAccess } from "./utils/authGuards";
 </script>
 
 <script lang="ts">
@@ -9,7 +9,7 @@
   import { themeStore } from "./stores/themeStore";
   import { fontSizeStore } from "./stores/fontSizeStore";
   import { authStore } from "./stores/authStore";
-  import { requireAuth, requireEditorAccess } from "./utils/authGuards";
+  import { requireAuth, requireEditorAccess, requireOrganizerAccess } from "./utils/authGuards";
   import TitleBar from "./components/TitleBar.svelte";
   import LandingPage from "./pages/LandingPage.svelte";
   import TeamSetupPage from "./pages/TeamSetupPage.svelte";
@@ -27,6 +27,7 @@
   import EditorPage from "./pages/editor/EditorPage.svelte";
   import EditorLocationList from "./pages/editor/EditorLocationList.svelte";
   import EditorLocationForm from "./pages/editor/EditorLocationForm.svelte";
+  import PromoReviewPage from "./pages/editor/PromoReviewPage.svelte";
 
   function asRoute(comp: unknown): any {
     return comp;
@@ -62,6 +63,10 @@
     "/editor/locations/:project/:city/edit/:filename": wrap({
       component: asRoute(EditorLocationForm),
       conditions: [requireEditorAccess],
+    }),
+    "/editor/:project/:city/promo-review": wrap({
+      component: asRoute(PromoReviewPage),
+      conditions: [requireOrganizerAccess],
     }),
     "/:project": wrap({
       component: asRoute(ProjectPage),

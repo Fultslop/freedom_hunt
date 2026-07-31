@@ -14,6 +14,7 @@ const {
   mockLeadingCheckpointEntries,
   mockCheckpointSucceedEntries,
   mockEulaEntries,
+  mockConsentEntries,
   mockCompletionEntries,
   mockRepeatSplashEntries,
   mockFinishLineEntries,
@@ -75,6 +76,26 @@ const {
       options: [
         { text: "I understand", target: { type: "page", value: "continue" }, track: true },
       ],
+    },
+    {
+      title: "Loc 1",
+      name: { value: "Location 1" },
+      coordinates: { latitude: 52.0, longitude: 4.0 },
+      storyline: "Story 1",
+      breadcrumb: "Step 1",
+      challenge: { name: "Challenge 1", description: "Desc 1", form: [] },
+    },
+  ],
+  mockConsentEntries: [
+    {
+      "template-type": "consent",
+      "nav-bar": { visible: false },
+      heading: "Before you begin",
+      intro: "A few things to know.",
+      safety: { heading: "Stay safe", items: [{ icon: "Phone", text: "Call 112." }] },
+      photos: { heading: "About your photos", items: [{ icon: "Eye", text: "Others can see your photos." }] },
+      fields: [],
+      primaryButtonText: "Go",
     },
     {
       title: "Loc 1",
@@ -309,6 +330,7 @@ vi.mock("../utils/loadLocations", () => ({
 vi.mock("../utils/api", () => ({
   postFormSubmit: vi.fn().mockResolvedValue({ ok: true }),
   postPhotoUpload: vi.fn().mockResolvedValue({ ok: true, httpCode: 200 }),
+  fetchConsentVersion: vi.fn().mockResolvedValue({ ok: true, consentVersion: 1 }),
 }));
 
 vi.mock("svelte-spa-router", () => ({
@@ -862,4 +884,57 @@ test("shows photos-taken and time-on-foot from local storage, and stages the pro
   })();
   expect(progress).toEqual({ current: 2, total: 2, animateMs: 900 });
   vi.useRealTimers();
+});
+
+test("redirects to the consent entry's index when the cached consent version is stale, even mid-route", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  const { fetchConsentVersion } = await import("../utils/api");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockConsentEntries as RouteEntry[]);
+  vi.mocked(fetchConsentVersion).mockResolvedValue({ ok: true, consentVersion: 2 });
+  localStorage.setItem("democrats_abroad/den_haag/short_loop", "1"); // already past the consent screen
+  localStorage.setItem("democrats_abroad/den_haag/short_loop/consent", JSON.stringify({ consentVersion: 1 }));
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  expect(await screen.findByText("Before you begin")).toBeInTheDocument();
+});
+
+test("does not redirect when the cached version matches the current one", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  const { fetchConsentVersion } = await import("../utils/api");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockConsentEntries as RouteEntry[]);
+  vi.mocked(fetchConsentVersion).mockResolvedValue({ ok: true, consentVersion: 1 });
+  localStorage.setItem("democrats_abroad/den_haag/short_loop", "1");
+  localStorage.setItem("democrats_abroad/den_haag/short_loop/consent", JSON.stringify({ consentVersion: 1 }));
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  expect(await screen.findByText("Location 1")).toBeInTheDocument();
+  expect(screen.queryByText("Before you begin")).not.toBeInTheDocument();
+});
+
+test("fails open (no redirect) when the version fetch rejects", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  const { fetchConsentVersion } = await import("../utils/api");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockConsentEntries as RouteEntry[]);
+  vi.mocked(fetchConsentVersion).mockRejectedValue(new Error("offline"));
+  localStorage.setItem("democrats_abroad/den_haag/short_loop", "1");
+  localStorage.setItem("democrats_abroad/den_haag/short_loop/consent", JSON.stringify({ consentVersion: 1 }));
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  expect(await screen.findByText("Location 1")).toBeInTheDocument();
+  expect(screen.queryByText("Before you begin")).not.toBeInTheDocument();
+});
+
+test("does not fetch a version at all when there is no cached consent record (first-time participant)", async () => {
+  const { loadLocations } = await import("../utils/loadLocations");
+  const { fetchConsentVersion } = await import("../utils/api");
+  vi.mocked(fetchConsentVersion).mockClear();
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockConsentEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  expect(await screen.findByText("Before you begin")).toBeInTheDocument();
+  expect(fetchConsentVersion).not.toHaveBeenCalled();
 });

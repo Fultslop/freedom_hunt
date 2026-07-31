@@ -50,10 +50,12 @@ src/
     CitySelector.svelte — City card used in ProjectPage
     RouteSelector.svelte — Route card used in CityPage
     MarkdownText.svelte — Renders markdown via marked
-    RouteScreen.svelte  — Dispatches a route entry to ChallengeCard/TextScreen/SplashScreen/OptionsScreen by template-type
+    RouteScreen.svelte  — Dispatches a route entry to ChallengeCard/TextScreen/SplashScreen/OptionsScreen/ConsentScreen/CompletionScreen by template-type
     TextScreen.svelte   — Route entry template: top image + title + markdown
     SplashScreen.svelte — Route entry template: full-bleed image, shader/overlay, anchored title, entrance effect
     OptionsScreen.svelte — Route entry template: top image + title + navigation buttons
+    ConsentScreen.svelte — Route entry template: GDPR consent screen (age gate, photo-promotion checkbox/note via AppForm, safety/photo bullet sections, chips)
+    CompletionScreen.svelte — Route entry template: end-of-route stats + data-driven WideButton list
     ScreenHero.svelte   — Shared top-image component used by TextScreen/OptionsScreen
     CheckpointGateModal.svelte — Portal overlay for checkpoint gates: fail/succeed modes, skippable, onStay/onProceed
     effects/            — ConfettiEffect, ShootingStarsEffect, FireworksEffect (hand-rolled CSS)
@@ -138,18 +140,20 @@ doc/
 
 ### Route entry templates (`template-type`)
 
-A route's `locations` list can mix ordinary locations with non-location screens. Every entry file has an optional `template-type` field — absent (or `"location"`) means the existing location shape above; three other values render a different template instead:
+A route's `locations` list can mix ordinary locations with non-location screens. Every entry file has an optional `template-type` field — absent (or `"location"`) means the existing location shape above; six other values render a different template instead:
 
 | `template-type` | File pattern | Renders |
 |---|---|---|
 | `text` | `NNN_text_<slug>.yaml` | Top image (optional) + centered title + markdown body |
 | `splash` | `NNN_splash_<slug>.yaml` | Full-bleed image with an optional CSS shader/overlay, anchored title, optional one-shot entrance effect |
 | `options` | `NNN_options_<slug>.yaml` | Top image (optional) + centered title + a list of buttons, each linking externally or navigating to a named in-app screen |
+| `consent` | `NNN_consent_<slug>.yaml` | GDPR consent screen: heading/intro/chips + two icon+text bullet sections (safety/photos) + an embedded `AppForm` (age gate, photo-promotion checkbox, declined-state note) + primary button + optional privacy link/footer. See "Consent & photo-promotion review" below. |
 | `checkpoint` | `NNN_chck_<slug>.yaml` | Gate that blocks forward/backward navigation until a requirement is met; never rendered as a visible screen — the carousel skips over it via nextNavigableIndex/prevNavigableIndex |
+| `completion` | `NNN_completion_<slug>.yaml` | End-of-route screen: hero image, title/subtitle/place/caption, closing text, stats (stops/photos/time), and a data-driven `buttons` list (`WideButton`) |
 
-Existing `NNN_loc_*.yaml` files are unaffected. Each template type has its own JSON Schema in `src/data/schemas/` (`text.schema.json`, `splash.schema.json`, `options.schema.json`), validated the same three ways as location/form YAML (IDE via `.vscode/settings.json`, CI via `npm run validate:yaml`).
+Existing `NNN_loc_*.yaml` files are unaffected. Each template type has its own JSON Schema in `src/data/schemas/` (`text.schema.json`, `splash.schema.json`, `options.schema.json`, `consent.schema.json`, `completion.schema.json`), validated the same three ways as location/form YAML (IDE via `.vscode/settings.json`, CI via `npm run validate:yaml`). A consent entry's `fields` array is authored inline (not a separate `*_form_*.yaml` file) and is validated by `scripts/validate-yaml.ts` against `form.schema.json` as a second pass over that same file, since `consent.schema.json` itself only checks that `fields` is an array.
 
-`RouteEntry` (`src/types/data.ts`) is the discriminated union of all four shapes. `loadLocations.ts` passes non-location entries through unresolved (no `challenge.form` to resolve); `RoutePage.svelte` renders each entry via a new `RouteScreen.svelte` dispatcher, which picks `ChallengeCard`/`TextScreen`/`SplashScreen`/`OptionsScreen` based on `template-type`.
+`RouteEntry` (`src/types/data.ts`) is the discriminated union of all seven shapes. `loadLocations.ts` passes non-location entries through unresolved (no `challenge.form` to resolve); `RoutePage.svelte` renders each entry via a new `RouteScreen.svelte` dispatcher, which picks `ChallengeCard`/`TextScreen`/`SplashScreen`/`OptionsScreen`/`ConsentScreen`/`CompletionScreen` based on `template-type`.
 
 Only `location`-type entries count toward the route's progress indicator ("N of M") and get a numbered badge — `src/utils/routeEntries.ts`'s `locationTotal`/`locationOrdinalAt` compute this separately from the raw array index used for swipe navigation and localStorage keys. While viewing a template screen, the progress indicator holds at the last-passed location's number.
 
@@ -315,6 +319,34 @@ CREATE TABLE form_submissions (
 
 **`location_id` is per-route, not global.** `form_submissions.location_id` is the 1-based ordinal position of that location among location-type entries in whichever route the team was on (`locationOrdinalAt()`, `src/utils/routeEntries.ts`), set client-side by `RoutePage`. The same number means different locations in different routes — resolving a submission to a physical location requires looking up `(route_id, location_id)` together against that route's location list, never `location_id` alone. `src/utils/resultsRouteIndex.ts` builds this per-route index from a city's `routes.yaml` and location YAML.
 
+### `consent_records` table (D1, `AUTH_DB`) — GDPR consent & photo-promotion
+
+Populated by `POST /consent` (the `consent` template-type screen, and the `☰` menu's "Photo permissions" withdrawal submenu). One row per participant identity, upserted rather than appended:
+
+```sql
+CREATE TABLE consent_records (
+  id                TEXT PRIMARY KEY,
+  project_id        TEXT NOT NULL,
+  team_name         TEXT NOT NULL,
+  contact           TEXT NOT NULL DEFAULT '',  -- '' sentinel, never NULL — see below
+  all_sixteen_plus  INTEGER NOT NULL,
+  promo_consent     INTEGER NOT NULL,          -- server-forced 0 when all_sixteen_plus = 0
+  promo_approved    INTEGER NOT NULL DEFAULT 0, -- human-set only, via PromoReviewPage
+  consent_version   INTEGER NOT NULL,
+  acknowledged_at   INTEGER NOT NULL,
+  updated_at        INTEGER NOT NULL,
+  UNIQUE (project_id, team_name, contact)
+);
+```
+
+**Identity key is `(project_id, team_name, contact)`, matching `form_submissions`'s scoping — not a new participant-ID concept.** For shared-team-password projects `contact` is usually absent, making consent effectively team-level (the age question is phrased "is everyone in *your team*..."). For individual-login projects (`participant_accounts`), `contact` defaults to the account's own email at signup and is carried on every login, so it's always populated and distinct per person even if two people share a `team_name`.
+
+**`contact` is `NOT NULL DEFAULT ''`, deliberately not nullable like `form_submissions.contact`.** SQLite's `UNIQUE` constraint treats every `NULL` as distinct from every other `NULL`, so a nullable `contact` would silently defeat "update, don't duplicate" for every shared-team-password project (where `contact` is normally absent) — exactly the common case. `db.ts`'s `upsertConsent()`/`getConsent()`/`setPromoApproved()`/`listPromoReviewPhotos()` always pass `""` rather than `null` for this column.
+
+**Consent text versioning is KV-based, not YAML-based.** There's no live CMS — YAML is compiled into the client bundle at build time — so the "current" `consentVersion` an organiser can bump without a full content PR/redeploy is stored in the existing `AUTH_STORE` KV namespace, key `` `consent-version:${project}:${city}:${route}` ``, managed via `wrangler kv key put` (no admin UI, same precedent as `participant_whitelist`). Missing key defaults to `1`. `src/worker/consentVersion.ts`'s `getConsentVersion()` is the only reader; `POST /consent` (with `acknowledge: true`, i.e. the actual consent screen submitting) always stamps this value server-side — the client never supplies `consentVersion`. The same route with `acknowledge: false` (the withdrawal menu just toggling `promo_consent`) preserves the existing row's version instead of re-stamping it.
+
+**`promo_approved`** is a human review gate independent of participant consent — required before any photo is used promotionally, regardless of what was ticked. Only settable via `POST /promo-approve` (organizer-only, `src/pages/editor/PromoReviewPage.svelte`, route `/editor/:project/:city/promo-review`), never through the participant-facing `POST /consent`. It gates per-team (approving one of a team's photos approves the whole team's future promotional use, matching the field's grain — see the design spec's §11 for the deferred, more granular per-photo version).
+
 **R2 image variants.** Each photo is stored as three capped JPEG variants under a shared key prefix, generated in the Worker via `@cf-wasm/photon` (WASM, no native bindings) since Cloudflare's URL-based Image Resizing isn't available on the current plan:
 
 | Variant | Cap | Purpose |
@@ -357,6 +389,8 @@ Functions are grouped by domain:
 | Auth | `fetchAuthMe()`, `postLogin(payload)` (contact optional), `postLogout()`, `postVerifyCode(code)` → resolves a typed code to project or `demo` via `AUTH_STORE.list()` |
 | Gallery | `fetchGalleryPhotos(project, city, filters?)` → `GET /gallery/:project/:city/photos`; `fetchRandomPhotos(project, city)` → `GET /gallery/:project/:city/photos/random`; photo bytes served via `GET /photos/:id/:variant` |
 | Results | `fetchResultsSubmissions(project, city)` → `GET /results/:project/:city/submissions`, same participant-scoped auth as Gallery |
+| Consent | `postConsentUpdate(city, route, {allSixteenPlus, promoConsent, acknowledge})` → `POST /consent`; `fetchConsent()` → `GET /consent`; `fetchConsentVersion(project, city, route)` → `GET /consent/version` (public, no auth) |
+| Promo review (editor) | `fetchPromoReviewPhotos(project, city)` → `GET /promo-review`; `postPromoApprove(project, teamName, contact)` → `POST /promo-approve` — both organizer-capability gated |
 
 Each function wraps a single endpoint, handles the request shape, and returns a typed response. Tests mock the function directly rather than mocking `globalThis.fetch`.
 

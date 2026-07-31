@@ -1,0 +1,228 @@
+/* Every vertical gap on this screen is one of exactly three values:
+   --gap-section (40px) before a caps section heading, --gap-block (24px)
+   between coarse blocks (intro/chips/card/button/footer), and --gap-field
+   (6px, or the doubled 12px variant below for readability between rows of
+   body text) for tight label/control/note pairings. If a gap needs a fourth
+   value, the layout is wrong, not the value. */
+.consent-screen {
+  --consent-gap-field-loose: calc(var(--gap-field) * 2); /* 12px */
+
+  padding: var(--gap-block);
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.consent-screen__heading {
+  font-size: var(--font-size-2xl);
+  color: var(--color-text);
+  margin: 0 0 var(--gap-field);
+}
+
+.consent-screen__intro {
+  max-width: 62ch;
+  margin: 0 0 var(--gap-block);
+  color: var(--color-text-secondary);
+}
+
+.consent-screen__chips {
+  list-style: none;
+  display: flex;
+  gap: 8px;
+  margin: 0 0 var(--gap-section);
+  padding: 0;
+}
+
+.consent-screen__chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-surface);
+  border: 0px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 32px;
+  text-align: center;
+}
+
+.consent-screen__chip-icon {
+  color: var(--color-accent);
+}
+
+.consent-screen__chip-text {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.consent-screen__section {
+  margin: 0 0 var(--gap-section);
+}
+
+/* The hairline rule sits beside the heading text on the same line (filling
+   the rest of the row via ::after + flex), not on its own line beneath it —
+   ".af-section-heading" (used generically by AppForm.svelte, e.g. this
+   screen's "Photo permission" heading) gets the same treatment, scoped to
+   this screen only so every other form's plain section headings elsewhere
+   in the app are untouched. */
+.consent-screen__section-heading,
+.consent-screen .af-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: 0 0 var(--consent-gap-field-loose);
+}
+
+.consent-screen__section-heading::after,
+.consent-screen .af-section-heading::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.consent-screen__bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--consent-gap-field-loose);
+}
+
+.consent-screen__bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--color-text);
+}
+
+.consent-screen__bullet-icon {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+.consent-screen__bullet-text {
+  max-width: 62ch;
+  font-size: var(--font-size-base);
+}
+
+.consent-screen__form {
+  margin: 0 0 var(--gap-block);
+}
+
+/* The last section's heading ("Photo permission") is rendered generically by
+   AppForm.svelte itself (.af-section-heading) — its own margin-top would
+   normally be --gap-section, but the scoped override above zeroes it (to
+   apply the same inline hairline-rule treatment as this screen's own two
+   headings). That's harmless for the gap above it: margin collapsing takes
+   the max of adjacent margins, and the preceding "About your photos"
+   section's own --gap-section bottom margin already supplies the full 40px
+   regardless of what the heading's own top margin is. */
+
+/* The age question label -> segmented control is tight (--gap-field); the
+   segmented control -> consent card, and card -> primary button, are both
+   --gap-block. AppForm's own per-field margin-bottom already supplies the
+   segmented control's --gap-block after it (Global Constraints), so only
+   the card itself needs an explicit margin here. */
+.consent-screen [data-field-key="promo_consent"]:not(:empty),
+.consent-screen [data-field-key="declined_note"]:not(:empty) {
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 11px;
+  padding: 14px;
+  margin-bottom: var(--gap-block);
+}
+
+.consent-screen [data-field-key="promo_consent"]:not(:empty) .af-label--checkbox,
+.consent-screen [data-field-key="declined_note"]:not(:empty) .af-note,
+.consent-screen [data-field-key="promo_consent"]:not(:empty) .af-subtext,
+.consent-screen [data-field-key="declined_note"]:not(:empty) .af-subtext {
+  max-width: 62ch;
+}
+
+.consent-screen .af-label--checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-height: 44px;
+  margin: 0;
+}
+
+/* The native checkbox stays fully in the DOM and remains a real, focusable
+   checkbox for accessibility — it's restyled in place (appearance: none)
+   rather than hidden behind a decorative sibling. `order: -1` puts it
+   before the label text (an anonymous flex item) without touching markup. */
+.consent-screen .af-checkbox {
+  order: -1;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin: 2px 0 0;
+  border: 1.5px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-background);
+  position: relative;
+  cursor: pointer;
+}
+
+.consent-screen .af-checkbox:checked {
+  background: var(--color-text);
+  border-color: var(--color-text);
+}
+
+.consent-screen .af-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 6px;
+  height: 11px;
+  border: solid var(--color-background);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.consent-screen .af-subtext {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Red is reserved for real errors (--color-error) — the primary button and
+   the selected segmented option must not share that color, so both are
+   scoped off the theme accent (red in GWC) onto the theme's text/background
+   pair instead. Scoped to this screen only; AppForm's shared defaults are
+   untouched for every other form in the app. */
+.consent-screen .af-submit-btn--dirty {
+  background: var(--color-text);
+  color: var(--color-background);
+}
+
+.consent-screen .af-segmented__option--selected {
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: var(--color-background);
+}
+
+.consent-screen__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-field);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.consent-screen__privacy {
+  color: var(--color-text-muted);
+  text-decoration: underline;
+}

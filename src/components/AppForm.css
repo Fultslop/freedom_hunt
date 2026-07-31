@@ -16,6 +16,14 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+.af-note {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-top: var(--gap-block);
+  margin-bottom: var(--gap-field);
+}
+
 .af-label {
   font-size: var(--font-size-base);
   font-weight: 600;
@@ -63,6 +71,30 @@
 
 .af-radio-group {
   margin-top: 6px;
+}
+
+.af-segmented {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.af-segmented__option {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--field-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.af-segmented__option--selected {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
 }
 
 .af-max-warning {

@@ -13,6 +13,8 @@ import {
   fetchRandomPhotos,
   postDemoSignup,
   fetchResultsSubmissions,
+  postConsentUpdate,
+  fetchConsentVersion,
 } from "../utils/api";
 
 function mockFetch(response: unknown, status = 200) {
@@ -272,4 +274,27 @@ test("fetchResultsSubmissions returns ok: false on server error", async () => {
   const result = await fetchResultsSubmissions("demo", "paris");
   expect(result.ok).toBe(false);
   expect(result.error).toBe("Forbidden");
+});
+
+// ---------------------------------------------------------------------------
+// Consent
+// ---------------------------------------------------------------------------
+
+test("postConsentUpdate posts to /consent with city/route query params and the acknowledge flag", async () => {
+  mockFetch({ ok: true, record: {} });
+  await postConsentUpdate("den_haag", "short_loop", { allSixteenPlus: true, promoConsent: false, acknowledge: true });
+  expect(fetch).toHaveBeenCalledWith(
+    "/consent?city=den_haag&route=short_loop",
+    expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ allSixteenPlus: true, promoConsent: false, acknowledge: true }),
+    }),
+  );
+});
+
+test("fetchConsentVersion GETs /consent/version with project/city/route", async () => {
+  mockFetch({ ok: true, consentVersion: 2 });
+  const res = await fetchConsentVersion("den_haag", "den_haag", "short_loop");
+  expect(fetch).toHaveBeenCalledWith("/consent/version?project=den_haag&city=den_haag&route=short_loop");
+  expect(res.consentVersion).toBe(2);
 });

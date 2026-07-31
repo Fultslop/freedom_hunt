@@ -392,3 +392,85 @@ export async function fetchResultsSubmissions(
   const res = await fetch(`/results/${project}/${city}/submissions`);
   return res.json() as Promise<ResultsSubmissionsResponse>;
 }
+
+// ---------------------------------------------------------------------------
+// Consent
+// ---------------------------------------------------------------------------
+
+export interface ConsentRecord {
+  all_sixteen_plus: number;
+  promo_consent: number;
+  promo_approved: number;
+  consent_version: number;
+}
+
+export interface ConsentResponse {
+  ok: boolean;
+  record?: ConsentRecord | null;
+  error?: string;
+}
+
+export async function postConsentUpdate(
+  city: string,
+  route: string,
+  payload: { allSixteenPlus: boolean; promoConsent: boolean; acknowledge: boolean },
+): Promise<ConsentResponse> {
+  const res = await fetch(`/consent?city=${city}&route=${route}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return res.json() as Promise<ConsentResponse>;
+}
+
+export async function fetchConsent(): Promise<ConsentResponse> {
+  const res = await fetch("/consent");
+  return res.json() as Promise<ConsentResponse>;
+}
+
+export interface ConsentVersionResponse {
+  ok: boolean;
+  consentVersion?: number;
+  error?: string;
+}
+
+export async function fetchConsentVersion(
+  project: string,
+  city: string,
+  route: string,
+): Promise<ConsentVersionResponse> {
+  const res = await fetch(`/consent/version?project=${project}&city=${city}&route=${route}`);
+  return res.json() as Promise<ConsentVersionResponse>;
+}
+
+// ---------------------------------------------------------------------------
+// Promo review (editor)
+// ---------------------------------------------------------------------------
+
+export interface PromoReviewPhoto {
+  id: string;
+  team_name: string;
+  contact: string | null;
+  task_title: string;
+}
+
+export async function fetchPromoReviewPhotos(
+  project: string,
+  city: string,
+): Promise<{ ok: boolean; photos?: PromoReviewPhoto[]; error?: string }> {
+  const res = await fetch(`/promo-review?project=${project}&city=${city}`);
+  return res.json() as Promise<{ ok: boolean; photos?: PromoReviewPhoto[]; error?: string }>;
+}
+
+export async function postPromoApprove(
+  project: string,
+  teamName: string,
+  contact: string | null,
+): Promise<{ ok: boolean; error?: string }> {
+  const res = await fetch("/promo-approve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ project, teamName, contact }),
+  });
+  return res.json() as Promise<{ ok: boolean; error?: string }>;
+}

@@ -2,7 +2,7 @@ import type { Env } from "../../types/worker";
 import type { AnyTokenPayload } from "../../types/auth";
 import { isBootstrapToken, isParticipantToken } from "../../types/auth";
 import { requireAuth } from "../auth";
-import { getUserCaps, getUserById, revokeCap, listProjectUsers } from "../db";
+import { getUserCaps, getUserById, revokeCap, listProjectUsers, listPromoReviewPhotos, setPromoApproved } from "../db";
 import {
   fetchLocations,
   fetchLocation,
@@ -240,6 +240,35 @@ export async function handleEditorRoutes(
     } catch (err) {
       return json({ ok: false, error: (err as Error).message }, 502);
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // GET /promo-review
+  // -------------------------------------------------------------------------
+  if (request.method === "GET" && url.pathname === "/promo-review") {
+    const project = url.searchParams.get("project") ?? "";
+    const city = url.searchParams.get("city") ?? "";
+    const authResult = await requireOrganizerCap(request, env, project);
+    if (authResult instanceof Response) {return authResult;}
+    const photos = await listPromoReviewPhotos(env.AUTH_DB, project, city);
+    return json({ ok: true, photos });
+  }
+
+  // -------------------------------------------------------------------------
+  // POST /promo-approve
+  // -------------------------------------------------------------------------
+  if (request.method === "POST" && url.pathname === "/promo-approve") {
+    if (!checkOrigin(request)) {return json({ ok: false, error: "Forbidden" }, 403);}
+    const { project, teamName, contact } = (await request.json()) as {
+      project?: string; teamName?: string; contact?: string;
+    };
+    if (!project || !teamName) {
+      return json({ ok: false, error: "Missing project or teamName" }, 400);
+    }
+    const authResult = await requireOrganizerCap(request, env, project);
+    if (authResult instanceof Response) {return authResult;}
+    const approved = await setPromoApproved(env.AUTH_DB, project, teamName, contact ?? "");
+    return json({ ok: approved, error: approved ? undefined : "No matching consent record" });
   }
 
   return null;

@@ -5,6 +5,7 @@
   import { themeStore } from "../stores/themeStore";
   import { fontSizeStore, FONT_SIZES } from "../stores/fontSizeStore";
   import { authStore } from "../stores/authStore";
+  import { fetchConsent, postConsentUpdate, type ConsentRecord } from "../utils/api";
   import { themes } from "../theme/themes";
   import type { ThemeName } from "../types/theme";
   import "./TitleBar.css";
@@ -15,6 +16,29 @@
   let menuView = $state<string | null>(null);
   let menuWrapEl: HTMLDivElement | undefined;
   let titlebarEl: HTMLDivElement | undefined;
+
+  let consentRecord = $state<ConsentRecord | null>(null);
+  let consentLoading = $state(false);
+
+  $effect(() => {
+    if (menuView === "photo-permissions") {
+      consentLoading = true;
+      fetchConsent().then((res) => {
+        consentRecord = res.record ?? null;
+        consentLoading = false;
+      });
+    }
+  });
+
+  async function togglePromoConsent() {
+    if (consentRecord) {
+      const next = consentRecord.promo_consent === 0;
+      const res = await postConsentUpdate("", "", { allSixteenPlus: true, promoConsent: next, acknowledge: false });
+      if (res.record) {
+        consentRecord = res.record;
+      }
+    }
+  }
 
   // Publishes the bar's real rendered height (it varies with the progress
   // rule and back-button) so full-viewport screens like LandingPage can
@@ -120,6 +144,13 @@
               <span class="titlebar__menu-item-label">Text Size</span>
               <span class="titlebar__menu-item-arrow">›</span>
             </button>
+            <button
+              onclick={() => (menuView = "photo-permissions")}
+              class="titlebar__menu-item"
+            >
+              <span class="titlebar__menu-item-label">Photo permissions</span>
+              <span class="titlebar__menu-item-arrow">›</span>
+            </button>
           {/if}
 
           {#if menuView === "profile"}
@@ -223,6 +254,31 @@
                 {/if}
               </button>
             {/each}
+          {/if}
+
+          {#if menuView === "photo-permissions"}
+            <button
+              onclick={() => (menuView = "root")}
+              aria-label="Back to menu"
+              class="titlebar__submenu-header"
+            >
+              <span class="titlebar__submenu-back">‹</span>
+              <span class="titlebar__submenu-title">Photo permissions</span>
+            </button>
+            <div class="titlebar__profile-body">
+              {#if consentLoading}
+                <p>Loading…</p>
+              {:else if !consentRecord || consentRecord.all_sixteen_plus === 0}
+                <p class="titlebar__consent-declined">
+                  We won't use your photos for promotion. A parent or guardian can give promotional permission by contacting the organiser.
+                </p>
+              {:else}
+                <label class="titlebar__consent-toggle">
+                  <input type="checkbox" checked={consentRecord.promo_consent === 1} onchange={togglePromoConsent} />
+                  The organisers may use my photos and videos to promote future hunts.
+                </label>
+              {/if}
+            </div>
           {/if}
         </div>
       {/if}
