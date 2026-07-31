@@ -205,3 +205,19 @@
   font-weight: 400;
   line-height: 1.2;
 }
+
+.titlebar__consent-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.titlebar__consent-declined {
+  padding: 12px 16px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}

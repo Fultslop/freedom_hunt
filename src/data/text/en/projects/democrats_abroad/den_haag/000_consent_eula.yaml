@@ -1,0 +1,54 @@
+template-type: consent
+nav-bar:
+  visible: false
+heading: "Before you begin"
+intro: "A few things to know before you head out. This takes a minute, then you're off."
+chips:
+  - icon: Route
+    text: "2.4 km"
+  - icon: Clock
+    text: "~2 hours"
+  - icon: TrendingUp
+    text: "Steps & cobbles"
+safety:
+  heading: "Stay safe"
+  items:
+    - icon: AlertTriangle
+      text: "Watch traffic, especially at crossings and on tram tracks."
+    - icon: Footprints
+      text: "Self-paced. Take breaks, and skip any challenge you'd rather not do."
+    - icon: Wifi
+      text: "You'll need a data connection for clues and photo uploads."
+    - icon: Phone
+      text: "In an emergency, call **112**."
+photos:
+  heading: "About your photos"
+  items:
+    - icon: Eye
+      text: "Other teams can see your photos in this hunt's gallery."
+    - icon: ShieldAlert
+      text: "**Don't photograph** people who haven't agreed — and never children outside your own group."
+fields:
+  - type: section
+    label: "Photo permission"
+  - id: all_sixteen_plus
+    type: radio
+    variant: segmented
+    label: "Is everyone in your team {{age_threshold}} or over?"
+    options: ["Yes", "No"]
+  - id: promo_consent
+    type: boolean
+    label: "The organisers may use my photos and videos to promote future hunts."
+    subtext: "Optional — the hunt works either way. Change it any time under Photo permissions in the menu."
+    isVisible:
+      initially: conditional
+      condition: { source: all_sixteen_plus, operator: "=", value: "Yes" }
+  - id: declined_note
+    type: note
+    label: "We won't use your photos for promotion."
+    subtext: "Your photos still appear in this hunt's gallery for other teams. A parent or guardian can give promotional permission by contacting the organiser."
+    isVisible:
+      initially: conditional
+      condition: { source: all_sixteen_plus, operator: "=", value: "No" }
+primaryButtonText: "I understand — start the hunt"
+footerText: "Questions during the hunt? Contact your organiser."

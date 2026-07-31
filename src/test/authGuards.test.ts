@@ -9,7 +9,7 @@ vi.mock("svelte-spa-router", () => ({
 
 const mockReplace = replace as ReturnType<typeof vi.fn>;
 
-import { requireAuth, requireEditorAccess } from "../utils/authGuards";
+import { requireAuth, requireEditorAccess, requireOrganizerAccess } from "../utils/authGuards";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -73,5 +73,28 @@ describe("requireEditorAccess", () => {
   it("redirects and returns false when no auth", () => {
     authStore.setForTest({ activeAuth: null, authLoading: false, isLoggingOut: false });
     expect(requireEditorAccess()).toBe(false);
+  });
+});
+
+describe("requireOrganizerAccess", () => {
+  it("redirects an editor-only (non-organizer) user", () => {
+    authStore.setForTest({
+      activeAuth: { kind: "editor", userId: "u1", email: "x", username: "x", capabilities: ["editor"] },
+      authLoading: false,
+      isLoggingOut: false,
+    });
+    const result = requireOrganizerAccess();
+    expect(result).toBe(false);
+    expect(mockReplace).toHaveBeenCalledWith("/editor/login");
+  });
+
+  it("allows an organizer", () => {
+    authStore.setForTest({
+      activeAuth: { kind: "editor", userId: "u1", email: "x", username: "x", capabilities: ["organizer"] },
+      authLoading: false,
+      isLoggingOut: false,
+    });
+    const result = requireOrganizerAccess();
+    expect(result).toBe(true);
   });
 });

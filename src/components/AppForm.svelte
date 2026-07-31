@@ -23,6 +23,7 @@
   const STR_VIDEO = "video";
   const STR_TEXTAREA = "textarea";
   const STR_SECTION = "section";
+  const STR_NOTE = "note";
   const STR_IMAGE_PICKER = "image-picker";
   const STR_COORD_PICKER = "coord-picker";
   const STR_RANDOM_VALUE = "random_value";
@@ -37,11 +38,11 @@
     STR_VIDEO,
     STR_TEXTAREA,
     STR_SECTION,
+    STR_NOTE,
     STR_IMAGE_PICKER,
     STR_COORD_PICKER,
     STR_RANDOM_VALUE,
   ];
-
   const MSG_UNKNOWN_TYPE = (type: FormFieldType) => `unknown type "${type}"`;
   const MSG_RADIO_MISSING = 'radio field missing options';
   const MSG_MULTIPLE_MISSING = 'multiple field missing options';
@@ -307,7 +308,7 @@
     if (!VALID_TYPES.includes(field.type)) {
       return MSG_UNKNOWN_TYPE(field.type);
     }
-    if (field.type === STR_SECTION) {
+    if (field.type === STR_SECTION || field.type === STR_NOTE) {
       return null;
     }
     if (field.type === STR_RADIO || field.type === STR_MULTIPLE) {
@@ -514,6 +515,8 @@
 <div class="app-form">
   {#each fields as field (field.id ?? field.label)}
     {@const visibility = visibilityFor(field)}
+    {@const isConditional = field.isVisible?.initially === "conditional"}
+    <div aria-live={isConditional ? "polite" : undefined} data-field-key={fieldKey(field)}>
     {#if visibility.status === "hidden"}
     {:else if visibility.status === "error"}
       <div class="af-field af-field--unknown">{visibility.message}</div>
@@ -523,6 +526,9 @@
       </div>
     {:else if field.type === "section"}
       <div class="af-section-heading">{field.label}</div>
+      {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
+    {:else if field.type === "note"}
+      <div class="af-note">{field.label}</div>
       {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
     {:else}
       {@const id = field.id!}
@@ -647,9 +653,10 @@
               type="checkbox"
               class="af-checkbox"
               bind:checked={values[id] as boolean}
+              aria-describedby={field.subtext ? `${domId}-help` : undefined}
             />
           </label>
-          {#if field.subtext}<p class="af-subtext">{field.subtext}</p>{/if}
+          {#if field.subtext}<p class="af-subtext" id={`${domId}-help`}>{field.subtext}</p>{/if}
         {:else}
           <label class="af-label" class:af-label--required={field.isRequired} for={domId}>{field.label}</label>
           {#if field.subtext}<p class="af-subtext" id={`${domId}-help`}>{field.subtext}</p>{/if}
@@ -711,6 +718,20 @@
                 inputEl.value = inputEl.value.replace(/[^0-9]/g, "");
               }}
             />
+          {:else if field.type === "radio" && field.variant === "segmented"}
+            <div class="af-segmented" role="radiogroup" aria-label={field.label}>
+              {#each field.options ?? [] as opt (opt)}
+                <button
+                  type="button"
+                  class="af-segmented__option"
+                  class:af-segmented__option--selected={values[id] === opt}
+                  aria-pressed={values[id] === opt}
+                  onclick={() => { values[id] = opt; }}
+                >
+                  {opt}
+                </button>
+              {/each}
+            </div>
           {:else if field.type === "radio"}
             <div class="af-radio-group">
               {#each field.options ?? [] as opt (opt)}
@@ -871,6 +892,7 @@
         {/if}
       </div>
     {/if}
+    </div>
   {/each}
 
   {#if showConfirm}

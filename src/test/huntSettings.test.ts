@@ -6,6 +6,7 @@ test("defaults to store_forms_in_local_storage and allow_resubmit true, others f
     formRequired: false,
     canFormsSkip: false,
     allowResubmit: true,
+    ageThreshold: 16,
   });
 });
 
@@ -15,6 +16,7 @@ test("defaults to the same values when meta is an empty object", () => {
     formRequired: false,
     canFormsSkip: false,
     allowResubmit: true,
+    ageThreshold: 16,
   });
 });
 
@@ -31,5 +33,16 @@ test("honors explicit true/false overrides", () => {
     formRequired: true,
     canFormsSkip: true,
     allowResubmit: false,
+    ageThreshold: 16,
   });
+});
+
+test("ageThreshold defaults to 16 when project.consent_age_threshold is absent", () => {
+  const settings = getHuntSettings({});
+  expect(settings.ageThreshold).toBe(16);
+});
+
+test("ageThreshold reads project.consent_age_threshold when present", () => {
+  const settings = getHuntSettings({ "project.consent_age_threshold": 15 });
+  expect(settings.ageThreshold).toBe(15);
 });

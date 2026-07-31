@@ -9,6 +9,8 @@
     elasticOffset,
   } from "../utils/routeNav";
   import { getHuntSettings } from "../utils/huntSettings";
+  import { readConsentCache } from "../utils/consentCache";
+  import { fetchConsentVersion } from "../utils/api";
   import { buildFormStorageKey, loadFormState, saveFormState } from "../utils/formStorage";
   import { isLocationEntry, locationTotal, locationOrdinalAt, locationIdAt, isNavBarVisible } from "../utils/routeEntries";
   import {
@@ -123,6 +125,29 @@
       mountNormalizeAttempted = true;
       if (isCheckpointEntry(entries[currentIndex])) {
         attemptAdvance(currentIndex - 1);
+      }
+    }
+  });
+
+  $effect(() => {
+    // Re-runs on every currentIndex change — deliberately, not just at mount,
+    // so a consentVersion bump interrupts an already-open tab mid-route, not
+    // only at route start. See spec §12 for why this needs a network check at
+    // all (this app has no live CMS; an open tab can't learn a version bump on
+    // its own) and why a failed check must fail open (§13).
+    currentIndex;
+    if (consentEntryIndex !== -1) {
+      const cached = readConsentCache(params.project, params.city, params.route);
+      if (cached) {
+        fetchConsentVersion(params.project, params.city, params.route)
+          .then((res) => {
+            if (res.ok && res.consentVersion !== undefined && res.consentVersion !== cached.consentVersion) {
+              currentIndex = consentEntryIndex;
+            }
+          })
+          .catch(() => {
+            // Fail open — a network blip must not force a spurious redirect.
+          });
       }
     }
   });
@@ -278,6 +303,7 @@
   // means the entry's own content controls navigation, not the generic route
   // chrome, so a tracked action (e.g. an EULA's "I understand") can't be bypassed
   // by swiping past it.
+  let consentEntryIndex = $derived(entries.findIndex((e) => e["template-type"] === "consent"));
   let navBarVisible = $derived(currentEntry === undefined || isNavBarVisible(currentEntry));
   let earliestAllowed = $derived(entries.length > 0 ? earliestAllowedIndex(entries, currentIndex) : currentIndex);
   let canGoForward = $derived(entries.length > 0 ? nextNavigableIndex(entries, currentIndex) !== currentIndex : false);
@@ -539,6 +565,7 @@
           project={params.project}
           storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
           allowResubmit={huntSettings.allowResubmit}
+          ageThreshold={huntSettings.ageThreshold}
           onFormStatusChange={handleFormStatusChange}
           badgeStatus={computeBadgeStatus(currentLocationKey, currentHasForm)}
           onContinue={() => handleDragEnd(-cardWidth)}
@@ -573,6 +600,7 @@
                 project={params.project}
                 storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
                 allowResubmit={huntSettings.allowResubmit}
+                ageThreshold={huntSettings.ageThreshold}
                 onFormStatusChange={handleFormStatusChange}
                 badgeStatus={computeBadgeStatus(locationIdAt(routeData?.locations ?? [], locIdx), isLocationEntry(slotEntry) && (slotEntry.challenge.form?.length ?? 0) > 0)}
                 onContinue={() => handleDragEnd(-cardWidth)}

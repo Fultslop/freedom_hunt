@@ -231,7 +231,7 @@ CREATE TABLE IF NOT EXISTS consent_records (
   id                TEXT PRIMARY KEY,
   project_id        TEXT NOT NULL,
   team_name         TEXT NOT NULL,
-  contact           TEXT,
+  contact           TEXT NOT NULL DEFAULT '',
   all_sixteen_plus  INTEGER NOT NULL,             -- 0/1
   promo_consent     INTEGER NOT NULL,             -- 0/1; server forces 0 when all_sixteen_plus = 0
   promo_approved    INTEGER NOT NULL DEFAULT 0,   -- human-set (§5), independent of participant consent
@@ -260,9 +260,9 @@ New `src/worker/routes/consentRoutes.ts`:
 
 | Route | Auth | Body / Query | Behavior |
 |---|---|---|---|
-| `POST /consent` | participant token | `{allSixteenPlus, promoConsent}` | Upserts by identity key. `consent_version` and `acknowledged_at`/`updated_at` are **always server-stamped** from the project's current configured version — the client never supplies `consentVersion`. This closes a race where a participant's bundle, loaded just before a deploy bumped the version, would otherwise stamp a stale version as current. |
+| `POST /consent` | participant token | `{allSixteenPlus, promoConsent, acknowledge}` | Upserts by identity key. With `acknowledge: true` (consent screen), `consent_version` and `acknowledged_at`/`updated_at` are **always server-stamped** from the KV-backed version (§15) — the client never supplies `consentVersion`. With `acknowledge: false` (Photo permissions withdrawal, §6) the existing `consent_version` is preserved and only `promo_consent`/`updated_at` change. The `acknowledge: false` path never calls `getConsentVersion()`, so it works without `city`/`route` context. |
 | `GET /consent` | participant token | — | Returns this participant's current record, or `null`. Used by the "Photo permissions" menu (§6) and by `RoutePage` at mount to decide whether the screen has already been acknowledged at the current version. |
-| `GET /consent/version` | none (public) | `?project=X` | Returns `{consentVersion: number}`, the currently-deployed value for that project. Cheap, unauthenticated, polled by `RoutePage` on every navigation step (§12). |
+| `GET /consent/version` | none (public) | `?project=X&city=Y&route=Z` | Returns `{consentVersion: number}`, the current KV-stored value for that project/city/route (default `1` if never set). Cheap, unauthenticated, polled by `RoutePage` on every navigation step (§12). |
 
 `promo_approved` is never writable through `POST /consent` — only through the review flow in
 §5.
@@ -526,9 +526,12 @@ mid-route**, needs new logic:
 
 ## 15. Open implementation-time verification (not a design fork)
 
-- **Where the Worker reads the "current" `consentVersion` from.** The client bundle gets it
-  via the normal YAML pipeline (`@modyfi/vite-plugin-yaml`); whether the Worker's build target
-  can resolve the same YAML import directly, or needs the value mirrored into a small
-  JSON/config the Worker can read independently, needs to be checked against how
-  `@cloudflare/vite-plugin` builds the Worker entry — this is a "where do the bytes live"
-  question, not a design decision, and belongs in the implementation plan's first task.
+- **Where the Worker reads the "current" `consentVersion` from.** **Resolved in Task 3:**
+  the Worker does **not** read YAML. The version lives in the `AUTH_STORE` KV namespace under
+  `consent-version:<project>/<city>/<route>` (helper `src/worker/consentVersion.ts`,
+  `getConsentVersion()`, default `1` when absent). `POST /consent?city&route` stamps that KV
+  value as the record's `consent_version` when `acknowledge: true`; the "Photo permissions"
+  withdrawal path calls with `acknowledge: false`, which preserves the existing
+  `consent_version` (and never touches `getConsentVersion`). Bumping the deployed consent text
+  is therefore a KV write plus a YAML change — the KV value is the server-side source of truth
+  for staleness, decoupled from what the client bundle ships.

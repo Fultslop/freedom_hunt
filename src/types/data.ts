@@ -11,6 +11,7 @@ export type FormFieldType =
   | "video"
   | "textarea"
   | "section"
+  | "note"
   | "image-picker"
   | "coord-picker"
   | "random_value"
@@ -22,6 +23,7 @@ export interface FormField {
   label: string;
   subtext?: string;
   options?: string[];
+  variant?: "segmented";
   values?: string[];
   min?: number;
   max?: number;
@@ -119,6 +121,7 @@ export interface HuntSettings {
   formRequired: boolean;
   canFormsSkip: boolean;
   allowResubmit: boolean;
+  ageThreshold: number;
 }
 
 export interface PhotoUploadStatus {
@@ -200,6 +203,30 @@ export interface OptionsEntry {
   "nav-bar"?: NavBarConfig;
 }
 
+export interface ConsentIconItem {
+  icon: string;
+  text: string;
+}
+
+export interface ConsentBulletSection {
+  heading: string;
+  items: ConsentIconItem[];
+}
+
+export interface ConsentEntry {
+  "template-type": "consent";
+  heading: string;
+  intro: string;
+  chips?: ConsentIconItem[];
+  safety: ConsentBulletSection;
+  photos: ConsentBulletSection;
+  fields: FormField[];
+  primaryButtonText: string;
+  privacyLinkUrl?: string;
+  footerText?: string;
+  "nav-bar"?: NavBarConfig;
+}
+
 export type WideButtonTarget =
   | { type: "link"; value: string }
   | { type: "page"; value: "title" | "project" | "gallery" | "results" };
@@ -273,5 +300,6 @@ export type RouteEntry =
   | TextEntry
   | SplashEntry
   | OptionsEntry
+  | ConsentEntry
   | CheckpointEntry
   | CompletionEntry;

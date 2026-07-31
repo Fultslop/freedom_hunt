@@ -24,6 +24,7 @@ const validateOptions = ajv.compile(loadSchema("options.schema.json"));
 const validateCheckpoint = ajv.compile(loadSchema("checkpoint.schema.json"));
 const validateStats = ajv.compile(loadSchema("stats.schema.json"));
 const validateCompletion = ajv.compile(loadSchema("completion.schema.json"));
+const validateConsent = ajv.compile(loadSchema("consent.schema.json"));
 
 function findFiles(dir: string, pattern: RegExp): string[] {
   const entries = readdirSync(dir, { withFileTypes: true });
@@ -102,6 +103,27 @@ function checkVisibilityFunctions(filePath: string): string[] {
   );
 }
 
+// A consent screen's `fields` array is authored inline (not a separate
+// `*_form_*.yaml` file referenced by filename, unlike `challenge.form`), so
+// it never goes through the FORM_PATTERN dispatch below. Validate it here
+// against the same form.schema.json instead, or it would go entirely
+// unchecked — every field-level constraint (type enum, isVisible shape,
+// segmented variant, etc.) still needs to apply to it.
+function checkConsentFields(filePath: string): string[] {
+  const content = readFileSync(filePath, "utf8");
+  const data = loadYaml(content) as { fields?: unknown };
+  if (!Array.isArray(data.fields)) {
+    return [];
+  }
+  const structural = validateForm(data.fields)
+    ? []
+    : (validateForm.errors ?? []).map((err) => `/fields${formatError(err)}`);
+  const reservedFn = findReservedFunctionUsage(data.fields).map(
+    (msg) => `${msg} (not yet implemented — see doc/superpowers/specs/2026-07-31-conditional-visibility-design.md §4.3)`,
+  );
+  return [...structural, ...reservedFn];
+}
+
 const LOC_PATTERN = /^\d+_loc_.*\.yaml$/;
 const FORM_PATTERN = /^\d+_form_.*\.yaml$/;
 const TEXT_PATTERN = /^\d+_text_.*\.yaml$/;
@@ -110,6 +132,7 @@ const OPTIONS_PATTERN = /^\d+_options_.*\.yaml$/;
 const CHECKPOINT_PATTERN = /^\d+_checkpoint_.*\.yaml$/;
 const STATS_PATTERN = /^\d+_stats_.*\.yaml$/;
 const COMPLETION_PATTERN = /^\d+_completion_.*\.yaml$/;
+const CONSENT_PATTERN = /^\d+_consent_.*\.yaml$/;
 
 const violations = [
   ...findFiles(DATA_DIR, LOC_PATTERN).flatMap((filePath) => [
@@ -138,6 +161,10 @@ const violations = [
   ...findFiles(DATA_DIR, COMPLETION_PATTERN).flatMap((filePath) =>
     checkFile(filePath, validateCompletion).map((msg) => ({ filePath, msg })),
   ),
+  ...findFiles(DATA_DIR, CONSENT_PATTERN).flatMap((filePath) => [
+    ...checkFile(filePath, validateConsent).map((msg) => ({ filePath, msg })),
+    ...checkConsentFields(filePath).map((msg) => ({ filePath, msg })),
+  ]),
 ];
 
 violations.forEach(({ filePath, msg }) => {

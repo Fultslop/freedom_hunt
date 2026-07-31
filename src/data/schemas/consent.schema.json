@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Consent Screen",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["template-type", "heading", "intro", "safety", "photos", "fields", "primaryButtonText"],
+  "properties": {
+    "template-type": { "const": "consent" },
+    "heading": { "type": "string" },
+    "intro": { "type": "string" },
+    "chips": { "type": "array", "items": { "$ref": "#/definitions/iconItem" } },
+    "nav-bar": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "visible": { "type": "boolean" } }
+    },
+    "safety": { "$ref": "#/definitions/bulletSection" },
+    "photos": { "$ref": "#/definitions/bulletSection" },
+    "fields": { "type": "array" },
+    "primaryButtonText": { "type": "string" },
+    "privacyLinkUrl": { "type": "string" },
+    "footerText": { "type": "string" }
+  },
+  "definitions": {
+    "iconItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["icon", "text"],
+      "properties": {
+        "icon": { "type": "string" },
+        "text": { "type": "string" }
+      }
+    },
+    "bulletSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["heading", "items"],
+      "properties": {
+        "heading": { "type": "string" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/iconItem" }
+        }
+      }
+    }
+  }
+}

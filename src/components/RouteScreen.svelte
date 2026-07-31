@@ -3,6 +3,7 @@
   import TextScreen from "./TextScreen.svelte";
   import SplashScreen from "./SplashScreen.svelte";
   import OptionsScreen from "./OptionsScreen.svelte";
+  import ConsentScreen from "./ConsentScreen.svelte";
   import CompletionScreen from "./CompletionScreen.svelte";
   import type { RouteEntry, LocationEntry, CompletionStats } from "../types/data";
 
@@ -17,6 +18,7 @@
     project = "",
     storeFormsInLocalStorage = true,
     allowResubmit = true,
+    ageThreshold = 16,
     badgeStatus = undefined,
     onFormStatusChange = undefined,
     onContinue = undefined,
@@ -34,6 +36,7 @@
     project?: string;
     storeFormsInLocalStorage?: boolean;
     allowResubmit?: boolean;
+    ageThreshold?: number;
     badgeStatus?: "submitted" | "skipped";
     onFormStatusChange?: (
       locationId: string,
@@ -92,6 +95,15 @@
     project={project}
     city={cityId ?? ""}
     route={routeId ?? ""}
+    {onContinue}
+  />
+{:else if entry["template-type"] === "consent"}
+  <ConsentScreen
+    entry={entry}
+    project={project}
+    city={cityId ?? ""}
+    route={routeId ?? ""}
+    {ageThreshold}
     {onContinue}
   />
 {:else}

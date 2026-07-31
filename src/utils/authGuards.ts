@@ -37,3 +37,19 @@ export function requireEditorAccess(): boolean {
   }
   return true;
 }
+
+export function requireOrganizerAccess(): boolean {
+  const { activeAuth, authLoading, isLoggingOut } = get(authStore);
+  if (authLoading || isLoggingOut) {
+    return true;
+  }
+  if (!activeAuth || activeAuth.kind !== "editor") {
+    replace("/editor/login");
+    return false;
+  }
+  if (!activeAuth.capabilities.includes("organizer")) {
+    replace("/editor/login");
+    return false;
+  }
+  return true;
+}

@@ -95,7 +95,7 @@
       "id":    { "type": "string" },
       "type":  {
         "type": "string",
-        "enum": ["boolean", "string", "number", "radio", "multiple", "photo", "video", "textarea", "section", "random_value"]
+        "enum": ["boolean", "string", "number", "radio", "multiple", "photo", "video", "textarea", "section", "note", "random_value"]
       },
       "label":   { "type": "string" },
       "subtext": { "type": "string" },
@@ -113,6 +113,7 @@
       "source":  { "type": "string" },
       "reroll":   { "type": "boolean" },
       "editable": { "type": "boolean" },
+      "variant": { "enum": ["segmented"] },
       "isVisible": { "$ref": "#/definitions/visibilityConfig" }
     }
   }

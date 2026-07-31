@@ -437,3 +437,96 @@ export async function randomPhotos(
     .all<DbPhoto>();
   return result.results;
 }
+
+// ---------------------------------------------------------------------------
+// Consent record queries
+// ---------------------------------------------------------------------------
+
+export interface DbConsentRecord {
+  id: string;
+  project_id: string;
+  team_name: string;
+  contact: string; // never NULL — "" sentinel; see migration 006 comment
+  all_sixteen_plus: number; // 0/1
+  promo_consent: number; // 0/1
+  promo_approved: number; // 0/1
+  consent_version: number;
+  acknowledged_at: number;
+  updated_at: number;
+}
+
+export async function getConsent(
+  database: D1Database,
+  projectId: string,
+  teamName: string,
+  contact: string,
+): Promise<DbConsentRecord | null> {
+  return database
+    .prepare("SELECT * FROM consent_records WHERE project_id = ? AND team_name = ? AND contact = ?")
+    .bind(projectId, teamName, contact)
+    .first<DbConsentRecord>();
+}
+
+export async function upsertConsent(
+  database: D1Database,
+  key: { projectId: string; teamName: string; contact: string },
+  values: { allSixteenPlus: boolean; promoConsent: boolean; consentVersion: number },
+): Promise<DbConsentRecord> {
+  const now = Math.floor(Date.now() / 1000);
+  const allSixteenPlus = values.allSixteenPlus ? 1 : 0;
+  const promoConsent = allSixteenPlus === 1 && values.promoConsent ? 1 : 0;
+  const existing = await getConsent(database, key.projectId, key.teamName, key.contact);
+  const id = existing?.id ?? crypto.randomUUID();
+  const acknowledgedAt = existing?.acknowledged_at ?? now;
+  await database
+    .prepare(
+      `INSERT INTO consent_records
+       (id, project_id, team_name, contact, all_sixteen_plus, promo_consent, promo_approved, consent_version, acknowledged_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+       ON CONFLICT(project_id, team_name, contact) DO UPDATE SET
+         all_sixteen_plus = excluded.all_sixteen_plus,
+         promo_consent = excluded.promo_consent,
+         consent_version = excluded.consent_version,
+         updated_at = excluded.updated_at`,
+    )
+    .bind(id, key.projectId, key.teamName, key.contact, allSixteenPlus, promoConsent, values.consentVersion, acknowledgedAt, now)
+    .run();
+  return (await getConsent(database, key.projectId, key.teamName, key.contact))!;
+}
+
+export async function setPromoApproved(
+  database: D1Database,
+  projectId: string,
+  teamName: string,
+  contact: string,
+): Promise<boolean> {
+  const result = await database
+    .prepare(
+      `UPDATE consent_records SET promo_approved = 1, updated_at = ?
+       WHERE project_id = ? AND team_name = ? AND contact = ?`,
+    )
+    .bind(Math.floor(Date.now() / 1000), projectId, teamName, contact)
+    .run();
+  return result.meta.changes > 0;
+}
+
+export async function listPromoReviewPhotos(
+  database: D1Database,
+  projectId: string,
+  cityId: string,
+): Promise<DbPhoto[]> {
+  const result = await database
+    .prepare(
+      `SELECT p.* FROM photos p
+       JOIN consent_records c
+         ON c.project_id = p.project_id
+        AND c.team_name = p.team_name
+        AND c.contact = COALESCE(p.contact, '')
+       WHERE p.project_id = ? AND p.city_id = ?
+         AND c.promo_consent = 1 AND c.promo_approved = 0
+       ORDER BY p.uploaded_at ASC`,
+    )
+    .bind(projectId, cityId)
+    .all<DbPhoto>();
+  return result.results;
+}
