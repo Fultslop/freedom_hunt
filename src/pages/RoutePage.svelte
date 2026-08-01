@@ -11,6 +11,7 @@
   import { getHuntSettings } from "../utils/huntSettings";
   import { readConsentCache } from "../utils/consentCache";
   import { fetchConsentVersion } from "../utils/api";
+  import { authStore } from "../stores/authStore";
   import { buildFormStorageKey, loadFormState, saveFormState } from "../utils/formStorage";
   import { isLocationEntry, locationTotal, locationOrdinalAt, locationIdAt, isNavBarVisible } from "../utils/routeEntries";
   import {
@@ -34,7 +35,13 @@
   let { params }: { params: { project: string; city: string; route: string } } =
     $props();
 
-  let storageKey = $derived(`${params.project}/${params.city}/${params.route}`);
+  let teamName = $derived(
+    $authStore.activeAuth?.kind === "participant" ? $authStore.activeAuth.teamName : "",
+  );
+  let contact = $derived(
+    $authStore.activeAuth?.kind === "participant" ? ($authStore.activeAuth.contact ?? "") : "",
+  );
+  let storageKey = $derived(`${params.project}/${teamName}/${params.city}/${params.route}`);
   let routesText = $state<RoutesData | null>(null);
   let routeData = $derived(routesText?.[params.route] ?? null);
   let locationPaths = $derived(
@@ -46,11 +53,14 @@
   );
   let entries = $state<RouteEntry[]>([]);
 
-  // use localStorage to remember the last visited location index for this route
-  // we use untrack to avoid svelte warnings
-  const _savedIndex = localStorage.getItem(untrack(() => storageKey));
-  const _parsedIndex = _savedIndex ? parseInt(_savedIndex, 10) : 0;
-  let currentIndex = $state<number>(isNaN(_parsedIndex) ? 0 : _parsedIndex);
+  // Team identity comes from authStore and isn't known synchronously at mount
+  // (authStore.init()'s /auth/me check is async) — seeding or persisting the
+  // team-scoped index before it resolves would read/write the wrong team's
+  // key. hasSeededIndex gates the one-time read (below) and the persistence
+  // effect until identity is known, so a hard reload into a mid-route URL
+  // can never overwrite a team's real saved position with the placeholder 0.
+  let currentIndex = $state<number>(0);
+  let hasSeededIndex = $state(false);
   let direction = $state<"next" | "prev">("next");
 
   let dragOffset = $state(0);
@@ -123,13 +133,28 @@
   });
 
   $effect(() => {
-    localStorage.setItem(storageKey, String(currentIndex));
+    if (!$authStore.authLoading && !hasSeededIndex) {
+      const saved = localStorage.getItem(storageKey);
+      const parsed = saved ? parseInt(saved, 10) : 0;
+      currentIndex = isNaN(parsed) ? 0 : parsed;
+      hasSeededIndex = true;
+    }
+  });
+
+  $effect(() => {
+    if (hasSeededIndex) {
+      localStorage.setItem(storageKey, String(currentIndex));
+    }
   });
 
   let mountNormalizeAttempted = $state(false);
 
   $effect(() => {
-    if (!mountNormalizeAttempted && entries.length > 0) {
+    // Gated on hasSeededIndex too: entries can finish loading (bundled YAML,
+    // effectively instant) before auth resolves (a real network round trip),
+    // so without this guard the checkpoint-skip-on-mount check could run
+    // against the placeholder index 0 instead of the team's real position.
+    if (hasSeededIndex && !mountNormalizeAttempted && entries.length > 0) {
       mountNormalizeAttempted = true;
       if (isCheckpointEntry(entries[currentIndex])) {
         attemptAdvance(currentIndex - 1);
@@ -145,7 +170,7 @@
     // its own) and why a failed check must fail open (§13).
     currentIndex;
     if (consentEntryIndex !== -1) {
-      const cached = readConsentCache(params.project, params.city, params.route);
+      const cached = readConsentCache(params.project, params.city, params.route, teamName, contact);
       if (cached) {
         fetchConsentVersion(params.project, params.city, params.route)
           .then((res) => {
@@ -330,7 +355,7 @@
       entries.forEach((_entry, i) => {
         const locId = locationIdAt(routeData?.locations ?? [], i);
         const state = loadFormState(
-          buildFormStorageKey(params.project, params.city, params.route, locId),
+          buildFormStorageKey(params.project, params.city, params.route, locId, teamName),
         );
         if (state.submitted) {
           restoredStatus[locId] = { submitted: true, missingLabels: [] };
@@ -407,7 +432,7 @@
   );
   let photosCount = $derived(
     huntSettings.storeFormsInLocalStorage
-      ? computePhotosTaken(params.project, params.city, params.route, routeData?.locations ?? [])
+      ? computePhotosTaken(params.project, params.city, params.route, routeData?.locations ?? [], teamName)
       : ("—" as const),
   );
   let timeOnFoot = $derived.by(() => {
@@ -420,6 +445,7 @@
       params.route,
       routeData?.locations ?? [],
       Date.now(),
+      teamName,
     );
     return elapsed === undefined ? "—" : formatElapsed(elapsed);
   });
@@ -434,7 +460,7 @@
     const locId = currentLocationKey;
     skippedIndices = new Set(skippedIndices).add(locId);
     if (huntSettings.storeFormsInLocalStorage) {
-      const key = buildFormStorageKey(params.project, params.city, params.route, locId);
+      const key = buildFormStorageKey(params.project, params.city, params.route, locId, teamName);
       saveFormState(key, { ...loadFormState(key), skipped: true });
     }
     showToast = false;

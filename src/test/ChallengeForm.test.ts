@@ -186,7 +186,7 @@ test("restores previously-entered values and submitted state from local storage 
   const textOnlyForm = [
     { id: "note", type: "string" as const, label: "Your note", isRequired: true },
   ];
-  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1");
+  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1", "Team A");
   saveFormState(key, {
     values: { note: "restored text" },
     uploads: {},
@@ -204,6 +204,26 @@ test("restores previously-entered values and submitted state from local storage 
   expect(btn).toBeDisabled();
 });
 
+test("does not read local storage under the wrong (empty-identity) key while auth is still loading", () => {
+  authStore.setForTest({ activeAuth: null, authLoading: true, isLoggingOut: false });
+  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1", "Team A");
+  saveFormState(key, {
+    values: { note: "Team A's real answer" },
+    uploads: {},
+    submitted: true,
+    skipped: false,
+    touchedFields: [],
+  });
+  render(ChallengeForm, {
+    props: { form: [{ id: "note", type: "string" as const, label: "Your note" }], locationId: "1", routeId: "short_loop", cityId: "den_haag", project: "demo" },
+  });
+  // Auth hasn't resolved, so the field must not show as pre-filled from the
+  // real team's key — it should read empty, not silently fall back to a
+  // wrong-identity key that happens to be blank.
+  expect((screen.getByLabelText("Your note") as HTMLInputElement).value).toBe("");
+  authStore.loginParticipant("test_project", "Team A", "team@test.com");
+});
+
 test("does not read or write local storage when storeInLocalStorage is false", async () => {
   render(ChallengeForm, {
     props: {
@@ -218,7 +238,7 @@ test("does not read or write local storage when storeInLocalStorage is false", a
   await fireEvent.input(screen.getByLabelText("Your note"), {
     target: { value: "some text" },
   });
-  expect(localStorage.getItem("demo/den_haag/short_loop/1/form")).toBeNull();
+  expect(localStorage.getItem("demo/Team A/den_haag/short_loop/1/form")).toBeNull();
 });
 
 test("reports submitted status and missing labels via onFormStatusChange", async () => {
@@ -255,7 +275,7 @@ test("stamps submittedAt on first successful submit and keeps it across a re-sub
   await fireEvent.click(screen.getByRole("button", { name: /submit/i }));
   await fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
   await screen.findByRole("button", { name: /saved/i });
-  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1");
+  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1", "Team A");
   expect(JSON.parse(localStorage.getItem(key)!).submittedAt).toBe(1700000000000);
 
   vi.setSystemTime(1700000005000);
@@ -272,7 +292,7 @@ test("stamps submittedAt on first successful submit and keeps it across a re-sub
 // ---------------------------------------------------------------------------
 
 test("a sourced textarea seeds its value from another location's already-saved answer", () => {
-  const sourceKey = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout");
+  const sourceKey = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "Team A");
   saveFormState(sourceKey, {
     values: { manifesto: "We pledge to keep fighting." },
     uploads: {},
@@ -324,8 +344,8 @@ test("a sourced textarea is empty when the source location was never visited", (
 });
 
 test("editing a sourced textarea and remounting keeps the edit instead of re-syncing from a changed source", async () => {
-  const sourceKey = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout");
-  const targetKey = buildFormStorageKey("demo", "den_haag", "short_loop", "007_loc_binnenhof");
+  const sourceKey = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "Team A");
+  const targetKey = buildFormStorageKey("demo", "den_haag", "short_loop", "007_loc_binnenhof", "Team A");
   saveFormState(sourceKey, {
     values: { manifesto: "Original draft." },
     uploads: {},
@@ -386,7 +406,7 @@ test("editing a sourced textarea and remounting keeps the edit instead of re-syn
 
 test("passes formContext through to AppForm so cross-form isVisible conditions resolve", () => {
   localStorage.setItem(
-    "demo/den_haag/short_loop/004_loc_lange_voorhout/form",
+    "demo/Team A/den_haag/short_loop/004_loc_lange_voorhout/form",
     JSON.stringify({
       version: "1.2",
       values: { manifesto: "the people" },

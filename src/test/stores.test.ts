@@ -175,6 +175,12 @@ describe("authStore", () => {
         expect(state.activeAuth.capabilities).toEqual(["organizer"]);
       }
     });
+
+    it("resolves authLoading to false", () => {
+      authStore.loginEditor("u3", "c@d.com", "carol", ["organizer"]);
+      const state = get(authStore);
+      expect(state.authLoading).toBe(false);
+    });
   });
 
   describe("loginParticipant", () => {
@@ -195,6 +201,12 @@ describe("authStore", () => {
       if (state.activeAuth?.kind === "participant") {
         expect(state.activeAuth.isAdmin).toBe(false);
       }
+    });
+
+    it("resolves authLoading to false", () => {
+      authStore.loginParticipant("proj_x", "Team B", "b@c.com", false);
+      const state = get(authStore);
+      expect(state.authLoading).toBe(false);
     });
   });
 });

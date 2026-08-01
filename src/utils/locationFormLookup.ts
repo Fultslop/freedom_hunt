@@ -23,7 +23,8 @@ export function getLocationFormValue(
   route: string | undefined,
   locationId: string,
   fieldId: string,
+  teamName: string,
 ): unknown {
-  const key = buildFormStorageKey(project, city, route, locationId);
+  const key = buildFormStorageKey(project, city, route, locationId, teamName);
   return loadFormState(key).values[fieldId];
 }

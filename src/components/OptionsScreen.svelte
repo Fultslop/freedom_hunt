@@ -54,7 +54,9 @@
       onContinue?.();
     } else {
       if (value === "start_route") {
-        localStorage.removeItem(`${project}/${city}/${route}`);
+        const auth = $authStore.activeAuth;
+        const teamName = auth?.kind === "participant" ? auth.teamName : "";
+        localStorage.removeItem(`${project}/${teamName}/${city}/${route}`);
       }
       push(resolvePageUrl(value, { project, city, route }));
     }

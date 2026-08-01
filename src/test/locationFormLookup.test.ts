@@ -37,7 +37,7 @@ describe("parseSourceRef", () => {
 
 describe("getLocationFormValue", () => {
   it("returns the stored string value for the given location and field", () => {
-    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout");
+    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "Team A");
     saveFormState(key, {
       values: { manifesto: "We pledge to keep fighting." },
       uploads: {},
@@ -46,26 +46,26 @@ describe("getLocationFormValue", () => {
       touchedFields: [],
     });
     expect(
-      getLocationFormValue("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "manifesto"),
+      getLocationFormValue("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "manifesto", "Team A"),
     ).toBe("We pledge to keep fighting.");
   });
 
   it("returns undefined when the location was never visited", () => {
     expect(
-      getLocationFormValue("demo", "den_haag", "short_loop", "999_loc_never_visited", "manifesto"),
+      getLocationFormValue("demo", "den_haag", "short_loop", "999_loc_never_visited", "manifesto", "Team A"),
     ).toBeUndefined();
   });
 
   it("returns undefined when the field was never answered", () => {
-    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout");
+    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "Team A");
     saveFormState(key, { values: {}, uploads: {}, submitted: false, skipped: false, touchedFields: [] });
     expect(
-      getLocationFormValue("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "manifesto"),
+      getLocationFormValue("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "manifesto", "Team A"),
     ).toBeUndefined();
   });
 
   it("returns the raw stored value even when it isn't a string", () => {
-    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout");
+    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "Team A");
     saveFormState(key, {
       values: { manifesto: 42 },
       uploads: {},
@@ -74,12 +74,12 @@ describe("getLocationFormValue", () => {
       touchedFields: [],
     });
     expect(
-      getLocationFormValue("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "manifesto"),
+      getLocationFormValue("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "manifesto", "Team A"),
     ).toBe(42);
   });
 
   it("returns a boolean value unchanged", () => {
-    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout");
+    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "Team A");
     saveFormState(key, {
       values: { agreed: true },
       uploads: {},
@@ -88,7 +88,21 @@ describe("getLocationFormValue", () => {
       touchedFields: [],
     });
     expect(
-      getLocationFormValue("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "agreed"),
+      getLocationFormValue("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "agreed", "Team A"),
     ).toBe(true);
+  });
+
+  it("does not see another team's answer at the same location", () => {
+    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "Team A");
+    saveFormState(key, {
+      values: { manifesto: "Team A's words." },
+      uploads: {},
+      submitted: true,
+      skipped: false,
+      touchedFields: [],
+    });
+    expect(
+      getLocationFormValue("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "manifesto", "Team B"),
+    ).toBeUndefined();
   });
 });

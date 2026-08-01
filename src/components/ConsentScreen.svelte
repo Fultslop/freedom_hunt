@@ -9,6 +9,7 @@
   import Storyline from "./Storyline.svelte";
   import { postConsentUpdate } from "../utils/api";
   import { writeConsentCache } from "../utils/consentCache";
+  import { authStore } from "../stores/authStore";
   import type { ConsentEntry, ConsentBulletSection } from "../types/data";
   import "./ConsentScreen.css";
 
@@ -57,7 +58,15 @@
     try {
       const res = await postConsentUpdate(city, route, { allSixteenPlus, promoConsent, acknowledge: true });
       if (res.record) {
-        writeConsentCache(project, city, route, { consentVersion: res.record.consent_version });
+        const auth = $authStore.activeAuth;
+        writeConsentCache(
+          project,
+          city,
+          route,
+          { consentVersion: res.record.consent_version },
+          auth?.kind === "participant" ? auth.teamName : "",
+          auth?.kind === "participant" ? auth.contact ?? "" : "",
+        );
       }
     } catch {
       // Never blocks navigation — see spec §13.

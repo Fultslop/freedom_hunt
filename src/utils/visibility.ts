@@ -14,7 +14,7 @@ export interface VisibilityContext {
   /** Every field id declared in this form, for bare-id existence checks. */
   fieldIds: Set<string>;
   /** Needed to resolve dotted cross-form references; omit where none are used. */
-  formContext?: { project: string; city: string; route?: string };
+  formContext?: { project: string; city: string; route?: string; teamName: string };
 }
 
 export type { VisibilityResult };
@@ -47,8 +47,8 @@ function resolveStringOperand(
     if (!ctx.formContext) {
       return { error: `cross-form reference '${str}' used without a formContext` };
     }
-    const { project, city, route } = ctx.formContext;
-    const value = getLocationFormValue(project, city, route, ref.locationId, ref.fieldId);
+    const { project, city, route, teamName } = ctx.formContext;
+    const value = getLocationFormValue(project, city, route, ref.locationId, ref.fieldId, teamName);
     return value === undefined ? { value: undefined, unresolvedReference: true } : { value };
   }
   if (isSourcePosition) {

@@ -65,10 +65,10 @@ describe("evaluateVisibility — dotted cross-form source resolution", () => {
       value: "the people",
     },
   };
-  const formContext = { project: "demo", city: "den_haag", route: "short_loop" };
+  const formContext = { project: "demo", city: "den_haag", route: "short_loop", teamName: "Team A" };
 
   it("is visible when the other location's stored answer matches", () => {
-    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout");
+    const key = buildFormStorageKey("demo", "den_haag", "short_loop", "004_loc_lange_voorhout", "Team A");
     saveFormState(key, {
       values: { manifesto: "the people" },
       uploads: {},
@@ -116,7 +116,7 @@ describe("evaluateVisibility — value resolution", () => {
     const c = ctx({
       values: { choice: "something" },
       fieldIds: new Set(["choice"]),
-      formContext: { project: "demo", city: "den_haag", route: "short_loop" },
+      formContext: { project: "demo", city: "den_haag", route: "short_loop", teamName: "Team A" },
     });
     // 004_loc_lange_voorhout has never been visited — its stored form is empty.
     expect(evaluateVisibility(config, c)).toEqual({ status: "hidden" });

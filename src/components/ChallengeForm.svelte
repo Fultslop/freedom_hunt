@@ -30,9 +30,21 @@
     onFormStatusChange?: (status: { submitted: boolean; missingLabels: string[] }) => void;
   } = $props();
 
-  const storageKey = untrack(() => buildFormStorageKey(project, cityId, routeId, locationId));
+  // Mirrors RoutePage's gating (spec §4): teamName isn't known synchronously
+  // at mount (authStore.init()'s /auth/me check is async), so this component
+  // must not read/write under an empty-identity key while auth is loading.
+  // Lower stakes than RoutePage's index (nothing writes back on a key
+  // change here), but reading under the wrong key would still show a blank
+  // form where a resubmitted one should appear.
+  const authLoadingAtMount = untrack(() => $authStore.authLoading);
+  const teamNameAtMount = untrack(() =>
+    $authStore.activeAuth?.kind === "participant" ? $authStore.activeAuth.teamName : "",
+  );
+  const storageKey = untrack(() =>
+    authLoadingAtMount ? "" : buildFormStorageKey(project, cityId, routeId, locationId, teamNameAtMount),
+  );
   const stored = untrack(() =>
-    storeInLocalStorage
+    storeInLocalStorage && storageKey
       ? loadFormState(storageKey)
       : { values: {}, uploads: {}, submitted: false, skipped: false, touchedFields: [] },
   );
@@ -52,7 +64,7 @@
       if (field.type === "textarea" && field.source && field.id) {
         const ref = parseSourceRef(field.source);
         if (ref) {
-          const value = getLocationFormValue(project, cityId, routeId, ref.locationId, ref.fieldId);
+          const value = getLocationFormValue(project, cityId, routeId, ref.locationId, ref.fieldId, teamNameAtMount);
           if (typeof value === "string") {
             result[field.id] = value;
           }
@@ -70,7 +82,7 @@
     touched: string[],
     stampedAt: number | undefined,
   ) {
-    if (storeInLocalStorage) {
+    if (storeInLocalStorage && storageKey) {
       saveFormState(storageKey, {
         values: vals,
         uploads: ups,
@@ -171,7 +183,7 @@
         {baseUploads}
         {touchedFields}
         {sourceValues}
-        formContext={{ project, city: cityId, route: routeId }}
+        formContext={{ project, city: cityId, route: routeId, teamName: teamNameAtMount }}
         onSubmit={handleSubmit}
         onPhotoUpload={handlePhotoUpload}
         onVideoUpload={handleVideoUpload}

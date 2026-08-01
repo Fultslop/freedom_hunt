@@ -2,6 +2,8 @@ import { render, screen, fireEvent } from "@testing-library/svelte/svelte5";
 import { vi, beforeEach } from "vitest";
 import ConsentScreen from "../components/ConsentScreen.svelte";
 import * as api from "../utils/api";
+import { authStore } from "../stores/authStore";
+import { readConsentCache } from "../utils/consentCache";
 
 const entry = {
   "template-type": "consent" as const,
@@ -28,7 +30,11 @@ const entry = {
   primaryButtonText: "I understand — start the hunt",
 };
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  localStorage.clear();
+  authStore.loginParticipant("den_haag", "Team A", "alice@test.com");
+});
 
 test("renders heading, chips, and bullet sections", () => {
   render(ConsentScreen, { entry, project: "den_haag", city: "den_haag", route: "short_loop", onContinue: () => {} });
@@ -148,6 +154,22 @@ test("submitting posts consent and calls onContinue", async () => {
   await fireEvent.click(screen.getByRole("button", { name: entry.primaryButtonText }));
   expect(api.postConsentUpdate).toHaveBeenCalledWith("den_haag", "short_loop", { allSixteenPlus: true, promoConsent: false, acknowledge: true });
   expect(onContinue).toHaveBeenCalled();
+});
+
+test("writes the consent cache scoped to the current team and contact", async () => {
+  vi.spyOn(api, "postConsentUpdate").mockResolvedValue({
+    ok: true,
+    record: { all_sixteen_plus: 1, promo_consent: 0, promo_approved: 0, consent_version: 4 },
+  });
+  render(ConsentScreen, { entry, project: "den_haag", city: "den_haag", route: "short_loop", onContinue: () => {} });
+  await fireEvent.click(screen.getByRole("button", { name: "Yes" }));
+  await fireEvent.click(screen.getByRole("button", { name: entry.primaryButtonText }));
+  expect(readConsentCache("den_haag", "den_haag", "short_loop", "Team A", "alice@test.com")).toEqual({
+    consentVersion: 4,
+  });
+  // A different team member (same team, different contact) must not see
+  // this cache — consent is personal, per spec §1.
+  expect(readConsentCache("den_haag", "den_haag", "short_loop", "Team A", "bob@test.com")).toBeNull();
 });
 
 test("a failed consent post still calls onContinue (never blocks navigation)", async () => {
