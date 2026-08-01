@@ -121,7 +121,6 @@ export interface HuntSettings {
   formRequired: boolean;
   canFormsSkip: boolean;
   allowResubmit: boolean;
-  ageThreshold: number;
 }
 
 export interface PhotoUploadStatus {
@@ -218,8 +217,10 @@ export interface ConsentEntry {
   heading: string;
   intro: string;
   chips?: ConsentIconItem[];
-  safety: ConsentBulletSection;
-  photos: ConsentBulletSection;
+  whyWereAsking?: string;
+  minimumAge: number;
+  safety?: ConsentBulletSection;
+  photos?: ConsentBulletSection;
   fields: FormField[];
   primaryButtonText: string;
   privacyLinkUrl?: string;

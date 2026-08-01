@@ -147,7 +147,7 @@ A route's `locations` list can mix ordinary locations with non-location screens.
 | `text` | `NNN_text_<slug>.yaml` | Top image (optional) + centered title + markdown body |
 | `splash` | `NNN_splash_<slug>.yaml` | Full-bleed image with an optional CSS shader/overlay, anchored title, optional one-shot entrance effect |
 | `options` | `NNN_options_<slug>.yaml` | Top image (optional) + centered title + a list of buttons, each linking externally or navigating to a named in-app screen |
-| `consent` | `NNN_consent_<slug>.yaml` | GDPR consent screen: heading/intro/chips + two icon+text bullet sections (safety/photos) + an embedded `AppForm` (age gate, photo-promotion checkbox, declined-state note) + primary button + optional privacy link/footer. See "Consent & photo-promotion review" below. |
+| `consent` | `NNN_consent_<slug>.yaml` | GDPR consent screen: heading/intro/chips + two icon+text bullet sections (safety/photos) + an embedded `AppForm` (age gate, photo-promotion checkbox, declined-state note) + primary button + optional privacy link/footer. See "Consent & Photo-Promotion Review" below. |
 | `checkpoint` | `NNN_chck_<slug>.yaml` | Gate that blocks forward/backward navigation until a requirement is met; never rendered as a visible screen — the carousel skips over it via nextNavigableIndex/prevNavigableIndex |
 | `completion` | `NNN_completion_<slug>.yaml` | End-of-route screen: hero image, title/subtitle/place/caption, closing text, stats (stops/photos/time), and a data-driven `buttons` list (`WideButton`) |
 
@@ -356,6 +356,37 @@ CREATE TABLE consent_records (
 | `full` | 2048px long edge, quality 0.85 | Download button — **not** the raw uploaded file; always re-encoded and capped so per-photo storage is bounded regardless of source camera resolution |
 
 EXIF orientation is corrected during this same resize step (`src/worker/imageProcessing.ts`), since Photon's resize/re-encode does not preserve EXIF and would otherwise produce sideways thumbnails.
+
+## Consent & Photo-Promotion Review
+
+Authoring guidance for a route's `NNN_consent_*.yaml` file (referenced from the template-types
+table above):
+
+- **Name the specific uses in the checkbox label.** The label is the permission scope a
+  participant is actually agreeing to — avoid open-ended phrasing like "and other purposes"; it
+  weakens consent specificity and adds nothing beyond the uses already named.
+- **The fold (`whyWereAsking`) is for context, the checkbox label is for scope.** Don't move a
+  scope fact (what the photos/videos will be used for) into the fold to shorten the label — a
+  participant must be able to read the full scope without expanding anything.
+- **Bump the consent version via KV, not YAML**, on any material change to the permission scope:
+  `wrangler kv key put consent-version:<project>:<city>:<route> <n>`. This is deliberate — see the
+  `consent_records` section above for why version bumps stay out of the YAML/build pipeline.
+  Participants who agreed to the old scope have not agreed to the new one and must be re-prompted,
+  never silently migrated.
+- **Minimum age (`minimumAge`) and photo/video permission content are both required per-route
+  fields** — the schema (`consent.schema.json`) enforces their presence, but pick a real value
+  deliberately; don't copy a number from another city's jurisdiction without checking it.
+- **Omit `safety`/`photos` to inherit the platform defaults** in
+  `src/data/text/en/consent_defaults.yaml`. To add one route-specific line (a canal towpath, a
+  long stair climb) on top of the defaults, copy the default items into the route's own file and
+  append the extra one — there's no partial-merge mechanism, a route that sets `safety`/`photos`
+  at all replaces the section wholesale.
+
+Photo-promotion consent itself (`promo_consent`, `all_sixteen_plus`) is participant-facing; a
+separate **organizer-only** human review gate (`promo_approved`, set only via `POST
+/promo-approve`, `src/pages/editor/PromoReviewPage.svelte` at
+`/editor/:project/:city/promo-review`) must also be satisfied before any photo is used
+promotionally, regardless of what a participant ticked.
 
 ## Theme System
 

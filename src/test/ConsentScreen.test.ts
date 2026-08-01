@@ -7,6 +7,7 @@ const entry = {
   "template-type": "consent" as const,
   heading: "Before you begin",
   intro: "A few things to know.",
+  minimumAge: 16,
   chips: [
     { icon: "Route", text: "2.4 km" },
     { icon: "Clock", text: "~2 hours" },
@@ -84,14 +85,55 @@ test("renders the privacy link with the spec copy when a privacyLinkUrl is set",
   expect(link.getAttribute("href")).toBe("https://example.org/privacy");
 });
 
-test("interpolates {{age_threshold}} in a field's label using the ageThreshold prop", () => {
+test("renders the 'why we're asking' fold collapsed by default, expandable on click", async () => {
+  const entryWithFold = {
+    ...entry,
+    whyWereAsking: "[+] Why we're asking\n\nWe run this hunt to register voters.",
+  };
+  render(ConsentScreen, { entry: entryWithFold, project: "den_haag", city: "den_haag", route: "short_loop", onContinue: () => {} });
+  expect(screen.getByText("Why we're asking")).toBeInTheDocument();
+  expect(screen.queryByText("We run this hunt to register voters.")).not.toBeInTheDocument();
+  await fireEvent.click(screen.getByRole("button", { name: "Why we're asking" }));
+  expect(screen.getByText("We run this hunt to register voters.")).toBeInTheDocument();
+});
+
+test("does not render a fold at all when whyWereAsking is absent", () => {
+  const { container } = render(ConsentScreen, { entry, project: "den_haag", city: "den_haag", route: "short_loop", onContinue: () => {} });
+  expect(container.querySelector(".consent-screen__why")).not.toBeInTheDocument();
+});
+
+test("falls back to the platform default when the entry omits safety/photos", () => {
+  const { safety: _safety, photos: _photos, ...entryWithoutSections } = entry;
+  render(ConsentScreen, {
+    entry: entryWithoutSections as typeof entry,
+    project: "den_haag", city: "den_haag", route: "short_loop",
+    safetyDefault: { heading: "Stay safe", items: [{ icon: "Phone", text: "Default emergency line." }] },
+    photosDefault: { heading: "About your photos", items: [{ icon: "Eye", text: "Default photo notice." }] },
+    onContinue: () => {},
+  });
+  expect(screen.getByText("Default emergency line.")).toBeInTheDocument();
+  expect(screen.getByText("Default photo notice.")).toBeInTheDocument();
+});
+
+test("renders without crashing when safety/photos and their defaults are both absent", () => {
+  const { safety: _safety, photos: _photos, ...entryWithoutSections } = entry;
+  render(ConsentScreen, {
+    entry: entryWithoutSections as typeof entry,
+    project: "den_haag", city: "den_haag", route: "short_loop",
+    onContinue: () => {},
+  });
+  expect(screen.getByText(entry.heading)).toBeInTheDocument();
+});
+
+test("interpolates {{age_threshold}} in a field's label using the entry's minimumAge", () => {
   const entryWithAgeField = {
     ...entry,
+    minimumAge: 15,
     fields: [
       { id: "all_sixteen_plus", type: "radio" as const, variant: "segmented" as const, label: "Is everyone in your team {{age_threshold}} or over?", options: ["Yes", "No"] },
     ],
   };
-  render(ConsentScreen, { entry: entryWithAgeField, project: "den_haag", city: "den_haag", route: "short_loop", ageThreshold: 15, onContinue: () => {} });
+  render(ConsentScreen, { entry: entryWithAgeField, project: "den_haag", city: "den_haag", route: "short_loop", onContinue: () => {} });
   expect(screen.getByText("Is everyone in your team 15 or over?")).toBeInTheDocument();
 });
 

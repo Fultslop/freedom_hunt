@@ -3,6 +3,7 @@ nav-bar:
   visible: false
 heading: "Before you begin"
 intro: "A few things to know before you head out. This takes a minute, then you're off."
+minimumAge: 16
 chips:
   - icon: Route
     text: "2.4 km"
@@ -28,6 +29,18 @@ photos:
       text: "Other teams can see your photos in this hunt's gallery."
     - icon: ShieldAlert
       text: "**Don't photograph** people who haven't agreed — and never children outside your own group."
+whyWereAsking: |
+  [+] Why we're asking
+
+  Democrats Abroad Global Women's Caucus is running this event to get US citizens abroad
+  registered and voting in the upcoming elections.
+
+  We'd like you to celebrate the cultural and historic heritage of the city you live in —
+  and to make photos or video we can share, so other Americans register to vote and request
+  their 2026 ballot.
+
+  We won't publish photos or video of minors. If a child appears in something we use, we
+  block the image out.
 fields:
   - type: section
     label: "Photo permission"
@@ -38,7 +51,7 @@ fields:
     options: ["Yes", "No"]
   - id: promo_consent
     type: boolean
-    label: "The organisers may use my photos and videos to promote future hunts."
+    label: "The organisers may use my photos and videos on Democrats Abroad social media and in marketing — including posts that specifically promote Democratic candidates and the Democratic Party."
     subtext: "Optional — the hunt works either way. Change it any time under Photo permissions in the menu."
     isVisible:
       initially: conditional
@@ -51,4 +64,5 @@ fields:
       initially: conditional
       condition: { source: all_sixteen_plus, operator: "=", value: "No" }
 primaryButtonText: "I understand — start the hunt"
+privacyLinkUrl: "https://example.org/TODO-privacy-notice"
 footerText: "Questions during the hunt? Contact your organiser."

@@ -3,12 +3,14 @@
   "title": "Consent Screen",
   "type": "object",
   "additionalProperties": false,
-  "required": ["template-type", "heading", "intro", "safety", "photos", "fields", "primaryButtonText"],
+  "required": ["template-type", "heading", "intro", "fields", "primaryButtonText", "minimumAge"],
   "properties": {
     "template-type": { "const": "consent" },
     "heading": { "type": "string" },
     "intro": { "type": "string" },
     "chips": { "type": "array", "items": { "$ref": "#/definitions/iconItem" } },
+    "whyWereAsking": { "type": "string" },
+    "minimumAge": { "type": "integer", "minimum": 1 },
     "nav-bar": {
       "type": "object",
       "additionalProperties": false,

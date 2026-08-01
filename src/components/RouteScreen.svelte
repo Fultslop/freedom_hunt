@@ -5,7 +5,7 @@
   import OptionsScreen from "./OptionsScreen.svelte";
   import ConsentScreen from "./ConsentScreen.svelte";
   import CompletionScreen from "./CompletionScreen.svelte";
-  import type { RouteEntry, LocationEntry, CompletionStats } from "../types/data";
+  import type { RouteEntry, LocationEntry, CompletionStats, ConsentBulletSection } from "../types/data";
 
   let {
     entry,
@@ -18,7 +18,8 @@
     project = "",
     storeFormsInLocalStorage = true,
     allowResubmit = true,
-    ageThreshold = 16,
+    safetyDefault = undefined,
+    photosDefault = undefined,
     badgeStatus = undefined,
     onFormStatusChange = undefined,
     onContinue = undefined,
@@ -36,7 +37,8 @@
     project?: string;
     storeFormsInLocalStorage?: boolean;
     allowResubmit?: boolean;
-    ageThreshold?: number;
+    safetyDefault?: ConsentBulletSection;
+    photosDefault?: ConsentBulletSection;
     badgeStatus?: "submitted" | "skipped";
     onFormStatusChange?: (
       locationId: string,
@@ -103,7 +105,8 @@
     project={project}
     city={cityId ?? ""}
     route={routeId ?? ""}
-    {ageThreshold}
+    {safetyDefault}
+    {photosDefault}
     {onContinue}
   />
 {:else}

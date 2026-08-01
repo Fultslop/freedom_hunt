@@ -40,15 +40,6 @@ describe("LandingPage", () => {
     expect(screen.getByRole("button", { name: /start hunting/i })).not.toBeDisabled();
   });
 
-  it("pauses SearchPlane while the join sheet is open (location !== \"/\")", () => {
-    setLocation("/start");
-    const rafSpy = vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
-    render(LandingPage, { props: {} });
-    // paused=true means no split gets scheduled — only the rAF camera loop starts.
-    expect(rafSpy).toHaveBeenCalledTimes(1);
-    rafSpy.mockRestore();
-  });
-
   it("sets Step 1 of 2 progress while the sheet is open, and clears it when closed", async () => {
     setLocation("/start");
     render(LandingPage, { props: {} });

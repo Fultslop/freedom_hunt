@@ -9,6 +9,7 @@ import type { StatsDoc } from "../src/types/storyline";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const DATA_DIR = join(ROOT, "src", "data", "text", "en", "projects");
+const TEXT_EN_DIR = join(ROOT, "src", "data", "text", "en");
 
 function loadSchema(name: string): object {
   const schemaPath = join(ROOT, "src", "data", "schemas", name);
@@ -25,6 +26,7 @@ const validateCheckpoint = ajv.compile(loadSchema("checkpoint.schema.json"));
 const validateStats = ajv.compile(loadSchema("stats.schema.json"));
 const validateCompletion = ajv.compile(loadSchema("completion.schema.json"));
 const validateConsent = ajv.compile(loadSchema("consent.schema.json"));
+const validateConsentDefaults = ajv.compile(loadSchema("consent-defaults.schema.json"));
 
 function findFiles(dir: string, pattern: RegExp): string[] {
   const entries = readdirSync(dir, { withFileTypes: true });
@@ -57,16 +59,17 @@ function checkFile(filePath: string, validator: ValidateFunction): string[] {
   return (validator.errors ?? []).map(formatError);
 }
 
-function checkStoryline(filePath: string): string[] {
+function checkStorylineField(filePath: string, fieldName: string): string[] {
   const content = readFileSync(filePath, "utf8");
-  const data = loadYaml(content) as { storyline?: string };
-  if (!data.storyline) {
+  const data = loadYaml(content) as Record<string, unknown>;
+  const text = data[fieldName];
+  if (typeof text !== "string" || !text) {
     return [];
   }
-  if (data.storyline.includes(":::")) {
-    return ['found ":::" — the v0.1/v0.2 fence syntax has been retired, use v0.3 markdown-native syntax'];
+  if (text.includes(":::")) {
+    return [`/${fieldName}: found ":::" — the v0.1/v0.2 fence syntax has been retired, use v0.3 markdown-native syntax`];
   }
-  const refs = findStatsRefs(data.storyline);
+  const refs = findStatsRefs(text);
   const dir = dirname(filePath);
   const elements = Object.fromEntries(
     refs.flatMap((ref) => {
@@ -78,8 +81,8 @@ function checkStoryline(filePath: string): string[] {
       }
     }),
   );
-  const { blocks, warnings } = parseStoryline(data.storyline, elements);
-  return [...warnings, ...validateStoryline(blocks)].map((msg) => `/storyline: ${msg}`);
+  const { blocks, warnings } = parseStoryline(text, elements);
+  return [...warnings, ...validateStoryline(blocks)].map((msg) => `/${fieldName}: ${msg}`);
 }
 
 function checkStatsFile(filePath: string): string[] {
@@ -124,6 +127,26 @@ function checkConsentFields(filePath: string): string[] {
   return [...structural, ...reservedFn];
 }
 
+const FOLD_MARKER_LINE = /^\s*\[\+\]\s*(.*)$/;
+
+function checkConsentFoldLabel(filePath: string): string[] {
+  const content = readFileSync(filePath, "utf8");
+  const data = loadYaml(content) as { whyWereAsking?: string };
+  if (!data.whyWereAsking) {
+    return [];
+  }
+  const lines = data.whyWereAsking.split("\n");
+  const foldLine = lines.find((line) => FOLD_MARKER_LINE.test(line));
+  if (!foldLine) {
+    return ['/whyWereAsking: no "[+]" fold marker found — the whole field is meant to be a collapsed disclosure'];
+  }
+  const match = FOLD_MARKER_LINE.exec(foldLine) as RegExpExecArray;
+  if (!match[1].trim()) {
+    return ['/whyWereAsking: "[+]" marker has no label — would silently fall back to "Read the full story"'];
+  }
+  return [];
+}
+
 const LOC_PATTERN = /^\d+_loc_.*\.yaml$/;
 const FORM_PATTERN = /^\d+_form_.*\.yaml$/;
 const TEXT_PATTERN = /^\d+_text_.*\.yaml$/;
@@ -137,7 +160,7 @@ const CONSENT_PATTERN = /^\d+_consent_.*\.yaml$/;
 const violations = [
   ...findFiles(DATA_DIR, LOC_PATTERN).flatMap((filePath) => [
     ...checkFile(filePath, validateLoc).map((msg) => ({ filePath, msg })),
-    ...checkStoryline(filePath).map((msg) => ({ filePath, msg })),
+    ...checkStorylineField(filePath, "storyline").map((msg) => ({ filePath, msg })),
   ]),
   ...findFiles(DATA_DIR, FORM_PATTERN).flatMap((filePath) => [
     ...checkFile(filePath, validateForm).map((msg) => ({ filePath, msg })),
@@ -164,7 +187,13 @@ const violations = [
   ...findFiles(DATA_DIR, CONSENT_PATTERN).flatMap((filePath) => [
     ...checkFile(filePath, validateConsent).map((msg) => ({ filePath, msg })),
     ...checkConsentFields(filePath).map((msg) => ({ filePath, msg })),
+    ...checkStorylineField(filePath, "whyWereAsking").map((msg) => ({ filePath, msg })),
+    ...checkConsentFoldLabel(filePath).map((msg) => ({ filePath, msg })),
   ]),
+  ...checkFile(join(TEXT_EN_DIR, "consent_defaults.yaml"), validateConsentDefaults).map((msg) => ({
+    filePath: join(TEXT_EN_DIR, "consent_defaults.yaml"),
+    msg,
+  })),
 ];
 
 violations.forEach(({ filePath, msg }) => {

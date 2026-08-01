@@ -3,7 +3,6 @@
   import { Image, History, Github } from "lucide-svelte";
   import { themeStore } from "../stores/themeStore";
   import { titleBarStore } from "../stores/titleBarStore";
-  import SearchPlane from "../components/SearchPlane.svelte";
   import DepthWordmark from "../components/DepthWordmark.svelte";
   import JoinSheet from "../components/JoinSheet.svelte";
   import "./LandingPage.css";
@@ -44,15 +43,12 @@
 </script>
 
 <div class="landing-page">
-  <SearchPlane mode={theme.intro.motion === "none" ? "frozen" : "search"} anchor={64} paused={sheetOpen} />
-  <div class="landing-page__fog"></div>
   <div class="landing-page__content">
     <DepthWordmark />
     <p class="landing-page__sub">
       Discover the city <strong class="landing-page__sub-accent">together</strong>, one clue at a time.
     </p>
   </div>
-  <div class="landing-page__scrim"></div>
   <div class="landing-page__controls">
     <button
       type="button"

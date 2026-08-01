@@ -26,27 +26,6 @@
   font-weight: 700;
 }
 
-.landing-page__fog {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 40%;
-  background: var(--intro-fog);
-  pointer-events: none;
-}
-
-.landing-page__scrim {
-  position: absolute;
-  inset: auto 0 0 0;
-  /* Taller than the "just darken behind the controls" minimum on purpose:
-     nodes/labels nearest the camera magnify as they approach it and aren't
-     otherwise culled until they age out, so this needs to hide that
-     near-field growth before it reaches the controls, not just the plane
-     in general. */
-  height: 58%;
-  background: var(--intro-scrim);
-  pointer-events: none;
-}
-
 .landing-page__controls {
   position: relative;
   z-index: 1;

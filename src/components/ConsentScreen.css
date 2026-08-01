@@ -113,6 +113,10 @@
   font-size: var(--font-size-base);
 }
 
+.consent-screen__why {
+  margin: 0 0 var(--gap-block);
+}
+
 .consent-screen__form {
   margin: 0 0 var(--gap-block);
 }

@@ -5,10 +5,8 @@
   import { titleBarStore } from "../stores/titleBarStore";
   import { postLogin } from "../utils/api";
   import { generateTeamName, TEAM_NAME_ADJECTIVES, TEAM_NAME_NOUNS } from "../utils/teamNameGenerator";
-  import { resolveHuntSummary, type HuntSummary } from "../utils/huntSummary";
   import { loadText } from "../utils/loadText";
   import { languageStore } from "../stores/languageStore";
-  import SearchPlane from "../components/SearchPlane.svelte";
   import DepthWordmark from "../components/DepthWordmark.svelte";
   import AppForm from "../components/AppForm.svelte";
   import type { FormField } from "../types/data";
@@ -27,22 +25,12 @@
     () => (params.project && localStorage.getItem(`teamName:${params.project}`)) || generateTeamName(),
   );
 
-  let summary = $state<HuntSummary | null>(null);
   let projectName = $state("");
-  let routeStops = $derived(
-    summary
-      ? Array.from({ length: summary.stopCount }, (unused, index) => ({ id: `route-stop-${index}` }))
-      : undefined,
-  );
 
   async function loadProject() {
     const lang = $languageStore.currentLang;
-    const [meta, sum] = await Promise.all([
-      loadText<Record<string, unknown>>(lang, `projects/${project}/${project}`),
-      resolveHuntSummary(project, lang),
-    ]);
+    const meta = await loadText<Record<string, unknown>>(lang, `projects/${project}/${project}`);
     projectName = (meta?.["project.title"] as string) ?? project;
-    summary = sum;
   }
 
   $effect(() => {
@@ -113,10 +101,6 @@
 </script>
 
 <div class="team-setup-page">
-  <div class="team-setup-page__bg">
-    <SearchPlane mode={summary ? "route" : "frozen"} anchor={38} route={routeStops} />
-  </div>
-
   <div class="team-setup-page__content">
     <DepthWordmark project={projectName || project} />
   </div>

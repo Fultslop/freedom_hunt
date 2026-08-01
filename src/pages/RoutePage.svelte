@@ -27,7 +27,7 @@
   import { preloadImages } from "../assets/AssetManager";
   import RouteScreen from "../components/RouteScreen.svelte";
   import Toast from "../components/Toast.svelte";
-  import type { RoutesData, RouteEntry } from "../types/data";
+  import type { RoutesData, RouteEntry, ConsentBulletSection } from "../types/data";
   import { untrack } from "svelte";
   import "./RoutePage.css";
 
@@ -76,6 +76,14 @@
       `projects/${params.project}/${params.project}`,
     ).then((data) => {
       huntSettings = getHuntSettings(data);
+    });
+  });
+
+  let consentDefaults = $state<{ safety?: ConsentBulletSection; photos?: ConsentBulletSection } | null>(null);
+  $effect(() => {
+    const lang = $languageStore.currentLang;
+    loadText<{ safety?: ConsentBulletSection; photos?: ConsentBulletSection }>(lang, "consent_defaults").then((data) => {
+      consentDefaults = data;
     });
   });
 
@@ -565,7 +573,8 @@
           project={params.project}
           storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
           allowResubmit={huntSettings.allowResubmit}
-          ageThreshold={huntSettings.ageThreshold}
+          safetyDefault={consentDefaults?.safety}
+          photosDefault={consentDefaults?.photos}
           onFormStatusChange={handleFormStatusChange}
           badgeStatus={computeBadgeStatus(currentLocationKey, currentHasForm)}
           onContinue={() => handleDragEnd(-cardWidth)}
@@ -600,7 +609,8 @@
                 project={params.project}
                 storeFormsInLocalStorage={huntSettings.storeFormsInLocalStorage}
                 allowResubmit={huntSettings.allowResubmit}
-                ageThreshold={huntSettings.ageThreshold}
+                safetyDefault={consentDefaults?.safety}
+                photosDefault={consentDefaults?.photos}
                 onFormStatusChange={handleFormStatusChange}
                 badgeStatus={computeBadgeStatus(locationIdAt(routeData?.locations ?? [], locIdx), isLocationEntry(slotEntry) && (slotEntry.challenge.form?.length ?? 0) > 0)}
                 onContinue={() => handleDragEnd(-cardWidth)}

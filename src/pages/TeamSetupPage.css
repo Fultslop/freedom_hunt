@@ -4,11 +4,6 @@
   overflow: hidden;
 }
 
-.team-setup-page__bg {
-  position: absolute;
-  inset: 0;
-}
-
 .team-setup-page__content {
   position: relative;
   z-index: 1;

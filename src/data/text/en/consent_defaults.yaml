@@ -1,0 +1,18 @@
+safety:
+  heading: "Stay safe"
+  items:
+    - icon: AlertTriangle
+      text: "Watch traffic, especially at crossings."
+    - icon: Footprints
+      text: "Self-paced. Take breaks, and skip any challenge you'd rather not do."
+    - icon: Wifi
+      text: "You'll need a data connection for clues and photo uploads."
+    - icon: Phone
+      text: "In an emergency, call **112**."
+photos:
+  heading: "About your photos"
+  items:
+    - icon: Eye
+      text: "Other teams can see your photos in this hunt's gallery."
+    - icon: ShieldAlert
+      text: "**Don't photograph** people who haven't agreed — and never children outside your own group."
