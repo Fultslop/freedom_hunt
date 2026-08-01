@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-  import Router from "svelte-spa-router";
+  import Router, { location } from "svelte-spa-router";
   import { wrap } from "svelte-spa-router/wrap";
   import { onMount } from "svelte";
   import { themeStore } from "./stores/themeStore";
@@ -11,6 +11,8 @@
   import { authStore } from "./stores/authStore";
   import { requireAuth, requireEditorAccess, requireOrganizerAccess } from "./utils/authGuards";
   import TitleBar from "./components/TitleBar.svelte";
+  import SearchPlane from "./components/SearchPlane.svelte";
+  import "./App.css";
   import LandingPage from "./pages/LandingPage.svelte";
   import TeamSetupPage from "./pages/TeamSetupPage.svelte";
   import LoginPage from "./pages/LoginPage.svelte";
@@ -90,6 +92,26 @@
     }),
   };
 
+  // The intro screens (Landing + TeamSetup) share ONE persistent SearchPlane
+  // background mounted here, above the Router, so navigating between them
+  // keeps the same walkers/camera running instead of remounting a fresh
+  // instance that restarts the animation. Non-intro routes unmount it.
+  let isIntro = $derived(
+    $location === "/" ||
+      $location === "/start" ||
+      $location.startsWith("/join/") ||
+      $location.startsWith("/team/"),
+  );
+  // The background is blurred behind the join sheet on the Landing Page and
+  // behind the panel on the Team selection screen — it keeps animating either
+  // way, just out of focus so the foreground content reads clearly.
+  let backgroundBlurred = $derived(
+    $location === "/start" || $location.startsWith("/join/") || $location.startsWith("/team/"),
+  );
+  let introMode = $derived<"frozen" | "search">(
+    $themeStore.theme.intro.motion === "none" ? "frozen" : "search",
+  );
+
   // Sync theme tokens to CSS custom properties on <html>
   $effect(() => {
     const { theme } = $themeStore;
@@ -139,5 +161,12 @@
   });
 </script>
 
+{#if isIntro}
+  <div class="app-background" class:app-background--blurred={backgroundBlurred}>
+    <SearchPlane mode={introMode} anchor={64} />
+    <div class="app-background__fog"></div>
+    <div class="app-background__scrim"></div>
+  </div>
+{/if}
 <TitleBar />
 <Router {routes} />

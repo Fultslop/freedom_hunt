@@ -1,0 +1,33 @@
+.app-background {
+  position: fixed;
+  inset: var(--titlebar-height) 0 0 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: filter 300ms ease;
+}
+
+.app-background--blurred {
+  filter: blur(6px);
+}
+
+.app-background__fog {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 40%;
+  background: var(--intro-fog);
+  pointer-events: none;
+}
+
+.app-background__scrim {
+  position: absolute;
+  inset: auto 0 0 0;
+  /* Taller than the "just darken behind the controls" minimum on purpose:
+     nodes/labels nearest the camera magnify as they approach it and aren't
+     otherwise culled until they age out, so this needs to hide that
+     near-field growth before it reaches the controls, not just the plane
+     in general. */
+  height: 58%;
+  background: var(--intro-scrim);
+  pointer-events: none;
+}
