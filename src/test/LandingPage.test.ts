@@ -55,4 +55,9 @@ describe("LandingPage", () => {
     await fireEvent.click(screen.getByRole("button", { name: /try the demo/i }));
     expect(push).toHaveBeenCalledWith("/login/demo");
   });
+
+  it("renders the build version footer", () => {
+    render(LandingPage, { props: {} });
+    expect(screen.getByText(__BUILD_VERSION__)).toBeInTheDocument();
+  });
 });

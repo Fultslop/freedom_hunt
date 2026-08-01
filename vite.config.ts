@@ -11,8 +11,27 @@ import {
 } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const MONTH_NAMES = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+function getBuildVersion(): string {
+  try {
+    const sha = execSync("git rev-parse --short HEAD").toString().trim();
+    const isoDate = execSync("git log -1 --format=%cI").toString().trim();
+    const isDirty = execSync("git status --porcelain").toString().trim().length > 0;
+    const date = new Date(isoDate);
+    const formattedDate = `${date.getDate()} ${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
+    return `${sha}${isDirty ? "+" : ""} · ${formattedDate}`;
+  } catch {
+    return "unknown";
+  }
+}
 
 function devImageServer() {
   return {
@@ -103,6 +122,9 @@ export default defineConfig(async () => {
 
   return {
     plugins,
+    define: {
+      __BUILD_VERSION__: JSON.stringify(getBuildVersion()),
+    },
     server: {
       // Vite serves HTTP/2 (via node:http2's createSecureServer) whenever
       // HTTPS is on, UNLESS server.proxy is set — in that case it falls back
