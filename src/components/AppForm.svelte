@@ -92,7 +92,7 @@
     baseUploads?: Record<string, PhotoUploadStatus>;
     touchedFields?: string[];
     sourceValues?: Record<string, string>;
-    formContext?: { project: string; city: string; route?: string };
+    formContext?: { project: string; city: string; route?: string; teamName: string };
     onSubmit: (values: Record<string, unknown>) => Promise<void>;
     onPhotoUpload?: (file: File) => Promise<{ ok: boolean; httpCode?: number }>;
     onVideoUpload?: (video: File, poster: File) => Promise<{ ok: boolean; httpCode?: number }>;

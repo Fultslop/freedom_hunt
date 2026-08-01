@@ -1637,7 +1637,7 @@ test("a note field never renders as unknown-type and produces no value on submit
 
 test("formContext resolves a cross-form isVisible reference", () => {
   localStorage.setItem(
-    "demo/den_haag/short_loop/004_loc_lange_voorhout/form",
+    "demo/Team A/den_haag/short_loop/004_loc_lange_voorhout/form",
     JSON.stringify({
       version: "1.2",
       values: { manifesto: "the people" },
@@ -1662,7 +1662,7 @@ test("formContext resolves a cross-form isVisible reference", () => {
     props: {
       fields,
       onSubmit: vi.fn(),
-      formContext: { project: "demo", city: "den_haag", route: "short_loop" },
+      formContext: { project: "demo", city: "den_haag", route: "short_loop", teamName: "Team A" },
     },
   });
   expect(screen.getByText("Echo")).toBeInTheDocument();

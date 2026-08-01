@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/svelte/svelte5";
 import { titleBarStore } from "../stores/titleBarStore";
 import { themeStore } from "../stores/themeStore";
+import { authStore } from "../stores/authStore";
 import RoutePage from "../pages/RoutePage.svelte";
 import type { RouteEntry } from "../types/data";
 import { buildFormStorageKey, saveFormState } from "../utils/formStorage";
@@ -343,6 +344,7 @@ beforeEach(() => {
   titleBarStore.set({ title: "Freedom Hunt", progress: null, backPath: null });
   localStorage.clear();
   themeStore.setThemeName("wireframe");
+  authStore.loginParticipant("democrats_abroad", "Team A", "");
 });
 
 afterEach(() => {
@@ -602,7 +604,7 @@ test("form answers persist under a key keyed by the route's location id, unaffec
   await fireEvent.click(await screen.findByRole("button", { name: /submit/i }));
   await fireEvent.click(await screen.findByRole("button", { name: /confirm/i }));
   await waitFor(() => {
-    const stored = localStorage.getItem("democrats_abroad/den_haag/short_loop/002/form");
+    const stored = localStorage.getItem("democrats_abroad/Team A/den_haag/short_loop/002/form");
     expect(stored).not.toBeNull();
     expect(JSON.parse(stored!).submitted).toBe(true);
   });
@@ -847,8 +849,8 @@ test("computes stops-completed from real form-submission state, and shows it on 
 test("shows photos-taken and time-on-foot from local storage, and stages the progress bar from the real stops-completed fraction to 100%", async () => {
   vi.useFakeTimers();
   vi.setSystemTime(8_280_000);
-  localStorage.setItem("democrats_abroad/den_haag/short_loop", "2");
-  saveFormState(buildFormStorageKey("democrats_abroad", "den_haag", "short_loop", "001"), {
+  localStorage.setItem("democrats_abroad/Team A/den_haag/short_loop", "2");
+  saveFormState(buildFormStorageKey("democrats_abroad", "den_haag", "short_loop", "001", "Team A"), {
     values: {},
     uploads: { pic: { status: "success", httpCode: 200 } },
     submitted: true,
@@ -905,8 +907,8 @@ test("does not redirect when the cached version matches the current one", async 
   const { fetchConsentVersion } = await import("../utils/api");
   vi.mocked(loadLocations).mockResolvedValueOnce(mockConsentEntries as RouteEntry[]);
   vi.mocked(fetchConsentVersion).mockResolvedValue({ ok: true, consentVersion: 1 });
-  localStorage.setItem("democrats_abroad/den_haag/short_loop", "1");
-  localStorage.setItem("democrats_abroad/den_haag/short_loop/consent", JSON.stringify({ consentVersion: 1 }));
+  localStorage.setItem("democrats_abroad/Team A/den_haag/short_loop", "1");
+  localStorage.setItem("democrats_abroad/Team A//den_haag/short_loop/consent", JSON.stringify({ consentVersion: 1 }));
   render(RoutePage, {
     props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
   });
@@ -919,8 +921,8 @@ test("fails open (no redirect) when the version fetch rejects", async () => {
   const { fetchConsentVersion } = await import("../utils/api");
   vi.mocked(loadLocations).mockResolvedValueOnce(mockConsentEntries as RouteEntry[]);
   vi.mocked(fetchConsentVersion).mockRejectedValue(new Error("offline"));
-  localStorage.setItem("democrats_abroad/den_haag/short_loop", "1");
-  localStorage.setItem("democrats_abroad/den_haag/short_loop/consent", JSON.stringify({ consentVersion: 1 }));
+  localStorage.setItem("democrats_abroad/Team A/den_haag/short_loop", "1");
+  localStorage.setItem("democrats_abroad/Team A//den_haag/short_loop/consent", JSON.stringify({ consentVersion: 1 }));
   render(RoutePage, {
     props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
   });
@@ -938,4 +940,40 @@ test("does not fetch a version at all when there is no cached consent record (fi
   });
   expect(await screen.findByText("Before you begin")).toBeInTheDocument();
   expect(fetchConsentVersion).not.toHaveBeenCalled();
+});
+
+test("does not overwrite a team's saved index when auth resolves after mount (cold-reload race)", async () => {
+  authStore.setForTest({ activeAuth: null, authLoading: true, isLoggingOut: false });
+  localStorage.setItem("democrats_abroad/Team A/den_haag/short_loop", "5");
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockFinishLineEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  await waitFor(() => {
+    expect(screen.queryByText("Loading…")).not.toBeInTheDocument();
+  });
+  // Team A's real saved index must survive the window where auth hasn't
+  // resolved yet — the pre-seed placeholder (0) must never be written back.
+  expect(localStorage.getItem("democrats_abroad/Team A/den_haag/short_loop")).toBe("5");
+
+  authStore.loginParticipant("democrats_abroad", "Team A", "");
+  await waitFor(() => {
+    expect(localStorage.getItem("democrats_abroad/Team A/den_haag/short_loop")).toBe("5");
+  });
+});
+
+test("seeds the real saved index once auth resolves after a cold-reload race", async () => {
+  authStore.setForTest({ activeAuth: null, authLoading: true, isLoggingOut: false });
+  localStorage.setItem("democrats_abroad/Team A/den_haag/short_loop", "1");
+  const { loadLocations } = await import("../utils/loadLocations");
+  vi.mocked(loadLocations).mockResolvedValueOnce(mockMixedEntries as RouteEntry[]);
+  render(RoutePage, {
+    props: { params: { project: "democrats_abroad", city: "den_haag", route: "short_loop" } },
+  });
+  authStore.loginParticipant("democrats_abroad", "Team A", "");
+  // mockMixedEntries[1] is the "Between Stops" text entry — reaching it
+  // proves currentIndex was seeded from the real saved value (1), not left
+  // at the pre-auth placeholder (0, which would show "Location 1").
+  expect(await screen.findByText("Between Stops")).toBeInTheDocument();
 });

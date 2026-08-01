@@ -4,16 +4,46 @@ beforeEach(() => {
   localStorage.clear();
 });
 
-test("buildFormStorageKey composes project/city/route/locationId", () => {
-  expect(buildFormStorageKey("demo", "den_haag", "short_loop", "3")).toBe(
-    "demo/den_haag/short_loop/3/form",
+test("buildFormStorageKey composes project/team/city/route/locationId", () => {
+  expect(buildFormStorageKey("demo", "den_haag", "short_loop", "3", "Team A")).toBe(
+    "demo/Team A/den_haag/short_loop/3/form",
   );
 });
 
 test("buildFormStorageKey handles an undefined route", () => {
-  expect(buildFormStorageKey("demo", "den_haag", undefined, "3")).toBe(
-    "demo/den_haag//3/form",
+  expect(buildFormStorageKey("demo", "den_haag", undefined, "3", "Team A")).toBe(
+    "demo/Team A/den_haag//3/form",
   );
+});
+
+test("different team names at the same project/city/route/location get independent form state", () => {
+  const keyA = buildFormStorageKey("demo", "den_haag", "short_loop", "1", "Team A");
+  const keyB = buildFormStorageKey("demo", "den_haag", "short_loop", "1", "Team B");
+  saveFormState(keyA, {
+    values: { note: "A's answer" },
+    uploads: {},
+    submitted: true,
+    skipped: false,
+    touchedFields: [],
+  });
+  expect(loadFormState(keyB).values).toEqual({});
+  expect(loadFormState(keyA).values).toEqual({ note: "A's answer" });
+});
+
+test("the same team name shares form state regardless of contact (team members see each other's answers)", () => {
+  // No contact dimension in this key at all — this test exists to document
+  // that omission is deliberate, not an oversight. See spec §1.
+  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1", "Team A");
+  saveFormState(key, {
+    values: { note: "shared answer" },
+    uploads: {},
+    submitted: true,
+    skipped: false,
+    touchedFields: [],
+  });
+  expect(loadFormState(buildFormStorageKey("demo", "den_haag", "short_loop", "1", "Team A")).values).toEqual({
+    note: "shared answer",
+  });
 });
 
 test("loadFormState returns empty defaults when nothing is stored", () => {
@@ -27,7 +57,7 @@ test("loadFormState returns empty defaults when nothing is stored", () => {
 });
 
 test("saveFormState then loadFormState round-trips the exact state", () => {
-  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1");
+  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1", "Team A");
   const state = {
     values: { note: "hello" },
     uploads: { pic: { status: "success" as const, httpCode: 200 } },
@@ -52,7 +82,7 @@ test("loadFormState falls back to defaults on malformed JSON", () => {
 });
 
 test("saveFormState writes a version envelope that loadFormState reads back transparently", () => {
-  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1");
+  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1", "Team A");
   saveFormState(key, {
     values: { note: "hi" },
     uploads: {},
@@ -108,7 +138,7 @@ test("loadFormState treats a major-version mismatch as empty", () => {
 });
 
 test("saveFormState then loadFormState round-trips submittedAt when present", () => {
-  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1");
+  const key = buildFormStorageKey("demo", "den_haag", "short_loop", "1", "Team A");
   const state = {
     values: {},
     uploads: {},

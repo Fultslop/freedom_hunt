@@ -78,12 +78,12 @@ test("navigates to the gallery page for target value 'gallery'", async () => {
 });
 
 test("clears the saved route position and restarts for target value 'start_route'", async () => {
-  localStorage.setItem("demo/new_york/brooklyn_route", "6");
+  localStorage.setItem("demo/Team A/new_york/brooklyn_route", "6");
   render(OptionsScreen, {
     props: { ...baseProps, title: "T", options: [{ text: "Go", target: { type: "page", value: "start_route" } }] },
   });
   await fireEvent.click(screen.getByText("Go"));
-  expect(localStorage.getItem("demo/new_york/brooklyn_route")).toBeNull();
+  expect(localStorage.getItem("demo/Team A/new_york/brooklyn_route")).toBeNull();
   expect(pushMock).toHaveBeenCalledWith("/demo/new_york/brooklyn_route");
 });
 

@@ -63,7 +63,7 @@ function createAuthStore() {
     capabilities: string[],
   ) {
     const editorAuth: EditorAuthState = { kind: "editor", userId, email, username, capabilities };
-    upd((state) => ({ ...state, activeAuth: editorAuth }));
+    upd((state) => ({ ...state, activeAuth: editorAuth, authLoading: false }));
   }
 
   function loginParticipant(
@@ -73,7 +73,7 @@ function createAuthStore() {
     isAdmin = false,
   ) {
     const participantAuth: ParticipantAuthState = { kind: "participant", projectId, teamName, contact, isAdmin };
-    upd((state) => ({ ...state, activeAuth: participantAuth }));
+    upd((state) => ({ ...state, activeAuth: participantAuth, authLoading: false }));
   }
 
   async function logout() {
