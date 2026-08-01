@@ -100,3 +100,11 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
+
+.landing-page__version {
+  margin-top: 0.5rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  opacity: 0.6;
+}
