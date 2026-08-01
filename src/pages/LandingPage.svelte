@@ -75,6 +75,7 @@
         Self-host
       </button>
     </nav>
+    <p class="landing-page__version">{__BUILD_VERSION__}</p>
   </div>
   <JoinSheet
     open={sheetOpen}
