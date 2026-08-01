@@ -6,9 +6,10 @@
   import { AlertTriangle, Footprints, Wifi, Phone, Eye, ShieldAlert, Route, Clock, TrendingUp } from "lucide-svelte";
   import AppForm from "./AppForm.svelte";
   import MarkdownText from "./MarkdownText.svelte";
+  import Storyline from "./Storyline.svelte";
   import { postConsentUpdate } from "../utils/api";
   import { writeConsentCache } from "../utils/consentCache";
-  import type { ConsentEntry } from "../types/data";
+  import type { ConsentEntry, ConsentBulletSection } from "../types/data";
   import "./ConsentScreen.css";
 
   const ICONS = { AlertTriangle, Footprints, Wifi, Phone, Eye, ShieldAlert, Route, Clock, TrendingUp } as const;
@@ -18,26 +19,35 @@
     project,
     city,
     route,
-    ageThreshold = 16,
+    safetyDefault = undefined,
+    photosDefault = undefined,
     onContinue = undefined,
   }: {
     entry: ConsentEntry;
     project: string;
     city: string;
     route: string;
-    ageThreshold?: number;
+    safetyDefault?: ConsentBulletSection;
+    photosDefault?: ConsentBulletSection;
     onContinue?: () => void;
   } = $props();
 
-  // The age threshold varies per project (13-16 across the EU, spec §3), so
-  // it can't be baked into the YAML label as a literal — content authors
-  // write `{{age_threshold}}` in a field's label/subtext and it's resolved
-  // here at render time from the project's `project.consent_age_threshold`.
+  const sections = $derived(
+    [entry.safety ?? safetyDefault, entry.photos ?? photosDefault].filter(
+      (section): section is ConsentBulletSection => section !== undefined,
+    ),
+  );
+
+  // The minimum age is authored per-route (ConsentEntry.minimumAge) so a
+  // route's consent screen is self-contained content, not dependent on a
+  // project-level setting threaded through three components — content
+  // authors write `{{age_threshold}}` in a field's label/subtext and it's
+  // resolved here at render time from this entry's own minimumAge.
   const resolvedFields = $derived(
-    entry.fields.map((field) => ({
+    (entry.fields ?? []).map((field) => ({
       ...field,
-      label: field.label.replaceAll("{{age_threshold}}", String(ageThreshold)),
-      subtext: field.subtext?.replaceAll("{{age_threshold}}", String(ageThreshold)),
+      label: field.label.replaceAll("{{age_threshold}}", String(entry.minimumAge)),
+      subtext: field.subtext?.replaceAll("{{age_threshold}}", String(entry.minimumAge)),
     })),
   );
 
@@ -72,7 +82,7 @@
       {/each}
     </ul>
   {/if}
-  {#each [entry.safety, entry.photos] as section, i (i)}
+  {#each sections as section, i (i)}
     <section class="consent-screen__section">
       <h2 class="consent-screen__section-heading">{section.heading}</h2>
       <ul class="consent-screen__bullets">
@@ -86,6 +96,11 @@
       </ul>
     </section>
   {/each}
+  {#if entry.whyWereAsking}
+    <div class="consent-screen__why">
+      <Storyline text={entry.whyWereAsking} />
+    </div>
+  {/if}
   <div class="consent-screen__form">
     <AppForm
       fields={resolvedFields}

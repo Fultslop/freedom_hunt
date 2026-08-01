@@ -15,6 +15,3 @@ project.can_forms_skip: true
 
 # users can resubmit the form if they want to change their answers
 project.allow_resubmit: true
-
-# GDPR Article 8 age threshold for the consent screen — varies 13-16 across the EU
-project.consent_age_threshold: 16

@@ -11,6 +11,7 @@ const validDoc = {
   "template-type": "consent",
   heading: "Before you begin",
   intro: "A few things to know before you head out.",
+  minimumAge: 16,
   chips: [{ icon: "Route", text: "2.4 km" }, { icon: "Clock", text: "~2 hours" }],
   safety: { heading: "Stay safe", items: [{ icon: "Phone", text: "Call 112." }] },
   photos: { heading: "About your photos", items: [{ icon: "Eye", text: "Others can see your photos." }] },

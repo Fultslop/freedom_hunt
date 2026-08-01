@@ -92,6 +92,7 @@ const {
       "nav-bar": { visible: false },
       heading: "Before you begin",
       intro: "A few things to know.",
+      minimumAge: 16,
       safety: { heading: "Stay safe", items: [{ icon: "Phone", text: "Call 112." }] },
       photos: { heading: "About your photos", items: [{ icon: "Eye", text: "Others can see your photos." }] },
       fields: [],

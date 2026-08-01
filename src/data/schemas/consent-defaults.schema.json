@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Consent Defaults",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["safety", "photos"],
+  "properties": {
+    "safety": { "$ref": "#/definitions/bulletSection" },
+    "photos": { "$ref": "#/definitions/bulletSection" }
+  },
+  "definitions": {
+    "iconItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["icon", "text"],
+      "properties": {
+        "icon": { "type": "string" },
+        "text": { "type": "string" }
+      }
+    },
+    "bulletSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["heading", "items"],
+      "properties": {
+        "heading": { "type": "string" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/iconItem" }
+        }
+      }
+    }
+  }
+}
